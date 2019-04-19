@@ -1,0 +1,33 @@
+PODS:
+  - Flutter (1.0.0)
+  - JCore (1.2.6)
+  - JVerification (2.1.1):
+    - JCore (~> 1.2.6)
+  - jverify (0.0.1):
+    - Flutter
+    - JVerification (= 2.1.1)
+
+DEPENDENCIES:
+  - Flutter (from `.symlinks/flutter/ios`)
+  - jverify (from `.symlinks/plugins/jverify/ios`)
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - JCore
+    - JVerification
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: ".symlinks/flutter/ios"
+  jverify:
+    :path: ".symlinks/plugins/jverify/ios"
+
+SPEC CHECKSUMS:
+  Flutter: 58dd7d1b27887414a370fcccb9e645c08ffd7a6a
+  JCore: cae516dd2bf1a73b578ce6e1065abd49e709e0f7
+  JVerification: 5c8eb8e5ae5794a420872a392be8486a3f56a70e
+  jverify: 00436b5a828e1828a2e3ea6b8bfd6a92d835dbcb
+
+PODFILE CHECKSUM: aff02bfeed411c636180d6812254b2daeea14d09
+
+COCOAPODS: 1.6.1
