@@ -9,6 +9,7 @@ import java.util.Map;
 import cn.jiguang.api.JCoreInterface;
 import cn.jiguang.verifysdk.api.JVerificationInterface;
 import cn.jiguang.verifysdk.api.JVerifyUIConfig;
+import cn.jiguang.verifysdk.api.PreLoginListener;
 import cn.jiguang.verifysdk.api.VerifyListener;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -18,6 +19,22 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 /** JverifyPlugin */
 public class JverifyPlugin implements MethodCallHandler {
+
+  // 定义日志 TAG
+  private  static  final String TAG = "| JVER | Android | -";
+
+
+  /// 统一 key
+  private static  String j_result_key = "result";
+  /// 错误码
+  private static  String  j_code_key = "code";
+  /// 回调的提示信息，统一返回 flutter 为 message
+  private static  String  j_msg_key  = "message";
+  /// 运营商信息
+  private static  String  j_opr_key  = "operator";
+  // 默认超时时间
+  private  static  int j_default_timeout = 5000;
+
 
   private Context context;
   private MethodChannel channel;
@@ -36,96 +53,221 @@ public class JverifyPlugin implements MethodCallHandler {
 
   @Override
   public void onMethodCall(MethodCall call, Result result) {
+    Log.d(TAG,"onMethodCall:" + call.method);
+
     if (call.method.equals("setup")) {
       setup(call,result);
-    }else if(call.method.equals("setDebugMode")){
-      setDebugMode(call,result);
-    }else if(call.method.equals("checkVerifyEnable")){
+    }else if (call.method.equals("setDebugMode")) {
+      setDebugMode(call, result);
+    }else if (call.method.equals("isInitSuccess")) {
+      isInitSuccess(call, result);
+    }else if (call.method.equals("checkVerifyEnable")) {
       checkVerifyEnable(call,result);
-    }else if(call.method.equals("getToken")){
+    }else if (call.method.equals("getToken")) {
       getToken(call,result);
-    }else if(call.method.equals("verifyNumber")){
+    }else if (call.method.equals("verifyNumber")) {
       verifyNumber(call,result);
-    }else if(call.method.equals("loginAuth")){
-      loginAuth(call,result);
-    }else if(call.method.equals("setCustomUI")){
+    }else if (call.method.equals("loginAuth")) {
+      loginAuth(call, result);
+    }else  if (call.method.equals("preLogin")) {
+      preLogin(call, result);
+    }else if (call.method.equals("dismissLoginAuthView")) {
+      dismissLoginAuthView(call, result);
+    }else if (call.method.equals("setCustomUI")) {
       setCustomUI(call,result);
     } else {
       result.notImplemented();
     }
   }
 
+  /** SDK 初始换  */
   private void setup(MethodCall call,Result result){
+    Log.d(TAG,"Action - setup:");
     JVerificationInterface.init(context);
   }
 
+  /** SDK设置debug模式 */
   private void setDebugMode(MethodCall call,Result result){
+    Log.d(TAG,"Action - setDebugMode:");
     Object enable =  getValueByKey(call,"debug");
     if (enable != null){
       JVerificationInterface.setDebugMode((Boolean) enable);
     }
 
-  }
-
-  private void checkVerifyEnable(MethodCall call,Result result){
-    boolean verifyEnable = JVerificationInterface.checkVerifyEnable(context);
     Map<String,Object> map = new HashMap<>();
-    map.put("result",verifyEnable);
+    map.put(j_result_key,enable);
     result.success(map);
   }
 
-  private void getToken(MethodCall call, final Result result){
-    JVerificationInterface.getToken(context, new VerifyListener() {
+  /** 获取 SDK 初始化是否成功标识 */
+  private  boolean isInitSuccess(MethodCall call, Result result) {
+    Log.d(TAG,"Action - isInitSuccess:");
+    boolean isSuccess = JVerificationInterface.isInitSuccess();
+    if (!isSuccess) {
+      Log.d( TAG, "SDK 初始化失败: ");
+    }
+
+    Map<String,Object> map = new HashMap<>();
+    map.put(j_result_key, isSuccess);
+    result.success(map);
+
+    return isSuccess;
+  }
+
+
+  /** SDK 判断网络环境是否支持 */
+  private boolean checkVerifyEnable(MethodCall call,Result result){
+    Log.d(TAG,"Action - checkVerifyEnable:");
+    boolean verifyEnable = JVerificationInterface.checkVerifyEnable(context);
+    if (!verifyEnable) {
+      Log.d( TAG, "当前网络环境不支持");
+    }
+
+    Map<String,Object> map = new HashMap<>();
+    map.put(j_result_key, verifyEnable);
+    result.success(map);
+
+    return verifyEnable;
+  }
+
+  /** SDK获取号码认证token*/
+  private void getToken(MethodCall call, final Result result) {
+    Log.d(TAG,"Action - getToken:");
+
+    int timeOut = j_default_timeout;
+    if (call.hasArgument("timeOut")) {
+      String timeOutString = call.argument("timeOut");
+
+      try {
+        timeOut = Integer.valueOf(timeOutString);
+      } catch (Exception e) {
+        Log.e(TAG,"timeOut type error.");
+      }
+    }
+
+
+    JVerificationInterface.getToken(context, timeOut, new VerifyListener() {
       @Override
       public void onResult(int code, String content, String operator) {
+
+        if (code == 2000){//code: 返回码，2000代表获取成功，其他为失败
+          Log.d(TAG, "token=" + content + ", operator=" + operator);
+        } else {
+          Log.e(TAG, "code=" + code + ", message=" + content);
+        }
+
         Map<String,Object> map = new HashMap<>();
-        map.put("code",code);
-        map.put("content",content);
-        map.put("operator",operator);
+        map.put(j_code_key,code);
+        map.put(j_msg_key,content);
+        map.put(j_opr_key,operator);
         result.success(map);
       }
     });
   }
 
-  private void verifyNumber(MethodCall call, final Result result){
+  /** SDK 发起号码认证 */
+  private void verifyNumber(MethodCall call, final Result result) {
+    Log.d(TAG,"Action - verifyNumber:");
+
     String token = null;
     if (call.hasArgument("token")){
       token = call.argument("token");
     }
-    String phone= null;
+    String phone = null;
     if (call.hasArgument("phone")){
       phone = call.argument("phone");
+    }
+    if (phone == null || phone.isEmpty() || phone.length() == 0) {
+      Log.e(TAG,"phone can not be nil.");
+      return;
     }
     JVerificationInterface.verifyNumber(context, token, phone, new VerifyListener() {
       @Override
       public void onResult(int code, String content, String operator) {
+
+        if (code == 1000){//code: 返回码，1000代表验证一致，1001代表验证不一致，其他为失败，详见错误码描述
+          Log.d(TAG, "verify consistent, operator=" + operator);
+        } else if (code == 1001) {
+          Log.d(TAG, "verify not consistent");
+        } else {
+          Log.e(TAG, "code=" + code + ", message=" + content);
+        }
+
         Map<String,Object> map = new HashMap<>();
-        map.put("code",code);
-        map.put("content",content);
-        map.put("operator",operator);
+        map.put(j_code_key,code);
+        map.put(j_msg_key,content);
+        map.put(j_opr_key,operator);
         result.success(map);
       }
     });
   }
 
+  /** SDK 一键登录预取号 */
+  private  void  preLogin(MethodCall call,final Result result) {
+    Log.d(TAG,"Action - preLogin:" + call.arguments);
+
+    int timeOut = j_default_timeout;
+    if (call.hasArgument("timeOut")) {
+      Integer value = call.argument("timeOut");
+      timeOut = value;
+    }
+
+    JVerificationInterface.preLogin(context, timeOut, new PreLoginListener() {
+      @Override
+      public void onResult(int code, String message) {
+
+        if (code == 7000){//code: 返回码，7000代表获取成功，其他为失败，详见错误码描述
+          Log.d(TAG, "verify consistent, message =" + message);
+        }else {
+          Log.e(TAG, "code=" + code + ", message =" + message);
+        }
+
+        Map<String,Object> map = new HashMap<>();
+        map.put(j_code_key,code);
+        map.put(j_msg_key,message);
+        result.success(map);
+      }
+    });
+  }
+
+
+  /** SDK请求授权一键登录 */
   private void loginAuth(MethodCall call,final Result result){
-    JVerificationInterface.loginAuth(context, new VerifyListener() {
+    Log.d(TAG,"Action - loginAuth:");
+
+    Object autoFinish =  getValueByKey(call,"autoDismiss");
+
+    JVerificationInterface.loginAuth(context, (Boolean)autoFinish, new VerifyListener() {
       @Override
       public void onResult(int code, String content, String operator) {
+
+        //code: 返回码，6000代表loginToken获取成功，6001代表loginToken获取失败
+        if (code == 6000){
+          Log.d(TAG, "code = " + code + ", token = " + content +" ,operator = " + operator);
+        }else{
+          Log.e(TAG, "code = " + code + ", message = " + content);
+        }
+
         Map<String,Object> map = new HashMap<>();
-        map.put("code",code);
-        map.put("content",content);
-        map.put("operator",operator);
+        map.put(j_code_key,code);
+        map.put(j_msg_key,content);
+        map.put(j_opr_key,operator);
         result.success(map);
+
       }
     });
   }
+  /** SDK关闭授权页面 */
+  private  void dismissLoginAuthView(MethodCall call, Result result) {
+    Log.d(TAG,"Action - dismissLoginAuthView:");
 
-  /**
-   * @param call
-   * @param result
-   */
+    JVerificationInterface.dismissLoginAuthActivity();
+  }
+
+  /** SDK自定义授权页面UI样式 */
   private void setCustomUI(MethodCall call,final Result result){
+    Log.d(TAG,"setCustomUI:");
+
     Object navColor = getValueByKey(call,"navColor");
     Object navText = getValueByKey(call,"navText");
     Object navTextColor = getValueByKey(call,"navTextColor");
@@ -289,6 +431,10 @@ public class JverifyPlugin implements MethodCallHandler {
     }
 
     JVerificationInterface.setCustomUIWithConfig(builder.build());
+  }
+
+  /** SDK授权页面添加自定义控件 */
+  private  void addCustomView(MethodCall call, Result result) {
 
   }
 
