@@ -20,12 +20,12 @@ static long j_default_timeout = 5000;
 
 @implementation JverifyPlugin
 
-NSObject<FlutterPluginRegistrar>* _registrar;
+NSObject<FlutterPluginRegistrar>* _jv_registrar;
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
   FlutterMethodChannel* channel = [FlutterMethodChannel methodChannelWithName:@"jverify"
                                                               binaryMessenger:[registrar messenger]];
-  _registrar = registrar;
+  _jv_registrar = registrar;
   JverifyPlugin* instance = [[JverifyPlugin alloc] init];
   [registrar addMethodCallDelegate:instance channel:channel];
 }
