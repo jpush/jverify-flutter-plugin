@@ -7,6 +7,7 @@ import 'package:jverify/jverify.dart';
 
 
 
+
 void main() => runApp(MyApp());
 
 class MyApp extends StatefulWidget {
@@ -33,6 +34,7 @@ class _MyAppState extends State<MyApp> {
   final Jverify jverify = new Jverify();
   bool _loading = false;
   String _token;
+
 
   @override
   void initState() {
@@ -219,7 +221,7 @@ class _MyAppState extends State<MyApp> {
     jverify.checkVerifyEnable().then((map) {
       bool result = map[f_result_key];
       if (result) {
-        jverify.verifyNumber(controllerPHone.text, token: _token).then((map) {
+        jverify.verifyNumber(controllerPHone.text, token: _token ?? null).then((map) {
           int code = map[f_code_key];
           String content = map[f_msg_key];
           setState(() {
@@ -271,44 +273,99 @@ class _MyAppState extends State<MyApp> {
       bool result = map[f_result_key];
       if (result) {
 
-        /// 自定义授权 UI 界面
-        jverify.setCustomUI(
-          navColor: Colors.red.value,
-          navText: "登录",
-          navTextColor: Colors.blue.value,
-          navReturnImgPath: "return_bg",
+        /// 自定义授权的 UI 界面
+        JVUIConfig uiConfig = JVUIConfig();
+        uiConfig.navColor = Colors.red.value;
 
-          logoHidden: false,
-          logoOffsetY: 10,
-          logoWidth: 90,
-          logoHeight: 90,
-          logoImgPath: "logo",
+        uiConfig.navText = "登录";
+        uiConfig.navTextColor = Colors.blue.value;
+        uiConfig.navReturnImgPath = "return_bg";
 
-          numFieldOffsetY: 120,
-          numberColor: Colors.blue.value,
+        uiConfig.logoHidden = false;
+        uiConfig.logoOffsetY = 10;
+        uiConfig.logoWidth = 90;
+        uiConfig.logoHeight = 90;
+        uiConfig.logoImgPath = "logo";
 
-          sloganOffsetY: 150,
-          sloganTextColor: Colors.black.value,
+        uiConfig.numFieldOffsetY = 120;
+        uiConfig.numberColor = Colors.blue.value;
 
-          logBtnOffsetY: 300,
-          logBtnText: "登录按钮",
-          logBtnTextColor: Colors.brown.value,
-          loginBtnNormalImage: "login_btn_normal",
-          loginBtnPressedImage: "login_btn_press",
-          loginBtnUnableImage: "login_btn_unable",
+        uiConfig.sloganOffsetY = 150;
+        uiConfig.sloganTextColor = Colors.black.value;
 
-          checkedImgPath: "check_image",
-          uncheckedImgPath: "uncheck_image",
-          privacyOffsetY: 80,
+        uiConfig.logBtnOffsetY = 300;
+        uiConfig.logBtnText = "登录按钮";
+        uiConfig.logBtnTextColor = Colors.brown.value;
+        uiConfig.loginBtnNormalImage = "login_btn_normal";
+        uiConfig.loginBtnPressedImage = "login_btn_press";
+        uiConfig.loginBtnUnableImage = "login_btn_unable";
 
-          clauseName: "协议1",
-          clauseUrl: "http://www.baidu.com",
-          clauseBaseColor: Colors.black.value,
+        uiConfig.checkedImgPath = "check_image";
+        uiConfig.uncheckedImgPath = "uncheck_image";
+        uiConfig.privacyOffsetY = 80;
 
-          clauseNameTwo: "协议二",
-          clauseUrlTwo: "http://www.hao123.com",
-          clauseColor: Colors.red.value,
-        );
+        uiConfig.clauseName = "协议1";
+        uiConfig.clauseUrl = "http://www.baidu.com";
+        uiConfig.clauseBaseColor = Colors.black.value;
+
+        uiConfig.clauseNameTwo = "协议二";
+        uiConfig.clauseUrlTwo = "http://www.hao123.com";
+        uiConfig.clauseColor = Colors.red.value;
+
+
+        uiConfig.privacyState = true;
+
+        /// 添加自定义的 控件 到授权界面
+        List<JVCustomWidget>widgetList = [];
+
+        /*
+        final String text_widgetId = "jv_add_custom_text";// 标识控件 id
+        JVCustomWidget textWidget = JVCustomWidget(text_widgetId, JVCustomWidgetType.textView);
+        textWidget.title = "新加 text view 控件";
+        textWidget.left = 20;
+        textWidget.top = 360 ;
+        textWidget.width = 200;
+        textWidget.height  = 40;
+        textWidget.backgroundColor = Colors.yellow.value;
+        textWidget.isShowUnderline = true;
+        textWidget.textAlignment = JVTextAlignmentType.center;
+        textWidget.isClickEnable = true;
+
+        // 添加点击事件监听
+        jverify.addClikWidgetEventListener(text_widgetId, (eventId) {
+          print("receive listener - click widget event :$eventId");
+          if (text_widgetId == eventId) {
+            print("receive listener - 点击【新加 text】");
+          }
+        });
+        widgetList.add(textWidget);
+
+        final String btn_widgetId = "jv_add_custom_button";// 标识控件 id
+        JVCustomWidget buttonWidget = JVCustomWidget(btn_widgetId, JVCustomWidgetType.button);
+        buttonWidget.title = "新加 button 控件";
+        buttonWidget.left = 100;
+        buttonWidget.top = 400;
+        buttonWidget.width = 150;
+        buttonWidget.height  = 40;
+        buttonWidget.isShowUnderline = true;
+        buttonWidget.backgroundColor = Colors.brown.value;
+        //buttonWidget.btnNormalImageName = "";
+        //buttonWidget.btnPressedImageName = "";
+        //buttonWidget.textAlignment = JVTextAlignmentType.left;
+
+        // 添加点击事件监听
+        jverify.addClikWidgetEventListener(btn_widgetId, (eventId) {
+          print("receive listener - click widget event :$eventId");
+          if (btn_widgetId == eventId) {
+            print("receive listener - 点击【新加 button】");
+          }
+        });
+        widgetList.add(buttonWidget);
+        */
+
+        /// 调用接口设置 UI
+        jverify.setCustomAuthViewAllWidgets(uiConfig,widgets: widgetList);
+
 
         /// 开始一键登录
         jverify.loginAuth(true).then((map) {
@@ -333,7 +390,7 @@ class _MyAppState extends State<MyApp> {
     String platformVersion;
     jverify.setDebugMode(false); // 打开调试模式
     jverify.setup(
-        appKey: "你自己应用的 AppKey",
+        appKey: "你自己应用的 AppKey",//"你自己应用的 AppKey",
         channel: "devloper-default"); // 初始化sdk,  appKey 和 channel 只对ios设置有效
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling

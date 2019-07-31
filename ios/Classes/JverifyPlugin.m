@@ -27,6 +27,7 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
                                                               binaryMessenger:[registrar messenger]];
   _jv_registrar = registrar;
   JverifyPlugin* instance = [[JverifyPlugin alloc] init];
+  instance.channel = channel;
   [registrar addMethodCallDelegate:instance channel:channel];
 }
 
@@ -53,8 +54,10 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     }else if([methodName isEqualToString:@"dismissLoginAuthView"]){
         [self dismissLoginController:call result:result];
     }else if([methodName isEqualToString:@"setCustomUI"]){
-        [self setCustomUIWithConfig:call result:result];
-    }else {
+//        [self setCustomUIWithConfig:call result:result];
+    }else if ([methodName isEqualToString:@"setCustomAuthViewAllWidgets"]) {
+        [self setCustomAuthViewAllWidgets:call result:result];
+    } else {
         result(FlutterMethodNotImplemented);
     }
 }
@@ -172,7 +175,12 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     
     JVAuthEntity *entity = [[JVAuthEntity alloc] init];
     entity.number = phone;
-    entity.token = token;
+    if (![token isKindOfClass:[NSNull class]]) {
+        if (token && token.length) {
+            entity.token = token;
+        }
+    }
+    
     [JVERIFICATIONService verifyNumber:entity result:^(NSDictionary *res) {
         JVLog(@"sdk verifyNumber completion : %@",res);
         
@@ -257,9 +265,13 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     [JVERIFICATIONService dismissLoginController];
 }
 
-#pragma mark - SDK自定义授权页面UI样式
--(void)setCustomUIWithConfig:(FlutterMethodCall*) call result:(FlutterResult)result {
-    JVLog(@"Action - setCustomUIWithConfig::");
+#pragma mark - 自定义授权页面所有的 UI （包括：原有的、新加的）
+-(void)setCustomAuthViewAllWidgets:(FlutterMethodCall*) call result:(FlutterResult)result {
+    JVLog(@"Action - setCustomAuthViewAllWidgets:%@",call.arguments);
+    
+    NSDictionary *uiconfig = call.arguments[@"uiconfig"];
+    NSArray *widgets = call.arguments[@"widgets"];
+    
     /*移动*/
     JVMobileUIConfig *mobileUIConfig = [[JVMobileUIConfig alloc] init];
     /*联通*/
@@ -267,24 +279,80 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     /*电信*/
     JVTelecomUIConfig *telecomUIConfig = [[JVTelecomUIConfig alloc] init];
     
+    [self setCustomUIWithConfigWithMobile:mobileUIConfig unicom:unicomUIConfig telecom:telecomUIConfig configArguments:uiconfig];
+    
+    [JVERIFICATIONService customUIWithConfig:mobileUIConfig customViews:^(UIView *customAreaView) {
+        for (NSDictionary *widgetDic in widgets) {
+            NSString *type = [self getValue:widgetDic key:@"type"];
+            if ([type isEqualToString:@"textView"]) {
+                [customAreaView addSubview:[self addCustomTextWidget:widgetDic]];
+            }else if ([type isEqualToString:@"button"]){
+                [customAreaView addSubview:[self addCustomButtonWidget:widgetDic]];
+            }else{
+                
+            }
+        }
+    }];
+    [JVERIFICATIONService customUIWithConfig:unicomUIConfig customViews:^(UIView *customAreaView) {
+        for (NSDictionary *widgetDic in widgets) {
+            NSString *type = [self getValue:widgetDic key:@"type"];
+            if ([type isEqualToString:@"textView"]) {
+                [customAreaView addSubview:[self addCustomTextWidget:widgetDic]];
+            }else if ([type isEqualToString:@"button"]){
+                [customAreaView addSubview:[self addCustomButtonWidget:widgetDic]];
+            }else{
+                
+            }
+        }
+    }];
+    [JVERIFICATIONService customUIWithConfig:telecomUIConfig customViews:^(UIView *customAreaView) {
+        for (NSDictionary *widgetDic in widgets) {
+            NSString *type = [self getValue:widgetDic key:@"type"];
+            if ([type isEqualToString:@"textView"]) {
+                [customAreaView addSubview:[self addCustomTextWidget:widgetDic]];
+            }else if ([type isEqualToString:@"button"]){
+                [customAreaView addSubview:[self addCustomButtonWidget:widgetDic]];
+            }else{
+                
+            }
+        }
+    }];
+}
+
+#pragma mark - 自定义授权页面原有的 UI 控件
+
+/**
+ 自定义授权页面原有的 UI 控件
+
+ @param mobileUIConfig 移动
+ @param unicomUIConfig 联通
+ @param telecomUIConfig 电信
+ @param config 自定义配置
+ */
+- (void)setCustomUIWithConfigWithMobile:(JVUIConfig *)mobileUIConfig
+                                 unicom:(JVUIConfig *)unicomUIConfig
+                                telecom:(JVUIConfig *)telecomUIConfig
+                        configArguments:(NSDictionary *)config {
+    JVLog(@"Action - setCustomUIWithConfigWithMobile:::");
+    
     mobileUIConfig.barStyle = 0;
     unicomUIConfig.barStyle = 0;
     telecomUIConfig.barStyle = 0;
 
-    NSNumber *navColor = [self getValue:call key:@"navColor"];
+    NSNumber *navColor = [self getValue:config key:@"navColor"];
     if (navColor) {
         mobileUIConfig.navColor  = UIColorFromRGB([navColor intValue]);
         unicomUIConfig.navColor  = UIColorFromRGB([navColor intValue]);
         telecomUIConfig.navColor = UIColorFromRGB([navColor intValue]);
     }
     
-    NSString *navText = [self getValue:call key:@"navText"];
+    NSString *navText = [self getValue:config key:@"navText"];
     if (!navText) {
         navText = @"登录";
     }
     UIColor *navTextColor = UIColorFromRGB(-1);
-    if ([self getValue:call key:@"navTextColor"]) {
-        navTextColor = UIColorFromRGB([[self getValue:call key:@"navTextColor"] intValue]);
+    if ([self getValue:config key:@"navTextColor"]) {
+        navTextColor = UIColorFromRGB([[self getValue:config key:@"navTextColor"] intValue]);
     }
     NSDictionary *navTextAttr = @{NSForegroundColorAttributeName:navTextColor};
     NSAttributedString *attr = [[NSAttributedString alloc]initWithString:navText attributes:navTextAttr];
@@ -292,136 +360,136 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     unicomUIConfig.navText = attr;
     telecomUIConfig.navText = attr;
     
-    NSString *imageName =[self getValue:call key:@"navReturnImgPath"];
+    NSString *imageName =[self getValue:config key:@"navReturnImgPath"];
     if(imageName){
         mobileUIConfig.navReturnImg  = [UIImage imageNamed:imageName];
         unicomUIConfig.navReturnImg  = [UIImage imageNamed:imageName];
         telecomUIConfig.navReturnImg = [UIImage imageNamed:imageName];
     }
     
-    NSString *logoImgPath =[self getValue:call key:@"logoImgPath"];
+    NSString *logoImgPath =[self getValue:config key:@"logoImgPath"];
     if(logoImgPath){
         mobileUIConfig.logoImg  = [UIImage imageNamed:logoImgPath];
         unicomUIConfig.logoImg  = [UIImage imageNamed:logoImgPath];
         telecomUIConfig.logoImg = [UIImage imageNamed:logoImgPath];
     }
     
-    NSNumber *logoHidden = [self getValue:call key:@"logoHidden"];
+    NSNumber *logoHidden = [self getValue:config key:@"logoHidden"];
     if(logoHidden){
         mobileUIConfig.logoHidden  = [logoHidden boolValue];
         unicomUIConfig.logoHidden  = [logoHidden boolValue];
         telecomUIConfig.logoHidden = [logoHidden boolValue];
     }
     
-    NSNumber *logoWidth = [self getValue:call key:@"logoWidth"];
+    NSNumber *logoWidth = [self getValue:config key:@"logoWidth"];
     if(logoWidth){
         mobileUIConfig.logoWidth  = [logoWidth intValue];
         unicomUIConfig.logoWidth  = [logoWidth intValue];
         telecomUIConfig.logoWidth = [logoWidth intValue];
     }
     
-    NSNumber *logoHeight = [self getValue:call key:@"logoHeight"];
+    NSNumber *logoHeight = [self getValue:config key:@"logoHeight"];
     if(logoHeight){
         mobileUIConfig.logoHeight  = [logoHeight intValue];
         unicomUIConfig.logoHeight  = [logoHeight intValue];
         telecomUIConfig.logoHeight = [logoHeight intValue];
     }
     
-    NSNumber *logoOffsetY = [self getValue:call key:@"logoOffsetY"];
+    NSNumber *logoOffsetY = [self getValue:config key:@"logoOffsetY"];
     if(logoOffsetY){
         mobileUIConfig.logoOffsetY  = [logoOffsetY integerValue];
         unicomUIConfig.logoOffsetY  = [logoOffsetY integerValue];
         telecomUIConfig.logoOffsetY = [logoOffsetY integerValue];
     }
     
-    NSNumber *numberColor = [self getValue:call key:@"numberColor"];
+    NSNumber *numberColor = [self getValue:config key:@"numberColor"];
     if(numberColor){
         mobileUIConfig.numberColor  = UIColorFromRGB([numberColor intValue]);
         unicomUIConfig.numberColor  = UIColorFromRGB([numberColor intValue]);
         telecomUIConfig.numberColor = UIColorFromRGB([numberColor intValue]);
     }
     
-    NSNumber *numFieldOffsetY = [self getValue:call key:@"numFieldOffsetY"];
+    NSNumber *numFieldOffsetY = [self getValue:config key:@"numFieldOffsetY"];
     if(numFieldOffsetY){
         mobileUIConfig.numFieldOffsetY  = [numFieldOffsetY integerValue];
         unicomUIConfig.numFieldOffsetY  = [numFieldOffsetY integerValue];
         telecomUIConfig.numFieldOffsetY = [numFieldOffsetY integerValue];
     }
     
-    NSString *logBtnText = [self getValue:call key:@"logBtnText"];
+    NSString *logBtnText = [self getValue:config key:@"logBtnText"];
     if(logBtnText){
         mobileUIConfig.logBtnText  = logBtnText;
         unicomUIConfig.logBtnText  = logBtnText;
         telecomUIConfig.logBtnText = logBtnText;
     }
     
-    NSNumber *logBtnTextColor = [self getValue:call key:@"logBtnTextColor"];
+    NSNumber *logBtnTextColor = [self getValue:config key:@"logBtnTextColor"];
     if(logBtnTextColor){
         mobileUIConfig.logBtnTextColor  = UIColorFromRGB([logBtnTextColor integerValue]);
         unicomUIConfig.logBtnTextColor  = UIColorFromRGB([logBtnTextColor integerValue]);
         telecomUIConfig.logBtnTextColor = UIColorFromRGB([logBtnTextColor integerValue]);
     }
     
-    NSNumber *logBtnOffsetY = [self getValue:call key:@"logBtnOffsetY"];
+    NSNumber *logBtnOffsetY = [self getValue:config key:@"logBtnOffsetY"];
     if(logBtnOffsetY){
         mobileUIConfig.logBtnOffsetY  = [logBtnOffsetY integerValue];
         unicomUIConfig.logBtnOffsetY  = [logBtnOffsetY integerValue];
         telecomUIConfig.logBtnOffsetY = [logBtnOffsetY integerValue];
     }
-    NSString *loginBtnNormalImage =[self getValue:call key:@"loginBtnNormalImage"];
+    NSString *loginBtnNormalImage =[self getValue:config key:@"loginBtnNormalImage"];
     loginBtnNormalImage = loginBtnNormalImage?:nil;
-    NSString *loginBtnPressedImage =[self getValue:call key:@"loginBtnPressedImage"];
+    NSString *loginBtnPressedImage =[self getValue:config key:@"loginBtnPressedImage"];
     loginBtnPressedImage = loginBtnPressedImage?:nil;
-    NSString *loginBtnUnableImage =[self getValue:call key:@"loginBtnUnableImage"];
+    NSString *loginBtnUnableImage =[self getValue:config key:@"loginBtnUnableImage"];
     loginBtnUnableImage = loginBtnUnableImage?:nil;
     NSArray * images =[[NSArray alloc]initWithObjects:[UIImage imageNamed:loginBtnNormalImage],[UIImage imageNamed:loginBtnPressedImage],[UIImage imageNamed:loginBtnUnableImage],nil];
     mobileUIConfig.logBtnImgs = images;
     unicomUIConfig.logBtnImgs = images;
     telecomUIConfig.logBtnImgs = images;
     
-    NSString *uncheckedImgPath =[self getValue:call key:@"uncheckedImgPath"];
+    NSString *uncheckedImgPath =[self getValue:config key:@"uncheckedImgPath"];
     if (uncheckedImgPath) {
         mobileUIConfig.uncheckedImg  = [UIImage imageNamed:uncheckedImgPath];
         unicomUIConfig.uncheckedImg  = [UIImage imageNamed:uncheckedImgPath];
         telecomUIConfig.uncheckedImg = [UIImage imageNamed:uncheckedImgPath];
     }
     
-    NSString *checkedImgPath =[self getValue:call key:@"checkedImgPath"];
+    NSString *checkedImgPath =[self getValue:config key:@"checkedImgPath"];
     if (checkedImgPath) {
         mobileUIConfig.checkedImg  = [UIImage imageNamed:checkedImgPath];
         unicomUIConfig.checkedImg  = [UIImage imageNamed:checkedImgPath];
         telecomUIConfig.checkedImg = [UIImage imageNamed:checkedImgPath];
     }
 
-    NSNumber *privacyOffsetY = [self getValue:call key:@"privacyOffsetY"];
+    NSNumber *privacyOffsetY = [self getValue:config key:@"privacyOffsetY"];
     if(privacyOffsetY){
         mobileUIConfig.privacyOffsetY  = [privacyOffsetY integerValue];
         unicomUIConfig.privacyOffsetY  = [privacyOffsetY integerValue];
         telecomUIConfig.privacyOffsetY = [privacyOffsetY integerValue];
     }
     
-    NSString *clauseName = [self getValue:call key:@"clauseName"];
-    NSString *clauseUrl = [self getValue:call key:@"clauseUrl"];
+    NSString *clauseName = [self getValue:config key:@"clauseName"];
+    NSString *clauseUrl = [self getValue:config key:@"clauseUrl"];
     if (clauseName && clauseUrl) {
         mobileUIConfig.appPrivacyOne  = @[clauseName,clauseUrl];
         unicomUIConfig.appPrivacyOne  = @[clauseName,clauseUrl];
         telecomUIConfig.appPrivacyOne = @[clauseName,clauseUrl];
     }
     
-    NSString *clauseNameTwo = [self getValue:call key:@"clauseNameTwo"];
-    NSString *clauseUrlTwo = [self getValue:call key:@"clauseUrlTwo"];
+    NSString *clauseNameTwo = [self getValue:config key:@"clauseNameTwo"];
+    NSString *clauseUrlTwo = [self getValue:config key:@"clauseUrlTwo"];
     if (clauseNameTwo && clauseUrlTwo) {
         mobileUIConfig.appPrivacyTwo  = @[clauseNameTwo,clauseUrlTwo];
         unicomUIConfig.appPrivacyTwo  = @[clauseNameTwo,clauseUrlTwo];
         telecomUIConfig.appPrivacyTwo = @[clauseNameTwo,clauseUrlTwo];
     }
     
-    NSNumber *clauseBaseColor = [self getValue:call key:@"clauseBaseColor"];
+    NSNumber *clauseBaseColor = [self getValue:config key:@"clauseBaseColor"];
     UIColor *privacyBasicColor =[UIColor grayColor];
     if(clauseBaseColor){
         privacyBasicColor =  UIColorFromRGB([clauseBaseColor integerValue]);
     }
-    NSNumber *clauseColor = [self getValue:call key:@"clauseColor"];
+    NSNumber *clauseColor = [self getValue:config key:@"clauseColor"];
     UIColor *privacyColor = UIColorFromRGB(-16007674);
     if(clauseColor){
         privacyColor =UIColorFromRGB([clauseColor integerValue]);
@@ -430,36 +498,206 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     unicomUIConfig.appPrivacyColor  = @[privacyBasicColor,privacyColor];
     telecomUIConfig.appPrivacyColor = @[privacyBasicColor,privacyColor];
     
-    NSNumber *sloganTextColor = [self getValue:call key:@"sloganTextColor"];
+    NSNumber *sloganTextColor = [self getValue:config key:@"sloganTextColor"];
     if(sloganTextColor){
         mobileUIConfig.sloganTextColor  = UIColorFromRGB([sloganTextColor integerValue]);
         unicomUIConfig.sloganTextColor  = UIColorFromRGB([sloganTextColor integerValue]);
         telecomUIConfig.sloganTextColor = UIColorFromRGB([sloganTextColor integerValue]);
     }
     
-    NSNumber *sloganOffsetY = [self getValue:call key:@"sloganOffsetY"];
+    NSNumber *sloganOffsetY = [self getValue:config key:@"sloganOffsetY"];
     if(sloganOffsetY){
         mobileUIConfig.sloganOffsetY  = [sloganOffsetY integerValue];
         unicomUIConfig.sloganOffsetY  = [sloganOffsetY integerValue];
         telecomUIConfig.sloganOffsetY = [sloganOffsetY integerValue];
     }
     
-    [JVERIFICATIONService customUIWithConfig:mobileUIConfig];
-    [JVERIFICATIONService customUIWithConfig:unicomUIConfig];
-    [JVERIFICATIONService customUIWithConfig:telecomUIConfig];
+    NSNumber *privacyState = [self getValue:config key:@"privacyState"];
+    mobileUIConfig.privacyState = [privacyState boolValue];
+    unicomUIConfig.privacyState = [privacyState boolValue];
+    telecomUIConfig.privacyState = [privacyState boolValue];
 }
 
-#pragma mark - SDK授权页面添加自定义控件
-
-- (void)setCustomWidgetWithConfig:(FlutterMethodCall*) call result:(FlutterResult)result {
+#pragma mark - 添加 label
+- (UILabel *)addCustomTextWidget:(NSDictionary *)widgetDic {
+    JVLog(@"Action - addCustomTextWidget:");
+    UILabel *label = [[UILabel alloc] init];
     
+    NSInteger left = [[self getValue:widgetDic key:@"left"] integerValue];
+    NSInteger top = [[self getValue:widgetDic key:@"top"] integerValue];
+    NSInteger width = [[self getValue:widgetDic key:@"width"] integerValue];
+    NSInteger height = [[self getValue:widgetDic key:@"height"] integerValue];
+    
+    NSString *title = [self getValue:widgetDic key:@"title"];
+    if (title) {
+        label.text = title;
+    }
+    NSNumber *titleColor = [self getValue:widgetDic key:@"titleColor"];
+    if (titleColor) {
+        label.textColor = UIColorFromRGB([titleColor integerValue]);
+    }
+    NSNumber *backgroundColor = [self getValue:widgetDic key:@"backgroundColor"];
+    if (backgroundColor) {
+        label.backgroundColor = UIColorFromRGB([backgroundColor integerValue]);
+    }
+    NSString *textAlignment = [self getValue:widgetDic key:@"textAlignment"];
+    if (textAlignment) {
+        label.textAlignment = [self getTextAlignment:textAlignment];
+    }
+    
+    NSNumber *font = [self getValue:widgetDic key:@"titleFont"];
+    if (font) {
+        label.font = [UIFont systemFontOfSize:[font floatValue]];
+    }
+    
+    NSNumber *lines = [self getValue:widgetDic key:@"lines"];
+    if (lines) {
+        label.numberOfLines = [lines integerValue];
+    }
+    NSNumber *isSingleLine = [self getValue:widgetDic key:@"isSingleLine"];
+    if (![isSingleLine boolValue]) {
+        label.numberOfLines = 0;
+        NSDictionary *attributes = @{NSFontAttributeName:[UIFont systemFontOfSize:20],};
+        CGSize textSize = [label.text boundingRectWithSize:CGSizeMake(width, height) options:NSStringDrawingTruncatesLastVisibleLine attributes:attributes context:nil].size;
+        height = textSize.height;
+    }
+    
+    NSNumber *isShowUnderline = [self getValue:widgetDic key:@"isShowUnderline"];
+    if ([isShowUnderline boolValue]) {
+        NSDictionary *attribtDic = @{NSUnderlineStyleAttributeName: [NSNumber numberWithInteger:NSUnderlineStyleSingle]};
+        NSMutableAttributedString *attribtStr = [[NSMutableAttributedString alloc]initWithString:title attributes:attribtDic];
+        label.attributedText = attribtStr;
+    }
+    
+    NSString *widgetId = [self getValue:widgetDic key:@"widgetId"];
+    
+    label.frame = CGRectMake(left, top, width, height);
+    
+    NSNumber *isClickEnable = [self getValue:widgetDic key:@"isClickEnable"];
+    if ([isClickEnable boolValue]) {
+        NSString *tag = @"1001";
+        label.userInteractionEnabled = YES;
+        
+        UITapGestureRecognizer *singleTapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(clickTextWidgetAction:)];
+        [singleTapGestureRecognizer setNumberOfTapsRequired:1];
+        [label addGestureRecognizer:singleTapGestureRecognizer];
+        singleTapGestureRecognizer.view.tag = [tag integerValue];
+        
+        [self.customWidgetIdDic setObject:widgetId forKey:tag];
+    }
+    
+    return label;
+}
+- (void)clickTextWidgetAction:(UITapGestureRecognizer *)gestureRecognizer {
+    JVLog(@"Action - clickTextWidgetAction:");
+    NSString *tag = [NSString stringWithFormat:@"%@",@(gestureRecognizer.view.tag)];
+    if (tag) {
+        NSString *widgetId = [self.customWidgetIdDic objectForKey:tag];
+        [_channel invokeMethod:@"onReceiveClickWidgetEvent" arguments:@{@"widgetId":widgetId}];
+    }
 }
 
+
+#pragma mark - 添加 button
+- (UIButton *)addCustomButtonWidget:(NSDictionary *)widgetDic {
+    JVLog(@"Action - addCustomButtonWidget:");
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    
+    NSInteger left = [[self getValue:widgetDic key:@"left"] integerValue];
+    NSInteger top = [[self getValue:widgetDic key:@"top"] integerValue];
+    NSInteger width = [[self getValue:widgetDic key:@"width"] integerValue];
+    NSInteger height = [[self getValue:widgetDic key:@"height"] integerValue];
+    
+    NSString *title = [self getValue:widgetDic key:@"title"];
+    if (title) {
+        [button setTitle:title forState:UIControlStateNormal];
+        [button setTitle:title forState:UIControlStateHighlighted];
+    }
+    NSNumber *titleColor = [self getValue:widgetDic key:@"titleColor"];
+    if (titleColor) {
+        [button setTitleColor:UIColorFromRGB([titleColor integerValue]) forState:UIControlStateNormal];
+    }
+    NSNumber *backgroundColor = [self getValue:widgetDic key:@"backgroundColor"];
+    if (backgroundColor) {
+        [button setBackgroundColor:UIColorFromRGB([backgroundColor integerValue])];
+    }
+    NSString *textAlignment = [self getValue:widgetDic key:@"textAlignment"];
+    if (textAlignment) {
+        button.contentHorizontalAlignment = [self getButtonTitleAlignment:textAlignment];
+    }
+    
+    NSNumber *font = [self getValue:widgetDic key:@"titleFont"];
+    if (font) {
+        button.titleLabel.font = [UIFont systemFontOfSize:[font floatValue]];
+    }
+    /*
+    NSNumber *isSingleLine = [self getValue:widgetDic key:@"isSingleLine"];
+    if (![isSingleLine boolValue]) {
+        label.numberOfLines = 0;
+        NSDictionary *attributes = @{NSFontAttributeName:[UIFont systemFontOfSize:20],};
+        CGSize textSize = [label.text boundingRectWithSize:CGSizeMake(width, height) options:NSStringDrawingTruncatesLastVisibleLine attributes:attributes context:nil].size;
+        height = textSize.height;
+    }
+    
+     NSNumber *lines = [self getValue:widgetDic key:@"lines"];
+     if (lines) {
+     label.numberOfLines = [lines integerValue];
+     }
+     NSNumber *maxLines = [self getValue:widgetDic key:@"maxLines"];
+     if (maxLines) {
+     }
+     */
+    
+    
+    NSNumber *isShowUnderline = [self getValue:widgetDic key:@"isShowUnderline"];
+    if ([isShowUnderline boolValue]) {
+        NSDictionary *attribtDic = @{NSUnderlineStyleAttributeName: [NSNumber numberWithInteger:NSUnderlineStyleSingle]};
+        NSMutableAttributedString *attribtStr = [[NSMutableAttributedString alloc]initWithString:title attributes:attribtDic];
+        button.titleLabel.attributedText = attribtStr;
+    }
+    
+    button.frame = CGRectMake(left, top, width, height);
+    
+    NSNumber *isClickEnable = [self getValue:widgetDic key:@"isClickEnable"];
+    button.userInteractionEnabled = [isClickEnable boolValue];
+    [button addTarget:self action:@selector(clickCustomWidgetAction:) forControlEvents:UIControlEventTouchUpInside];
+    NSString *tag = @"1002";
+    button.tag = [tag integerValue];
+    
+    NSString *widgetId = [self getValue:widgetDic key:@"widgetId"];
+    [self.customWidgetIdDic setObject:widgetId forKey:tag];
+    
+    
+    NSString *btnNormalImageName = [self getValue:widgetDic key:@"btnNormalImageName"];
+    NSString *btnPressedImageName = [self getValue:widgetDic key:@"btnPressedImageName"];
+    if (!btnPressedImageName) {
+        btnPressedImageName = btnNormalImageName;
+    }
+    if (btnNormalImageName) {
+        [button setBackgroundImage:[UIImage imageNamed:btnNormalImageName] forState:UIControlStateNormal];
+    }
+    if (btnPressedImageName) {
+        [button setBackgroundImage:[UIImage imageNamed:btnPressedImageName] forState:UIControlStateHighlighted];
+        [button setBackgroundImage:[UIImage imageNamed:btnPressedImageName] forState:UIControlStateSelected];
+    }
+    
+    return button;
+}
+
+- (void)clickCustomWidgetAction:(UIButton *)button {
+    JVLog(@"Action - clickCustomWidgetAction:");
+    
+    NSString *tag = [NSString stringWithFormat:@"%@",@(button.tag)];
+    if (tag) {
+        NSString *widgetId = [self.customWidgetIdDic objectForKey:tag];
+        [_channel invokeMethod:@"onReceiveClickWidgetEvent" arguments:@{@"widgetId":widgetId}];
+    }
+}
 
 #pragma mark - 其他
--(id) getValue:(FlutterMethodCall*) caller key:(NSString*) key{
-    if (caller && ![caller.arguments[key] isKindOfClass:[NSNull class]]) {
-        return caller.arguments[key]?:0;
+- (id)getValue:(NSDictionary *)arguments key:(NSString*) key{
+    if (arguments && ![arguments[key] isKindOfClass:[NSNull class]]) {
+        return arguments[key]?:0;
     }else{
         return 0;
     }
@@ -471,5 +709,40 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
 //    }
 //    return nil;
 //}
-
+- (NSTextAlignment)getTextAlignment:(NSString *)aligement {
+    NSTextAlignment model = NSTextAlignmentLeft;
+    if (aligement) {
+        if ([aligement isEqualToString:@"left"]) {
+            model = NSTextAlignmentLeft;
+        }else if ([aligement isEqualToString:@"right"]) {
+            model = NSTextAlignmentRight;
+        }else if ([aligement isEqualToString:@"center"]) {
+            model = NSTextAlignmentCenter;
+        }else {
+            model = NSTextAlignmentLeft;
+        }
+    }
+    return model;
+}
+- (UIControlContentHorizontalAlignment)getButtonTitleAlignment:(NSString *)aligement {
+    UIControlContentHorizontalAlignment model = UIControlContentHorizontalAlignmentCenter;
+    if (aligement) {
+        if ([aligement isEqualToString:@"left"]) {
+            model = UIControlContentHorizontalAlignmentLeft;
+        }else if ([aligement isEqualToString:@"right"]) {
+            model = UIControlContentHorizontalAlignmentRight;
+        }else if ([aligement isEqualToString:@"center"]) {
+            model = UIControlContentHorizontalAlignmentCenter;
+        }else {
+            model = UIControlContentHorizontalAlignmentCenter;
+        }
+    }
+    return model;
+}
+- (NSMutableDictionary *)customWidgetIdDic {
+    if (!_customWidgetIdDic) {
+        _customWidgetIdDic  = [NSMutableDictionary dictionary];
+    }
+    return _customWidgetIdDic;
+}
 @end
