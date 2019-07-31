@@ -1,13 +1,34 @@
 package com.jiguang.jverify;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Paint;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.StateListDrawable;
+import android.media.Image;
+import android.nfc.Tag;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.MotionEvent;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.view.View;
+import android.widget.TextView;
 
+import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import cn.jiguang.api.JCoreInterface;
 import cn.jiguang.verifysdk.api.JVerificationInterface;
+import cn.jiguang.verifysdk.api.JVerifyUIClickCallback;
 import cn.jiguang.verifysdk.api.JVerifyUIConfig;
 import cn.jiguang.verifysdk.api.PreLoginListener;
 import cn.jiguang.verifysdk.api.VerifyListener;
@@ -74,8 +95,10 @@ public class JverifyPlugin implements MethodCallHandler {
     }else if (call.method.equals("dismissLoginAuthView")) {
       dismissLoginAuthView(call, result);
     }else if (call.method.equals("setCustomUI")) {
-      setCustomUI(call,result);
-    } else {
+//      setCustomUI(call,result);
+    }else if (call.method.equals("setCustomAuthViewAllWidgets")) {
+      setCustomAuthViewAllWidgets(call,result);
+    }else {
       result.notImplemented();
     }
   }
@@ -264,38 +287,69 @@ public class JverifyPlugin implements MethodCallHandler {
     JVerificationInterface.dismissLoginAuthActivity();
   }
 
-  /** SDK自定义授权页面UI样式 */
-  private void setCustomUI(MethodCall call,final Result result){
-    Log.d(TAG,"setCustomUI:");
+  /** 自定义授权界面 UI 、添加自定义控件*/
+  private void  setCustomAuthViewAllWidgets(MethodCall call, Result result) {
+    Log.d(TAG,"setCustomAuthViewAllWidgets:");
 
-    Object navColor = getValueByKey(call,"navColor");
-    Object navText = getValueByKey(call,"navText");
-    Object navTextColor = getValueByKey(call,"navTextColor");
-    Object navReturnImgPath = getValueByKey(call,"navReturnImgPath");
-    Object logoImgPath = getValueByKey(call,"logoImgPath");
-    Object logoWidth = getValueByKey(call,"logoWidth");
-    Object logoHeight = getValueByKey(call,"logoHeight");
-    Object logoOffsetY = getValueByKey(call,"logoOffsetY");
-    Object logoHidden = getValueByKey(call,"logoHidden");
-    Object numberColor = getValueByKey(call,"numberColor");
-    Object numFieldOffsetY = getValueByKey(call,"numFieldOffsetY");
-    Object logBtnText = getValueByKey(call,"logBtnText");
-    Object logBtnOffsetY = getValueByKey(call,"logBtnOffsetY");
-    Object logBtnTextColor = getValueByKey(call,"logBtnTextColor");
-    Object logBtnBackgroundPath = getValueByKey(call,"logBtnBackgroundPath");
-    Object uncheckedImgPath = getValueByKey(call,"uncheckedImgPath");
-    Object checkedImgPath = getValueByKey(call,"checkedImgPath");
-    Object privacyOffsetY = getValueByKey(call,"privacyOffsetY");
-    Object CLAUSE_NAME = getValueByKey(call,"clauseName");
-    Object CLAUSE_URL = getValueByKey(call,"clauseUrl");
-    Object CLAUSE_BASE_COLOR = getValueByKey(call,"clauseBaseColor");
-    Object CLAUSE_COLOR = getValueByKey(call,"clauseColor");
-    Object CLAUSE_NAME_TWO = getValueByKey(call,"clauseNameTwo");
-    Object CLAUSE_URL_TWO = getValueByKey(call,"clauseUrlTwo");
-    Object sloganOffsetY = getValueByKey(call,"sloganOffsetY");
-    Object sloganTextColor = getValueByKey(call,"sloganTextColor");
+    Map uiconfig = call.argument("uiconfig");
+    List<Map> widgetList = call.argument("widgets");
+
 
     JVerifyUIConfig.Builder builder =  new JVerifyUIConfig.Builder();
+
+    /// 布局 SDK 授权界面原有 UI
+    layoutOriginOuthView(uiconfig, builder);
+
+    for (Map widgetMap : widgetList) {
+
+      /// 新增自定义的控件
+      String type = (String) widgetMap.get("type");
+      if (type.equals("textView")) {
+        addCustomTextWidgets(widgetMap, builder);
+      }else if (type.equals("button")) {
+        addCustomButtonWidgets(widgetMap, builder);
+      }else {
+        Log.e(TAG,"don't support widget");
+        return;
+      }
+    }
+
+    JVerificationInterface.setCustomUIWithConfig(builder.build());
+  }
+
+  /** 自定义 SDK 原有的授权界面里的 UI */
+  private  void layoutOriginOuthView(Map uiconfig, JVerifyUIConfig.Builder builder) {
+    Log.d(TAG,"layoutOriginOuthView:");
+
+    Object navColor = valueForKey(uiconfig,"navColor");
+    Object navText = valueForKey(uiconfig,"navText");
+    Object navTextColor = valueForKey(uiconfig,"navTextColor");
+    Object navReturnImgPath = valueForKey(uiconfig,"navReturnImgPath");
+    Object logoImgPath = valueForKey(uiconfig,"logoImgPath");
+    Object logoWidth = valueForKey(uiconfig,"logoWidth");
+    Object logoHeight = valueForKey(uiconfig,"logoHeight");
+    Object logoOffsetY = valueForKey(uiconfig,"logoOffsetY");
+    Object logoHidden = valueForKey(uiconfig,"logoHidden");
+    Object numberColor = valueForKey(uiconfig,"numberColor");
+    Object numFieldOffsetY = valueForKey(uiconfig,"numFieldOffsetY");
+    Object logBtnText = valueForKey(uiconfig,"logBtnText");
+    Object logBtnOffsetY = valueForKey(uiconfig,"logBtnOffsetY");
+    Object logBtnTextColor = valueForKey(uiconfig,"logBtnTextColor");
+    Object logBtnBackgroundPath = valueForKey(uiconfig,"logBtnBackgroundPath");
+    Object uncheckedImgPath = valueForKey(uiconfig,"uncheckedImgPath");
+    Object checkedImgPath = valueForKey(uiconfig,"checkedImgPath");
+    Object privacyOffsetY = valueForKey(uiconfig,"privacyOffsetY");
+    Object CLAUSE_NAME = valueForKey(uiconfig,"clauseName");
+    Object CLAUSE_URL = valueForKey(uiconfig,"clauseUrl");
+    Object CLAUSE_BASE_COLOR = valueForKey(uiconfig,"clauseBaseColor");
+    Object CLAUSE_COLOR = valueForKey(uiconfig,"clauseColor");
+    Object CLAUSE_NAME_TWO = valueForKey(uiconfig,"clauseNameTwo");
+    Object CLAUSE_URL_TWO = valueForKey(uiconfig,"clauseUrlTwo");
+    Object sloganOffsetY = valueForKey(uiconfig,"sloganOffsetY");
+    Object sloganTextColor = valueForKey(uiconfig,"sloganTextColor");
+    Object privacyState = valueForKey(uiconfig,"privacyState");
+
+
     if (navColor != null){
       if (navColor instanceof Long){
         builder.setNavColor(((Long) navColor).intValue());
@@ -430,12 +484,240 @@ public class JverifyPlugin implements MethodCallHandler {
       }
     }
 
-    JVerificationInterface.setCustomUIWithConfig(builder.build());
+    boolean isPrivacyState = (Boolean) privacyState;
+    builder.setPrivacyState(isPrivacyState);
   }
 
-  /** SDK授权页面添加自定义控件 */
-  private  void addCustomView(MethodCall call, Result result) {
+  /** 添加自定义 widget 到 SDK 原有的授权界面里 */
 
+  /** 添加自定义 TextView、Button 控件到 SDK 原有的授权界面里*/
+  private  void addCustomTextWidgets(Map para, JVerifyUIConfig.Builder builder) {
+    Log.d(TAG,"addCustomTextView " + para);
+
+    TextView customView = new TextView(context);;
+
+    //设置text
+    final String title = (String) para.get("title");
+    customView.setText(title);
+
+    //设置字体颜色
+    Object titleColor = para.get("titleColor");
+    if (titleColor != null){
+      if (titleColor instanceof Long){
+        customView.setTextColor(((Long) titleColor).intValue());
+      }else {
+        customView.setTextColor((Integer) titleColor);
+      }
+    }
+
+    //设置字体大小
+    Object font = para.get("titleFont");
+    if (font != null) {
+      double titleFont = (double)font;
+      if (titleFont > 0){
+        customView.setTextSize((float)titleFont);
+      }
+    }
+
+    //设置背景颜色
+    Object backgroundColor = para.get("backgroundColor");
+    if (backgroundColor != null){
+      if (backgroundColor instanceof Long){
+        customView.setBackgroundColor(((Long) backgroundColor).intValue());
+      }else {
+        customView.setBackgroundColor((Integer) backgroundColor);
+      }
+    }
+
+    //下划线
+    Boolean isShowUnderline = (Boolean)para.get("isShowUnderline");
+    if (isShowUnderline) {
+      customView.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG);//下划线
+      customView.getPaint().setAntiAlias(true);//抗锯齿
+    }
+
+    //设置对齐方式
+    Object alignmet = para.get("textAlignment");
+    if (alignmet != null) {
+      String textAlignment = (String)alignmet;
+      int gravity = getAlignmentFromString(textAlignment);
+      customView.setGravity(gravity);
+    }
+
+    boolean isSingleLine = (Boolean)para.get("isSingleLine");
+    customView.setSingleLine(isSingleLine);//设置是否单行显示，多余的就 ...
+
+    int lines = (int)para.get("lines");
+    customView.setLines(lines);//设置行数
+
+    // 位置
+    int left = (int)para.get("left");
+    int top = (int)para.get("top");
+    int width = (int)para.get("width");
+    int height = (int)para.get("height");
+
+    RelativeLayout.LayoutParams mLayoutParams1 = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,RelativeLayout.LayoutParams.WRAP_CONTENT);
+    mLayoutParams1.leftMargin = dp2Pix(context, (float)left);
+    mLayoutParams1.topMargin = dp2Pix(context, (float)top);
+    if (width > 0) {
+      mLayoutParams1.width = dp2Pix(context,(float)width);
+    }
+    if (height > 0) {
+      mLayoutParams1.height = dp2Pix(context,(float)height);;
+    }
+    customView.setLayoutParams(mLayoutParams1);
+
+    /// 点击事件 id
+    String widgetId = (String) para.get("widgetId");
+    final HashMap jsonMap = new HashMap();
+    jsonMap.put("widgetId", widgetId);
+
+    builder.addCustomView(customView, false, new JVerifyUIClickCallback() {
+      @Override
+      public void onClicked(Context context, View view) {
+        Log.d(TAG,"onClicked text widget.");
+        channel.invokeMethod("onReceiveClickWidgetEvent", jsonMap);
+      }
+    });
+  }
+
+  private  void addCustomButtonWidgets(Map para, JVerifyUIConfig.Builder builder) {
+    Log.d(TAG,"addCustomButtonWidgets: para = " + para);
+
+    Button customView = new Button(context);
+
+    //设置text
+    final String title = (String) para.get("title");
+    customView.setText(title);
+
+    //设置字体颜色
+    Object titleColor = para.get("titleColor");
+    if (titleColor != null){
+      if (titleColor instanceof Long){
+        customView.setTextColor(((Long) titleColor).intValue());
+      }else {
+        customView.setTextColor((Integer) titleColor);
+      }
+    }
+
+    //设置字体大小
+    Object font = para.get("titleFont");
+    if (font != null) {
+      double titleFont = (double)font;
+      if (titleFont > 0){
+        customView.setTextSize((float)titleFont);
+      }
+    }
+
+
+    //设置背景颜色
+    Object backgroundColor = para.get("backgroundColor");
+    if (backgroundColor != null){
+      if (backgroundColor instanceof Long){
+        customView.setBackgroundColor(((Long) backgroundColor).intValue());
+      }else {
+        customView.setBackgroundColor((Integer) backgroundColor);
+      }
+    }
+
+    // 设置背景图（只支持 button 设置）
+    String btnNormalImageName = (String) para.get("btnNormalImageName");
+    String btnPressedImageName = (String) para.get("btnPressedImageName");
+    if (btnPressedImageName == null) {
+      btnPressedImageName = btnNormalImageName;
+    }
+    setButtonSelector(customView, btnNormalImageName, btnPressedImageName);
+
+    //下划线
+    Boolean isShowUnderline = (Boolean)para.get("isShowUnderline");
+    if (isShowUnderline) {
+      customView.getPaint().setFlags(Paint.UNDERLINE_TEXT_FLAG);//下划线
+      customView.getPaint().setAntiAlias(true);//抗锯齿
+    }
+
+    //设置对齐方式
+    Object alignmet = para.get("textAlignment");
+    if (alignmet != null) {
+      String textAlignment = (String)alignmet;
+      int gravity = getAlignmentFromString(textAlignment);
+      customView.setGravity(gravity);
+    }
+
+    boolean isSingleLine = (Boolean)para.get("isSingleLine");
+    customView.setSingleLine(isSingleLine);//设置是否单行显示，多余的就 ...
+
+    int lines = (int)para.get("lines");
+    customView.setLines(lines);//设置行数
+
+
+    // 位置
+    int left = (int)para.get("left");
+    int top = (int)para.get("top");
+    int width = (int)para.get("width");
+    int height = (int)para.get("height");
+
+    RelativeLayout.LayoutParams mLayoutParams1 = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT,RelativeLayout.LayoutParams.WRAP_CONTENT);
+    mLayoutParams1.leftMargin = dp2Pix(context, (float)left);
+    mLayoutParams1.topMargin = dp2Pix(context, (float)top);
+    if (width > 0) {
+      mLayoutParams1.width = dp2Pix(context,(float)width);
+    }
+    if (height > 0) {
+      mLayoutParams1.height = dp2Pix(context,(float)height);;
+    }
+    customView.setLayoutParams(mLayoutParams1);
+
+
+    /// 点击事件 id
+    String widgetId = (String) para.get("widgetId");
+    final HashMap jsonMap = new HashMap();
+    jsonMap.put("widgetId", widgetId);
+
+    builder.addCustomView(customView, false, new JVerifyUIClickCallback() {
+      @Override
+      public void onClicked(Context context, View view) {
+        Log.d(TAG,"onClicked button widget.");
+        channel.invokeMethod("onReceiveClickWidgetEvent", jsonMap);
+      }
+    });
+  }
+
+
+  /** 获取对齐方式*/
+  private int getAlignmentFromString(String alignmet) {
+    int a = 0;
+    if (alignmet != null) {
+      switch (alignmet){
+        case "left":
+          a = Gravity.LEFT;
+          break;
+        case "top":
+          a = Gravity.TOP;
+          break;
+        case "right":
+          a = Gravity.RIGHT;
+          break;
+        case "bottom":
+          a = Gravity.BOTTOM;
+          break;
+        case "center":
+          a = Gravity.CENTER;
+          break;
+        default:
+          a = Gravity.NO_GRAVITY;
+          break;
+      }
+    }
+    return a;
+  }
+
+
+  private Object valueForKey(Map para,String key){
+    if (para != null && para.containsKey(key)){
+      return  para.get(key);
+    }else {
+      return null;
+    }
   }
 
   private Object getValueByKey(MethodCall call,String key){
@@ -444,5 +726,82 @@ public class JverifyPlugin implements MethodCallHandler {
     }else {
       return null;
     }
+  }
+
+  /**
+   * 设置 button 背景图片点击效果
+   *
+   * @param button 按钮
+   * @param normalImageName 常态下背景图
+   * @param pressImageName 点击时背景图
+   */
+  private void setButtonSelector(Button button,String normalImageName,String pressImageName) {
+    Log.d(TAG,"setButtonSelector normalImageName=" + normalImageName + "，pressImageName="+ pressImageName);
+
+    StateListDrawable drawable = new StateListDrawable();
+
+    Resources res = context.getResources();
+
+    final int normal_resId = getResourceByReflect(normalImageName);
+    final int select_resId = getResourceByReflect(pressImageName);
+
+    Bitmap normal_bmp = BitmapFactory.decodeResource(res, normal_resId);
+    Drawable normal_drawable = new BitmapDrawable(res, normal_bmp);
+
+    Bitmap select_bmp = BitmapFactory.decodeResource(res, select_resId);
+    Drawable select_drawable = new BitmapDrawable(res, select_bmp);
+
+    // 未选中
+    drawable.addState(new int[]{-android.R.attr.state_pressed},normal_drawable);
+    //选中
+    drawable.addState(new int[]{android.R.attr.state_pressed},select_drawable);
+
+    button.setBackground(drawable);
+  }
+
+  /** 像素转化成 pix*/
+  private int dp2Pix(Context context, float dp) {
+    try {
+      float density = context.getResources().getDisplayMetrics().density;
+      return (int)(dp * density + 0.5F);
+    } catch (Exception e) {
+      return (int)dp;
+    }
+  }
+
+  /**
+   * 获取图片名称获取图片的资源id的方法
+   * @param imageName 图片名
+   * @return resid
+   */
+  private int getResourceByReflect(String imageName){
+
+    Class drawable  =  R.drawable.class;
+    Field field = null;
+    int r_id = 0;
+
+    if (imageName == null) {
+      return r_id;
+    }
+
+    try {
+      field = drawable.getField(imageName);
+      r_id = field.getInt(field.getName());
+    } catch (Exception e) {
+      r_id = 0;
+      Log.e(TAG, "image【"+imageName + "】field no found!");
+    }
+
+    if (r_id == 0) {
+      r_id = context.getResources().getIdentifier(imageName, "drawable",context.getPackageName());
+      Log.d(TAG, "image【"+ imageName + "】 drawable found ! r_id = " + r_id);
+    }
+
+    if (r_id == 0) {
+      r_id = context.getResources().getIdentifier(imageName, "mipmap",context.getPackageName());
+      Log.d(TAG, "image【"+ imageName + "】 mipmap found! r_id = " + r_id);
+    }
+
+    return r_id;
   }
 }

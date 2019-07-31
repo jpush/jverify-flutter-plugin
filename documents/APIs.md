@@ -6,7 +6,7 @@
 - [getToken](#getToken)
 - [verifyNumber](#verifyNumber)
 - [loginAuth](#loginAuth)
-- [setCustomUI](#setCustomUI)
+- [setCustomAuthViewAllWidgets](#setCustomAuthViewAllWidgets)
 
 #### setup
 
@@ -94,17 +94,113 @@ jverify.loginAuth().then((map){
         });
 ```
 
-#### setCustomUI
+#### setCustomAuthViewAllWidgets
 
-修改授权页面主题，开发者可以通过 setCustomUI 方法修改授权页面主题，需在 loginAuth 接口之前调用
+修改授权页面主题，开发者可以通过 setCustomAuthViewAllWidgets 方法修改授权页面主题，需在 loginAuth 接口之前调用
 
+```
+/// 先配置好 JVUIConfig 和 JVCustomWidget 数组
+jverify.setCustomAuthViewAllWidgets(uiConfig,widgets: widgetList);
+```
+**JVUIConfig 和 JVCustomWidget 配置如下：**
+
+##### JVUIConfig
 ```dart
+/// 自定义授权的 UI 界面
+JVUIConfig uiConfig = JVUIConfig();
+uiConfig.navColor = Colors.red.value;
+
+uiConfig.navText = "登录";
+uiConfig.navTextColor = Colors.blue.value;
+uiConfig.navReturnImgPath = "return_bg";
+
+uiConfig.logoHidden = false;
+uiConfig.logoOffsetY = 10;
+uiConfig.logoWidth = 90;
+uiConfig.logoHeight = 90;
+uiConfig.logoImgPath = "logo";
+
+uiConfig.numFieldOffsetY = 120;
+uiConfig.numberColor = Colors.blue.value;
+
+uiConfig.sloganOffsetY = 150;
+uiConfig.sloganTextColor = Colors.black.value;
+
+uiConfig.logBtnOffsetY = 300;
+uiConfig.logBtnText = "登录按钮";
+uiConfig.logBtnTextColor = Colors.brown.value;
+uiConfig.loginBtnNormalImage = "login_btn_normal";
+uiConfig.loginBtnPressedImage = "login_btn_press";
+uiConfig.loginBtnUnableImage = "login_btn_unable";
+
+uiConfig.checkedImgPath = "check_image";
+uiConfig.uncheckedImgPath = "uncheck_image";
+uiConfig.privacyOffsetY = 80;
+
+uiConfig.clauseName = "协议1";
+uiConfig.clauseUrl = "http://www.baidu.com";
+uiConfig.clauseBaseColor = Colors.black.value;
+
+uiConfig.clauseNameTwo = "协议二";
+uiConfig.clauseUrlTwo = "http://www.hao123.com";
+uiConfig.clauseColor = Colors.red.value;
+
+
+uiConfig.privacyState = true;
+
 Jverify jverify = new Jverify();
-jverify.setCustomUI(logoImgPath: "logo",logoWidth: 90,logoHeight: 90,navColor: Colors.red.value,navText: "登录",navTextColor: Colors.blue.value,navReturnImgPath: "return_bg"
-          ,checkedImgPath: "check_image",uncheckedImgPath: "uncheck_image",loginBtnNormalImage: "login_btn_normal",loginBtnPressedImage: "login_btn_press",
-            loginBtnUnableImage: "login_btn_unable",clauseBaseColor: Colors.red.value,clauseName: "协议一",clauseUrl: "http://www.baidu.com",clauseNameTwo: "协议二",clauseUrlTwo: "http://www.hao123.com",
-          logBtnOffsetY: 300,logBtnText: "登录按钮",logBtnTextColor: Colors.green.value,numberColor: Colors.blue.value,logoHidden: false,logoOffsetY: 10,numFieldOffsetY: 100,clauseColor: Colors.black.value,
-          privacyOffsetY: 100,sloganOffsetY: 150,sloganTextColor: Colors.black.value);
+
+```
+
+#### JVCustomWidget 自定义控件
+
+```
+ /// 添加自定义的 控件 到授权界面
+List<JVCustomWidget>widgetList = [];
+
+final String text_widgetId = "jv_add_custom_text";// 标识控件 id
+JVCustomWidget textWidget = JVCustomWidget(text_widgetId, JVCustomWidgetType.textView);
+textWidget.title = "新加 text view 控件";
+textWidget.left = 20;
+textWidget.top = 360 ;
+textWidget.width = 200;
+textWidget.height  = 40;
+textWidget.backgroundColor = Colors.yellow.value;
+textWidget.isShowUnderline = true;
+textWidget.textAlignment = JVTextAlignmentType.center;
+textWidget.isClickEnable = true;
+
+// 添加点击事件监听
+jverify.addClikWidgetEventListener(text_widgetId, (eventId) {
+  print("receive listener - click widget event :$eventId");
+  if (text_widgetId == eventId) {
+    print("receive listener - 点击【新加 text】");
+  }
+});
+widgetList.add(textWidget);
+
+final String btn_widgetId = "jv_add_custom_button";// 标识控件 id
+JVCustomWidget buttonWidget = JVCustomWidget(btn_widgetId, JVCustomWidgetType.button);
+buttonWidget.title = "新加 button 控件";
+buttonWidget.left = 100;
+buttonWidget.top = 400;
+buttonWidget.width = 150;
+buttonWidget.height  = 40;
+buttonWidget.isShowUnderline = true;
+buttonWidget.backgroundColor = Colors.brown.value;
+//buttonWidget.btnNormalImageName = "";
+//buttonWidget.btnPressedImageName = "";
+//buttonWidget.textAlignment = JVTextAlignmentType.left;
+
+// 添加点击事件监听
+jverify.addClikWidgetEventListener(btn_widgetId, (eventId) {
+  print("receive listener - click widget event :$eventId");
+  if (btn_widgetId == eventId) {
+    print("receive listener - 点击【新加 button】");
+  }
+});
+widgetList.add(buttonWidget);
+
 ```
 
 
