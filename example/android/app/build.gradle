@@ -33,7 +33,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId "cn.jiguang.xxx" // 应用包名
+        applicationId "cn.jiguang.xx" // 应用包名
         minSdkVersion 16
         targetSdkVersion 27
         versionCode flutterVersionCode.toInteger()
@@ -48,7 +48,7 @@ android {
 
         manifestPlaceholders = [
                 JPUSH_PKGNAME : applicationId,
-                JPUSH_APPKEY : "你自己应用的 AppKey", //JPush 上注册的包名对应的 Appkey.
+                JPUSH_APPKEY : "你自己应用的 AppKey", //你自己应用的 AppKey.
                 JPUSH_CHANNEL : "developer-default", //暂时填写默认值即可.
         ]
     }
