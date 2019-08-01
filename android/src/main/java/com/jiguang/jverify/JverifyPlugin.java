@@ -571,8 +571,8 @@ public class JverifyPlugin implements MethodCallHandler {
     String widgetId = (String) para.get("widgetId");
     final HashMap jsonMap = new HashMap();
     jsonMap.put("widgetId", widgetId);
-
-    builder.addCustomView(customView, false, new JVerifyUIClickCallback() {
+    boolean isClickDissmiss = (boolean)para.get("isClickDissmiss");
+    builder.addCustomView(customView, isClickDissmiss, new JVerifyUIClickCallback() {
       @Override
       public void onClicked(Context context, View view) {
         Log.d(TAG,"onClicked text widget.");
@@ -672,8 +672,8 @@ public class JverifyPlugin implements MethodCallHandler {
     String widgetId = (String) para.get("widgetId");
     final HashMap jsonMap = new HashMap();
     jsonMap.put("widgetId", widgetId);
-
-    builder.addCustomView(customView, false, new JVerifyUIClickCallback() {
+    boolean isClickDissmiss = (boolean)para.get("isClickDissmiss");
+    builder.addCustomView(customView, isClickDissmiss, new JVerifyUIClickCallback() {
       @Override
       public void onClicked(Context context, View view) {
         Log.d(TAG,"onClicked button widget.");

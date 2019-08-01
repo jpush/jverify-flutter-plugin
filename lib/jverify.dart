@@ -5,8 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:platform/platform.dart';
 
-
-
 /// 监听添加的自定义控件的点击事件
 typedef JVClickWidgetEventListener = void Function(String widgetId);
 
@@ -15,11 +13,8 @@ class JVEventHandlers {
   JVEventHandlers._internal();
   factory JVEventHandlers() => _instance;
 
-
   Map<String, JVClickWidgetEventListener> clickEventsMap = Map();
 }
-
-
 
 class Jverify {
   final String flutter_log = "| JVER | Flutter | ";
@@ -36,33 +31,32 @@ class Jverify {
         _platform = platform;
 
   static final _instance = new Jverify.private(
-      const MethodChannel("jverify"),
-      const LocalPlatform()
-  );
-
+      const MethodChannel("jverify"), const LocalPlatform());
 
   // Events
-  addClikWidgetEventListener(String eventId, JVClickWidgetEventListener callback) {
+  addClikWidgetEventListener(
+      String eventId, JVClickWidgetEventListener callback) {
     _eventHanders.clickEventsMap[eventId] = callback;
   }
-
 
   Future<void> _handlerMethod(MethodCall call) async {
     print("handleMethod method = ${call.method}");
     switch (call.method) {
-      case 'onReceiveClickWidgetEvent':{
-        String widgetId = call.arguments.cast<dynamic, dynamic>()['widgetId'];
-        bool isContains = _eventHanders.clickEventsMap.containsKey(widgetId);
-        if (isContains) {
-          JVClickWidgetEventListener cb = _eventHanders.clickEventsMap[widgetId];
-          cb(widgetId);
+      case 'onReceiveClickWidgetEvent':
+        {
+          String widgetId = call.arguments.cast<dynamic, dynamic>()['widgetId'];
+          bool isContains = _eventHanders.clickEventsMap.containsKey(widgetId);
+          if (isContains) {
+            JVClickWidgetEventListener cb =
+                _eventHanders.clickEventsMap[widgetId];
+            cb(widgetId);
+          }
         }
-      }
         break;
       default:
         throw new UnsupportedError("Unrecognized Event");
     }
-    return ;
+    return;
   }
 
   /// 初始化
@@ -72,8 +66,7 @@ class Jverify {
     _channel.setMethodCallHandler(_handlerMethod);
 
     _channel.invokeMethod(
-        "setup", {"appKey": appKey, "channel": channel, "useIDFA": useIDFA}
-        );
+        "setup", {"appKey": appKey, "channel": channel, "useIDFA": useIDFA});
   }
 
   /// 设置 debug 模式
@@ -132,14 +125,13 @@ class Jverify {
   }
 
   /// (新接口) 自定义授权页面，界面原始控件、新增自定义控件
-  void setCustomAuthViewAllWidgets(JVUIConfig uiConfig , {List<JVCustomWidget>widgets}) {
-
+  void setCustomAuthViewAllWidgets(JVUIConfig uiConfig,
+      {List<JVCustomWidget> widgets}) {
     var para = Map();
 
     var para1 = uiConfig.toJsonMap();
     para1.removeWhere((key, value) => value == null);
     para["uiconfig"] = para1;
-
 
     if (widgets != null) {
       var widgetList = List();
@@ -155,7 +147,6 @@ class Jverify {
     _channel.invokeMethod("setCustomAuthViewAllWidgets", para);
   }
 }
-
 
 /// 自定义 UI 界面配置类
 class JVUIConfig {
@@ -188,9 +179,9 @@ class JVUIConfig {
   String clauseUrlTwo;
   int sloganOffsetY;
   int sloganTextColor;
+
   ///设置隐私条款默认选中状态，默认不选中
   bool privacyState = false;
-
 
   Map toJsonMap() {
     return {
@@ -224,28 +215,27 @@ class JVUIConfig {
       "sloganOffsetY": sloganOffsetY ??= null,
       "sloganTextColor": sloganTextColor ??= null,
       "privacyState": privacyState,
-    }..removeWhere((key,value) => value == null);
+    }..removeWhere((key, value) => value == null);
   }
 }
 
-
 /// 自定义控件
 class JVCustomWidget {
-  String widgetId ;
-  JVCustomWidgetType type ;
+  String widgetId;
+  JVCustomWidgetType type;
 
   JVCustomWidget(@required this.widgetId, @required this.type) {
     this.widgetId = widgetId;
     this.type = type;
     if (type == JVCustomWidgetType.button) {
       this.isClickEnable = true;
-    }else{
+    } else {
       this.isClickEnable = false;
     }
   }
 
-  int left = 0;// 屏幕左边缘开始计算
-  int top = 0;// 导航栏底部开始计算
+  int left = 0; // 屏幕左边缘开始计算
+  int top = 0; // 导航栏底部开始计算
   int width = 0;
   int height = 0;
 
@@ -257,17 +247,27 @@ class JVCustomWidget {
   String btnPressedImageName;
   JVTextAlignmentType textAlignment;
 
+  int lines = 1;
 
-  int lines = 1;/// textView 行数，
-  bool isSingleLine = true; /// textView 是否单行显示，默认：单行，iOS 端无效
+  /// textView 行数，
+  bool isSingleLine = true;
+
+  /// textView 是否单行显示，默认：单行，iOS 端无效
   /* 若 isSingleLine = false 时，iOS 端 lines 设置失效，会自适应内容高度，最大高度为设置的 height */
 
-  bool isShowUnderline = false;///是否显示下划线，默认：不显示
-  bool isClickEnable ;///是否可点击，默认：不可点击
+  bool isShowUnderline = false;
+
+  ///是否显示下划线，默认：不显示
+  bool isClickEnable;
+
+  ///是否可点击，默认：不可点击
+  bool isClickDissmiss = true;
+
+  ///是否点击后消失,默认: 消失
 
   Map toJsonMap() {
     return {
-      "widgetId":widgetId,
+      "widgetId": widgetId,
       "type": getStringFromEnum(type),
       "title": title,
       "titleFont": titleFont ??= null,
@@ -281,25 +281,20 @@ class JVCustomWidget {
       "lines": lines,
       "isSingleLine": isSingleLine,
       "isShowUnderline": isShowUnderline,
-      "left":left,
-      "top":top,
-      "width":width,
-      "height":height,
-    }..removeWhere((key,value) => value == null);
+      "left": left,
+      "top": top,
+      "width": width,
+      "height": height,
+      "isClickDissmiss": isClickDissmiss,
+    }..removeWhere((key, value) => value == null);
   }
 }
 
 /// 添加自定义控件类型，目前只支持 textView
-enum JVCustomWidgetType {
-  textView,
-  button
-}
+enum JVCustomWidgetType { textView, button }
+
 /// 文本对齐方式
-enum JVTextAlignmentType {
-  left,
-  right,
-  center
-}
+enum JVTextAlignmentType { left, right, center }
 
 String getStringFromEnum<T>(T) {
   if (T == null) {

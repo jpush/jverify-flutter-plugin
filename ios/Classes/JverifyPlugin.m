@@ -592,6 +592,7 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     JVLog(@"Action - clickTextWidgetAction:");
     NSString *tag = [NSString stringWithFormat:@"%@",@(gestureRecognizer.view.tag)];
     if (tag) {
+        [JVERIFICATIONService dismissLoginController];
         NSString *widgetId = [self.customWidgetIdDic objectForKey:tag];
         [_channel invokeMethod:@"onReceiveClickWidgetEvent" arguments:@{@"widgetId":widgetId}];
     }
