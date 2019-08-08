@@ -273,13 +273,15 @@ class _MyAppState extends State<MyApp> {
       bool result = map[f_result_key];
       if (result) {
 
-        /// 自定义授权的 UI 界面
+        /// 自定义授权的 UI 界面，以下设置的图片必须添加到资源文件里，
+        /// android项目将图片存放至drawable文件夹下，可使用图片选择器的文件名,例如：btn_login.xml,入参为"btn_login"。
+        /// ios项目存放在 Assets.xcassets。
         JVUIConfig uiConfig = JVUIConfig();
         uiConfig.navColor = Colors.red.value;
 
         uiConfig.navText = "登录";
         uiConfig.navTextColor = Colors.blue.value;
-        uiConfig.navReturnImgPath = "return_bg";
+        //uiConfig.navReturnImgPath = "return_bg";
 
         uiConfig.logoHidden = false;
         uiConfig.logoOffsetY = 10;
@@ -296,12 +298,14 @@ class _MyAppState extends State<MyApp> {
         uiConfig.logBtnOffsetY = 300;
         uiConfig.logBtnText = "登录按钮";
         uiConfig.logBtnTextColor = Colors.brown.value;
-        uiConfig.loginBtnNormalImage = "login_btn_normal";
-        uiConfig.loginBtnPressedImage = "login_btn_press";
-        uiConfig.loginBtnUnableImage = "login_btn_unable";
+        //uiConfig.loginBtnNormalImage = "login_btn_normal";
+        //uiConfig.loginBtnPressedImage = "login_btn_press";
+        //uiConfig.loginBtnUnableImage = "login_btn_unable";
 
-        uiConfig.checkedImgPath = "check_image";
-        uiConfig.uncheckedImgPath = "uncheck_image";
+        //设置默认勾选
+        uiConfig.privacyState = true;
+        //uiConfig.checkedImgPath = "check_image";
+        //uiConfig.uncheckedImgPath = "uncheck_image";
         uiConfig.privacyOffsetY = 80;
 
         uiConfig.clauseName = "协议1";
@@ -313,7 +317,6 @@ class _MyAppState extends State<MyApp> {
         uiConfig.clauseColor = Colors.red.value;
 
 
-        uiConfig.privacyState = true;
 
         /// 添加自定义的 控件 到授权界面
         List<JVCustomWidget>widgetList = [];
@@ -363,9 +366,9 @@ class _MyAppState extends State<MyApp> {
         widgetList.add(buttonWidget);
         */
 
-        /// 调用接口设置 UI
-        jverify.setCustomAuthViewAllWidgets(uiConfig,widgets: widgetList);
 
+        /// 调用接口设置 UI
+         jverify.setCustomAuthViewAllWidgets(uiConfig);
 
         /// 开始一键登录
         jverify.loginAuth(true).then((map) {
@@ -376,6 +379,7 @@ class _MyAppState extends State<MyApp> {
             _result = "[$code] message = $content";
           });
         });
+
       } else {
         setState(() {
           _loading = false;

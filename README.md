@@ -7,7 +7,7 @@
 
 ```yaml
 dependencies:
-  jverify: 0.0.4
+  jverify: 0.0.5
 ```
 
 ### 配置
