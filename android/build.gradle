@@ -39,6 +39,6 @@ android {
 
 dependencies {
     compileOnly files('libs/flutter.jar')
-    implementation 'cn.jiguang.sdk:jverification:2.3.4'
+    implementation 'cn.jiguang.sdk:jverification:2.3.6'
     implementation 'cn.jiguang.sdk:jcore:2.1.0'
 }
