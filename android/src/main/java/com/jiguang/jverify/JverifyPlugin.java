@@ -300,19 +300,21 @@ public class JverifyPlugin implements MethodCallHandler {
     /// 布局 SDK 授权界面原有 UI
     layoutOriginOuthView(uiconfig, builder);
 
-    for (Map widgetMap : widgetList) {
+    if (widgetList != null) {
+      for (Map widgetMap : widgetList) {
 
-      /// 新增自定义的控件
-      String type = (String) widgetMap.get("type");
-      if (type.equals("textView")) {
-        addCustomTextWidgets(widgetMap, builder);
-      }else if (type.equals("button")) {
-        addCustomButtonWidgets(widgetMap, builder);
-      }else {
-        Log.e(TAG,"don't support widget");
-        return;
+        /// 新增自定义的控件
+        String type = (String) widgetMap.get("type");
+        if (type.equals("textView")) {
+          addCustomTextWidgets(widgetMap, builder);
+        }else if (type.equals("button")) {
+          addCustomButtonWidgets(widgetMap, builder);
+        }else {
+          Log.e(TAG,"don't support widget");
+        }
       }
     }
+
 
     JVerificationInterface.setCustomUIWithConfig(builder.build());
   }
@@ -349,7 +351,6 @@ public class JverifyPlugin implements MethodCallHandler {
     Object sloganTextColor = valueForKey(uiconfig,"sloganTextColor");
     Object privacyState = valueForKey(uiconfig,"privacyState");
 
-
     if (navColor != null){
       if (navColor instanceof Long){
         builder.setNavColor(((Long) navColor).intValue());
@@ -372,7 +373,10 @@ public class JverifyPlugin implements MethodCallHandler {
       builder.setNavReturnImgPath((String) navReturnImgPath);
     }
     if (logoImgPath != null ){
-      builder.setLogoImgPath((String)logoImgPath);
+      int res_id = getResourceByReflect((String)logoImgPath);
+      if (res_id > 0) {
+        builder.setLogoImgPath((String)logoImgPath);
+      }
     }
     if (logoWidth != null){
       if (logoWidth instanceof Long){
@@ -430,13 +434,22 @@ public class JverifyPlugin implements MethodCallHandler {
       }
     }
     if (logBtnBackgroundPath != null){
-      builder.setLogBtnImgPath((String) logBtnBackgroundPath);
+      int res_id = getResourceByReflect((String)logBtnBackgroundPath);
+      if (res_id > 0) {
+        builder.setLogBtnImgPath((String) logBtnBackgroundPath);
+      }
     }
     if (uncheckedImgPath != null){
-      builder.setUncheckedImgPath((String) uncheckedImgPath);
+      int res_id = getResourceByReflect((String)uncheckedImgPath);
+      if (res_id > 0) {
+        builder.setUncheckedImgPath((String) uncheckedImgPath);
+      }
     }
     if (checkedImgPath != null){
-      builder.setCheckedImgPath((String) checkedImgPath);
+      int res_id = getResourceByReflect((String)checkedImgPath);
+      if (res_id > 0) {
+        builder.setCheckedImgPath((String)checkedImgPath);
+      }
     }
     if (privacyOffsetY != null){
       if (privacyOffsetY instanceof Long){
@@ -490,7 +503,7 @@ public class JverifyPlugin implements MethodCallHandler {
 
   /** 添加自定义 widget 到 SDK 原有的授权界面里 */
 
-  /** 添加自定义 TextView、Button 控件到 SDK 原有的授权界面里*/
+  /** 添加自定义 TextView */
   private  void addCustomTextWidgets(Map para, JVerifyUIConfig.Builder builder) {
     Log.d(TAG,"addCustomTextView " + para);
 
@@ -581,6 +594,7 @@ public class JverifyPlugin implements MethodCallHandler {
     });
   }
 
+  /** 添加自定义 button */
   private  void addCustomButtonWidgets(Map para, JVerifyUIConfig.Builder builder) {
     Log.d(TAG,"addCustomButtonWidgets: para = " + para);
 
