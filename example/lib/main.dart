@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:modal_progress_hud/modal_progress_hud.dart';
@@ -8,7 +9,13 @@ import 'package:jverify/jverify.dart';
 
 
 
-void main() => runApp(MyApp());
+void main() => runApp(
+    new MaterialApp(
+      title: "demo",
+      theme: new ThemeData(primaryColor: Colors.white),
+      home: MyApp(),
+    )
+);
 
 class MyApp extends StatefulWidget {
   @override
@@ -273,50 +280,83 @@ class _MyAppState extends State<MyApp> {
       bool result = map[f_result_key];
       if (result) {
 
+        final screenSize = MediaQuery.of(context).size;
+        final screenWidth = screenSize.width;
+        final screenHeight = screenSize.height;
+        bool isiOS = Platform.isIOS;
+
         /// 自定义授权的 UI 界面，以下设置的图片必须添加到资源文件里，
         /// android项目将图片存放至drawable文件夹下，可使用图片选择器的文件名,例如：btn_login.xml,入参为"btn_login"。
         /// ios项目存放在 Assets.xcassets。
+        /// 
         JVUIConfig uiConfig = JVUIConfig();
         uiConfig.navColor = Colors.red.value;
 
         uiConfig.navText = "登录";
         uiConfig.navTextColor = Colors.blue.value;
-        //uiConfig.navReturnImgPath = "return_bg";
+        uiConfig.navReturnImgPath = "return_bg";//图片必须存在
 
-        uiConfig.logoHidden = false;
+        uiConfig.logoWidth = 100;
+        uiConfig.logoHeight = 100;
+        //uiConfig.logoOffsetX = isiOS ? 0 : null;//(screenWidth/2 - uiConfig.logoWidth/2).toInt();
         uiConfig.logoOffsetY = 10;
-        uiConfig.logoWidth = 90;
-        uiConfig.logoHeight = 90;
+        uiConfig.logoVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
+        uiConfig.logoHidden = false;
         uiConfig.logoImgPath = "logo";
 
-        uiConfig.numFieldOffsetY = 120;
+        uiConfig.numberFieldWidth = 200;
+        uiConfig.numberFieldHeight = 40 ;
+        //uiConfig.numFieldOffsetX = isiOS ? 0 : null;//(screenWidth/2 - uiConfig.numberFieldWidth/2).toInt();
+        uiConfig.numFieldOffsetY = isiOS ? 20 : 120;
+        uiConfig.numberVerticalLayoutItem = JVIOSLayoutItem.ItemLogo;
         uiConfig.numberColor = Colors.blue.value;
+        uiConfig.numberSize = 18;
 
-        uiConfig.sloganOffsetY = 150;
+        uiConfig.sloganOffsetY = isiOS ? 20 : 160;
+        uiConfig.sloganVerticalLayoutItem = JVIOSLayoutItem.ItemNumber;
         uiConfig.sloganTextColor = Colors.black.value;
+        uiConfig.sloganTextSize = 15;
+        //uiConfig.sloganHidden = 0;
 
-        uiConfig.logBtnOffsetY = 300;
+        uiConfig.logBtnWidth = 220;
+        uiConfig.logBtnHeight = 50;
+        //uiConfig.logBtnOffsetX = isiOS ? 0 : null;//(screenWidth/2 - uiConfig.logBtnWidth/2).toInt();
+        uiConfig.logBtnOffsetY = isiOS ? 20 : 230;
+        uiConfig.logBtnVerticalLayoutItem = JVIOSLayoutItem.ItemSlogan;
         uiConfig.logBtnText = "登录按钮";
         uiConfig.logBtnTextColor = Colors.brown.value;
-        //uiConfig.loginBtnNormalImage = "login_btn_normal";
-        //uiConfig.loginBtnPressedImage = "login_btn_press";
-        //uiConfig.loginBtnUnableImage = "login_btn_unable";
+        uiConfig.logBtnTextSize = 16;
+        uiConfig.loginBtnNormalImage = "login_btn_normal";//图片必须存在
+        uiConfig.loginBtnPressedImage = "login_btn_press";//图片必须存在
+        uiConfig.loginBtnUnableImage = "login_btn_unable";//图片必须存在
 
-        //设置默认勾选
-        uiConfig.privacyState = true;
-        //uiConfig.checkedImgPath = "check_image";
-        //uiConfig.uncheckedImgPath = "uncheck_image";
-        uiConfig.privacyOffsetY = 80;
 
+        uiConfig.privacyState = true;//设置默认勾选
+        uiConfig.privacyCheckboxSize = 20;
+        uiConfig.checkedImgPath = "check_image";//图片必须存在
+        uiConfig.uncheckedImgPath = "uncheck_image";//图片必须存在
+        uiConfig.privacyCheckboxInCenter = true;
+        //uiConfig.privacyCheckboxHidden = false;
+
+        //uiConfig.privacyOffsetX = isiOS ? (20 + uiConfig.privacyCheckboxSize) : null;
+        uiConfig.privacyOffsetY = 15;// 距离底部距离
+        uiConfig.privacyVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
         uiConfig.clauseName = "协议1";
         uiConfig.clauseUrl = "http://www.baidu.com";
         uiConfig.clauseBaseColor = Colors.black.value;
-
         uiConfig.clauseNameTwo = "协议二";
         uiConfig.clauseUrlTwo = "http://www.hao123.com";
         uiConfig.clauseColor = Colors.red.value;
+        uiConfig.privacyText = ["1极","2光","3认","4证"];
+        uiConfig.privacyTextSize = 13;
+        //uiConfig.privacyWithBookTitleMark = true;
+        //uiConfig.privacyTextCenterGravity = false;
 
 
+        uiConfig.privacyNavColor =  Colors.red.value;;
+        uiConfig.privacyNavTitleTextColor = Colors.blue.value;
+        uiConfig.privacyNavTitleTextSize = 16;
+        uiConfig.privacyNavReturnBtnImage = "return_bg";//图片必须存在;
 
         /// 添加自定义的 控件 到授权界面
         List<JVCustomWidget>widgetList = [];
@@ -368,7 +408,7 @@ class _MyAppState extends State<MyApp> {
 
 
         /// 调用接口设置 UI
-         jverify.setCustomAuthViewAllWidgets(uiConfig);
+         jverify.setCustomAuthorizationView(true, uiConfig, landscapeConfig: uiConfig);
 
         /// 开始一键登录
         jverify.loginAuth(true).then((map) {
@@ -403,6 +443,11 @@ class _MyAppState extends State<MyApp> {
 
     setState(() {
       _platformVersion = platformVersion;
+    });
+
+    /// 授权页面点击时间监听
+    jverify.addAuthPageEventListener((JVAuthPageEvent event) {
+      print("receive auth page event :${event.toMap()}");
     });
   }
 }
