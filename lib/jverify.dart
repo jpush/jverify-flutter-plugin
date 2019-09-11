@@ -9,6 +9,10 @@ import 'package:platform/platform.dart';
 
 /// 监听添加的自定义控件的点击事件
 typedef JVClickWidgetEventListener = void Function(String widgetId);
+/// 授权页事件回调 @since 2.4.0
+typedef JVAuthPageEventListener = void Function(JVAuthPageEvent event);
+
+
 
 class JVEventHandlers {
   static final JVEventHandlers _instance = new JVEventHandlers._internal();
@@ -17,6 +21,7 @@ class JVEventHandlers {
 
 
   Map<String, JVClickWidgetEventListener> clickEventsMap = Map();
+  List<JVAuthPageEventListener> authPageEvents = [];
 }
 
 
@@ -41,21 +46,33 @@ class Jverify {
   );
 
 
-  // Events
+  /// 自定义控件的点击事件
   addClikWidgetEventListener(String eventId, JVClickWidgetEventListener callback) {
     _eventHanders.clickEventsMap[eventId] = callback;
+  }
+  /// 授权页的点击事件， @since v2.4.0
+  addAuthPageEventListener(JVAuthPageEventListener callback) {
+    _eventHanders.authPageEvents.add(callback);
   }
 
 
   Future<void> _handlerMethod(MethodCall call) async {
     print("handleMethod method = ${call.method}");
     switch (call.method) {
-      case 'onReceiveClickWidgetEvent':{
+      case 'onReceiveClickWidgetEvent': {
         String widgetId = call.arguments.cast<dynamic, dynamic>()['widgetId'];
         bool isContains = _eventHanders.clickEventsMap.containsKey(widgetId);
         if (isContains) {
           JVClickWidgetEventListener cb = _eventHanders.clickEventsMap[widgetId];
           cb(widgetId);
+        }
+      }
+        break;
+      case 'onReceiveAuthPageEvent': {
+        for (JVAuthPageEventListener cb in _eventHanders.authPageEvents) {
+          Map json = call.arguments.cast<dynamic, dynamic>();
+          JVAuthPageEvent ev = JVAuthPageEvent.fromJson(json);
+          cb(ev);
         }
       }
         break;
@@ -102,14 +119,18 @@ class Jverify {
     return await _channel.invokeMethod("getToken", para);
   }
 
-  /// SDK 发起号码认证
+  /*
+  * SDK 发起号码认证
+  *
+  * 2.4.3 版本开始，此接口已移除
+  * */
   Future<Map<dynamic, dynamic>> verifyNumber(String phone,
       {String token}) async {
     print("$flutter_log" + "verifyNumber");
-    var para = {"phone": phone, "token": token};
-    para.remove((key, value) => value == null);
-    return await _channel.invokeMethod("verifyNumber", para);
+
+    return {"error":"This interface is deprecated"};
   }
+
 
   /// SDK 一键登录预取号,timeOut 有效取值范围[3000,10000]
   Future<Map<dynamic, dynamic>> preLogin({int timeOut}) async {
@@ -124,15 +145,76 @@ class Jverify {
     return await _channel.invokeMethod("preLogin", para);
   }
 
-  /// SDK 请求授权一键登录
+  /*
+  * SDK 清除预取号缓存
+  *
+  * @discussion 清除 sdk 当前预取号结果缓存
+  *
+  * @since v2.4.3
+  * */
+  void clearPreLoginCache() {
+    print("$flutter_log" + "clearPreLoginCache");
+    _channel.invokeMethod("clearPreLoginCache");
+  }
+
+  /*
+  * SDK请求授权一键登录
+  *
+  * v2.4.0 之后同时支持授权页事件监听，开发者需添加 JVAuthPageEventListener 监听
+  *
+  * */
   Future<Map<dynamic, dynamic>> loginAuth(bool autoDismiss) async {
     print("$flutter_log" + "loginAuth");
     return await _channel
         .invokeMethod("loginAuth", {"autoDismiss": autoDismiss});
   }
 
-  /// (新接口) 自定义授权页面，界面原始控件、新增自定义控件
-  void setCustomAuthViewAllWidgets(JVUIConfig uiConfig , {List<JVCustomWidget>widgets}) {
+  /*
+  * 设置授权页面
+  *
+  * @para isAutorotate      是否支持横竖屏，true:支持横竖屏，false：只支持竖屏
+  * @para portraitConfig    竖屏的 UI 配置
+  * @para landscapeConfig   Android 横屏的 UI 配置，只有当 isAutorotate=true 时必须传，并且该配置只生效在 Android，iOS 使用 portraitConfig 的约束适配横屏
+  * @para widgets           自定义添加的控件
+  * */
+  void setCustomAuthorizationView(bool isAutorotate, JVUIConfig portraitConfig, {JVUIConfig landscapeConfig, List<JVCustomWidget>widgets}) {
+
+    if (isAutorotate == true) {
+      if (portraitConfig == null || landscapeConfig == null) {
+        print("missing Android landscape ui config");
+        return ;
+      }
+    }
+    
+    var para = Map();
+    para["isAutorotate"] = isAutorotate;
+
+    var para1 = portraitConfig.toJsonMap();
+    para1.removeWhere((key, value) => value == null);
+    para["portraitConfig"] = para1;
+
+    if (landscapeConfig != null) {
+      var para2 = landscapeConfig.toJsonMap();
+      para2.removeWhere((key, value) => value == null);
+      para["landscapeConfig"] = para2;
+    }
+
+    if (widgets != null) {
+      var widgetList = List();
+      for (JVCustomWidget widget in widgets) {
+        var para2 = widget.toJsonMap();
+        para2.removeWhere((key, value) => value == null);
+
+        widgetList.add(para2);
+      }
+      para["widgets"] = widgetList;
+    }
+
+    _channel.invokeMethod("setCustomAuthorizationView", para);
+  }
+
+  /// （不建议使用，建议使用 setAuthorizationView 接口）自定义授权页面，界面原始控件、新增自定义控件
+  void setCustomAuthViewAllWidgets(JVUIConfig uiConfig, {List<JVCustomWidget>widgets}) {
 
     var para = Map();
 
@@ -157,40 +239,90 @@ class Jverify {
 }
 
 
-/// 自定义 UI 界面配置类
+
+/*
+* 自定义 UI 界面配置类
+*
+* Y 轴
+*     iOS       以导航栏底部为 0 作为起点
+*     Android   以导航栏底部为 0 作为起点
+* X 轴
+*     iOS       以屏幕中心为 0 作为起点，往屏幕左侧则减，往右侧则加，如果不传或者传 null，则默认屏幕居中
+*     Android   以屏幕左侧为 0 作为起点，往右侧则加，如果不传或者传 null，则默认屏幕居中
+* */
 class JVUIConfig {
   int navColor;
   String navText;
   int navTextColor;
   String navReturnImgPath;
-  String logoImgPath;
+
+  /// logo
   int logoWidth;
   int logoHeight;
+  int logoOffsetX;
   int logoOffsetY;
+  JVIOSLayoutItem logoVerticalLayoutItem;
   bool logoHidden;
+  String logoImgPath;
+
+  /// 号码
   int numberColor;
+  int numberSize;
+  int numFieldOffsetX;
   int numFieldOffsetY;
-  String logBtnText;
+  int numberFieldWidth;
+  int numberFieldHeight;
+  JVIOSLayoutItem numberVerticalLayoutItem;
+
+  /// slogan
+  int sloganOffsetX;
+  int sloganOffsetY;
+  JVIOSLayoutItem sloganVerticalLayoutItem;
+  int sloganTextColor;
+  int sloganTextSize;
+  bool sloganHidden = false;
+
+  /// 登录按钮
+  int logBtnOffsetX;
   int logBtnOffsetY;
+  int logBtnWidth;
+  int logBtnHeight;
+  JVIOSLayoutItem logBtnVerticalLayoutItem;
+  String logBtnText;
+  int logBtnTextSize;
   int logBtnTextColor;
   String logBtnBackgroundPath;
-  String loginBtnNormalImage;
-  String loginBtnPressedImage;
-  String loginBtnUnableImage;
+  String loginBtnNormalImage;// only ios
+  String loginBtnPressedImage;// only ios
+  String loginBtnUnableImage;// only ios
+
+  /// 隐私协议栏
   String uncheckedImgPath;
   String checkedImgPath;
-  int privacyOffsetY;
+  int privacyCheckboxSize;
+  bool privacyState = false;//设置隐私条款默认选中状态，默认不选中
+  bool privacyCheckboxHidden = false;//设置隐私条款checkbox是否隐藏
+  bool privacyCheckboxInCenter = false;//设置隐私条款checkbox是否相对协议文字纵向居中
+
+  int privacyOffsetY; // 隐私条款相对于授权页面底部下边缘 y 偏移
+  int privacyOffsetX; // 隐私条款相对于屏幕左边 x 轴偏移
+  JVIOSLayoutItem privacyVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
   String clauseName;
   String clauseUrl;
   int clauseBaseColor;
   int clauseColor;
   String clauseNameTwo;
   String clauseUrlTwo;
-  int sloganOffsetY;
-  int sloganTextColor;
-  ///设置隐私条款默认选中状态，默认不选中
-  bool privacyState = false;
+  List<String> privacyText;
+  int privacyTextSize;
+  bool privacyWithBookTitleMark = true;//设置隐私条款运营商协议名是否加书名号
+  bool privacyTextCenterGravity = false;//隐私条款文字是否居中对齐（默认左对齐）
 
+  /// 隐私协议页面
+  int privacyNavColor;
+  int privacyNavTitleTextColor;
+  int privacyNavTitleTextSize;
+  String privacyNavReturnBtnImage;
 
   Map toJsonMap() {
     return {
@@ -202,11 +334,23 @@ class JVUIConfig {
       "logoWidth": logoWidth ??= null,
       "logoHeight": logoHeight ??= null,
       "logoOffsetY": logoOffsetY ??= null,
+      "logoOffsetX": logoOffsetX ??= null,
+      "logoVerticalLayoutItem": getStringFromEnum(logoVerticalLayoutItem),
       "logoHidden": logoHidden ??= null,
       "numberColor": numberColor ??= null,
+      "numberSize": numberSize ??= null,
       "numFieldOffsetY": numFieldOffsetY ??= null,
+      "numFieldOffsetX": numFieldOffsetX ??= null,
+      "numberFieldWidth": numberFieldWidth ??= null,
+      "numberFieldHeight": numberFieldHeight ??= null,
+      "numberVerticalLayoutItem": getStringFromEnum(numberVerticalLayoutItem),
       "logBtnText": logBtnText ??= null,
       "logBtnOffsetY": logBtnOffsetY ??= null,
+      "logBtnOffsetX": logBtnOffsetX ??= null,
+      "logBtnWidth": logBtnWidth ??= null,
+      "logBtnHeight": logBtnHeight ??= null,
+      "logBtnVerticalLayoutItem": getStringFromEnum(logBtnVerticalLayoutItem),
+      "logBtnTextSize": logBtnTextSize ??= null,
       "logBtnTextColor": logBtnTextColor ??= null,
       "logBtnBackgroundPath": logBtnBackgroundPath ??= null,
       "loginBtnNormalImage": loginBtnNormalImage ??= null,
@@ -214,7 +358,13 @@ class JVUIConfig {
       "loginBtnUnableImage": loginBtnUnableImage ??= null,
       "uncheckedImgPath": uncheckedImgPath ??= null,
       "checkedImgPath": checkedImgPath ??= null,
+      "privacyCheckboxSize": privacyCheckboxSize ??= null,
+      //"checkboxVerticalLayoutItem": getStringFromEnum(checkboxVerticalLayoutItem),
       "privacyOffsetY": privacyOffsetY ??= null,
+      "privacyOffsetX": privacyOffsetX ??= null,
+      "privacyVerticalLayoutItem": getStringFromEnum(privacyVerticalLayoutItem),
+      "privacyText": privacyText ??= null,
+      "privacyTextSize": privacyTextSize ??= null,
       "clauseName": clauseName ??= null,
       "clauseUrl": clauseUrl ??= null,
       "clauseBaseColor": clauseBaseColor ??= null,
@@ -223,7 +373,19 @@ class JVUIConfig {
       "clauseUrlTwo": clauseUrlTwo ??= null,
       "sloganOffsetY": sloganOffsetY ??= null,
       "sloganTextColor": sloganTextColor ??= null,
+      "sloganOffsetX": sloganOffsetX ??= null,
+      "sloganVerticalLayoutItem": getStringFromEnum(sloganVerticalLayoutItem),
+      "sloganTextSize": sloganTextSize ??= null,
+      "sloganHidden": sloganHidden,
       "privacyState": privacyState,
+      "privacyCheckboxInCenter": privacyCheckboxInCenter,
+      "privacyTextCenterGravity": privacyTextCenterGravity,
+      "privacyCheckboxHidden": privacyCheckboxHidden,
+      "privacyWithBookTitleMark": privacyWithBookTitleMark,
+      "privacyNavColor": privacyNavColor ??= null,
+      "privacyNavTitleTextColor": privacyNavTitleTextColor ??= null,
+      "privacyNavTitleTextSize": privacyNavTitleTextSize ??= null,
+      "privacyNavReturnBtnImage": privacyNavReturnBtnImage ??= null,
     }..removeWhere((key,value) => value == null);
   }
 }
@@ -300,6 +462,45 @@ enum JVTextAlignmentType {
   right,
   center
 }
+
+
+/// 授权页事件
+class JVAuthPageEvent {
+  final int code;//返回码 // 具体事件返回码请查看（https://docs.jiguang.cn/jverification/client/android_api/）
+  final String message;//事件描述
+
+  JVAuthPageEvent.fromJson(Map<dynamic, dynamic> json)
+      : code = json['code'],
+        message = json['message'];
+
+  Map toMap() {
+    return {'code': code, 'message': message};
+  }
+}
+
+/*
+* iOS 布局参照 item (Android 只)
+*
+* ItemNone    不参照任何item。可用来直接设置 Y、width、height
+* ItemLogo    参照logo视图
+* ItemNumber  参照号码栏
+* ItemSlogan  参照标语栏
+* ItemLogin   参照登录按钮
+* ItemCheck   参照隐私选择框
+* ItemPrivacy 参照隐私栏
+* ItemSuper   参照父视图
+* */
+enum JVIOSLayoutItem {
+  ItemNone,
+  ItemLogo,
+  ItemNumber,
+  ItemSlogan,
+  ItemLogin,
+  ItemCheck,
+  ItemPrivacy,
+  ItemSuper
+}
+
 
 String getStringFromEnum<T>(T) {
   if (T == null) {

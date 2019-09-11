@@ -65,20 +65,6 @@ jverify.getToken().then((map){
         });
 ```
 
-#### verifyNumber
-
-验证手机号是否是当前在线的sim卡的手机号
-**说明：** 开发者调用该接口，需要在管理控制台找到该应用，并在［认证设置］-［其他设置］中开启［SDK发起认证］。
-
-```dart
-Jverify jverify = new Jverify();
-jverify.verifyNumber("13344553344",token: _token).then((map){
-          int _code = map["code"]; // 返回码，1000代表验证一致，1001代表验证不一致，其他为失败，详见错误码描述
-          String _token = map["content"]; // 返回码的解释信息
-          String _operator = map["operator"]; // 成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为null
-          ...
-        });
-```
 
 ####  loginAuth
 
@@ -94,13 +80,13 @@ jverify.loginAuth().then((map){
         });
 ```
 
-#### setCustomAuthViewAllWidgets
+#### setCustomAuthorizationView
 
-修改授权页面主题，开发者可以通过 setCustomAuthViewAllWidgets 方法修改授权页面主题，需在 loginAuth 接口之前调用
+修改授权页面主题，开发者可以通过 setCustomAuthorizationView 方法修改授权页面主题，需在 loginAuth 接口之前调用
 
 ```
 /// 先配置好 JVUIConfig 和 JVCustomWidget 数组
-jverify.setCustomAuthViewAllWidgets(uiConfig,widgets: widgetList);
+jverify.setCustomAuthorizationView(false,uiConfig,widgets: widgetList);
 ```
 **JVUIConfig 和 JVCustomWidget 配置如下：**
 
