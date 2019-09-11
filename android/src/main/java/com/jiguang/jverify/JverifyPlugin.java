@@ -22,11 +22,14 @@ import android.view.View;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import cn.jiguang.api.JCoreInterface;
+import cn.jiguang.verifysdk.api.AuthPageEventListener;
 import cn.jiguang.verifysdk.api.JVerificationInterface;
 import cn.jiguang.verifysdk.api.JVerifyUIClickCallback;
 import cn.jiguang.verifysdk.api.JVerifyUIConfig;
@@ -98,7 +101,12 @@ public class JverifyPlugin implements MethodCallHandler {
 //      setCustomUI(call,result);
     }else if (call.method.equals("setCustomAuthViewAllWidgets")) {
       setCustomAuthViewAllWidgets(call,result);
-    }else {
+    }else if (call.method.equals("clearPreLoginCache")) {
+      clearPreLoginCache(call,result);
+    }else if (call.method.equals("setCustomAuthorizationView")) {
+      setCustomAuthorizationView(call,result);
+    }
+    else {
       result.notImplemented();
     }
   }
@@ -192,6 +200,7 @@ public class JverifyPlugin implements MethodCallHandler {
   private void verifyNumber(MethodCall call, final Result result) {
     Log.d(TAG,"Action - verifyNumber:");
 
+    /*
     String token = null;
     if (call.hasArgument("token")){
       token = call.argument("token");
@@ -223,6 +232,7 @@ public class JverifyPlugin implements MethodCallHandler {
         result.success(map);
       }
     });
+    */
   }
 
   /** SDK 一键登录预取号 */
@@ -253,6 +263,12 @@ public class JverifyPlugin implements MethodCallHandler {
     });
   }
 
+  /** SDK清除预取号缓存 */
+  private  void  clearPreLoginCache(MethodCall call,final Result result) {
+    Log.d(TAG,"Action - clearPreLoginCache:");
+    JVerificationInterface.clearPreLoginCache();
+  }
+
 
   /** SDK请求授权一键登录 */
   private void loginAuth(MethodCall call,final Result result){
@@ -260,26 +276,33 @@ public class JverifyPlugin implements MethodCallHandler {
 
     Object autoFinish =  getValueByKey(call,"autoDismiss");
 
-    JVerificationInterface.loginAuth(context, (Boolean)autoFinish, new VerifyListener() {
+    JVerificationInterface.loginAuth(context, (Boolean) autoFinish, new VerifyListener() {
       @Override
       public void onResult(int code, String content, String operator) {
-
-        //code: 返回码，6000代表loginToken获取成功，6001代表loginToken获取失败
         if (code == 6000){
-          Log.d(TAG, "code = " + code + ", token = " + content +" ,operator = " + operator);
+          Log.d(TAG, "code=" + code + ", token=" + content+" ,operator="+operator);
         }else{
-          Log.e(TAG, "code = " + code + ", message = " + content);
+          Log.d(TAG, "code=" + code + ", message=" + content);
         }
-
         Map<String,Object> map = new HashMap<>();
         map.put(j_code_key,code);
         map.put(j_msg_key,content);
         map.put(j_opr_key,operator);
         result.success(map);
-
+      }
+    }, new AuthPageEventListener() {
+      @Override
+      public void onEvent(int cmd, String msg) {
+        Log.d(TAG,"Action - AuthPageEventListener: cmd = " + cmd);
+        /// 事件
+        final HashMap jsonMap = new HashMap();
+        jsonMap.put(j_code_key, cmd);
+        jsonMap.put(j_msg_key, msg);
+        channel.invokeMethod("onReceiveAuthPageEvent", jsonMap);
       }
     });
   }
+
   /** SDK关闭授权页面 */
   private  void dismissLoginAuthView(MethodCall call, Result result) {
     Log.d(TAG,"Action - dismissLoginAuthView:");
@@ -314,10 +337,56 @@ public class JverifyPlugin implements MethodCallHandler {
         }
       }
     }
-
-
     JVerificationInterface.setCustomUIWithConfig(builder.build());
   }
+
+  private void setCustomAuthorizationView(MethodCall call, Result result) {
+    Log.d(TAG,"setCustomAuthorizationView:");
+
+    Boolean isAutorotate = (Boolean) call.argument("isAutorotate");
+    Map portraitConfig = call.argument("portraitConfig");
+    Map landscapeConfig = call.argument("landscapeConfig");
+    List<Map> widgetList = call.argument("widgets");
+
+
+    JVerifyUIConfig.Builder portraitBuilder =  new JVerifyUIConfig.Builder();
+    JVerifyUIConfig.Builder landscapeBuilder =  new JVerifyUIConfig.Builder();
+
+    /// 布局 SDK 授权界面原有 UI
+    layoutOriginOuthView(portraitConfig, portraitBuilder);
+    if (isAutorotate) {
+      layoutOriginOuthView(landscapeConfig, landscapeBuilder);
+    }
+
+
+    if (widgetList != null) {
+      for (Map widgetMap : widgetList) {
+        /// 新增自定义的控件
+        String type = (String) widgetMap.get("type");
+        if (type.equals("textView")) {
+          addCustomTextWidgets(widgetMap, portraitBuilder);
+          if (isAutorotate) {
+            addCustomTextWidgets(widgetMap, landscapeBuilder);
+          }
+        }else if (type.equals("button")) {
+          addCustomButtonWidgets(widgetMap, portraitBuilder);
+          if (isAutorotate) {
+            addCustomButtonWidgets(widgetMap, landscapeBuilder);
+          }
+        }else {
+          Log.e(TAG,"don't support widget");
+        }
+      }
+    }
+    JVerifyUIConfig portrait = portraitBuilder.build();
+    if (isAutorotate) {
+      JVerifyUIConfig landscape = landscapeBuilder.build();
+      JVerificationInterface.setCustomUIWithConfig(portrait,landscape);
+    }else {
+      JVerificationInterface.setCustomUIWithConfig(portrait);
+    }
+  }
+
 
   /** 自定义 SDK 原有的授权界面里的 UI */
   private  void layoutOriginOuthView(Map uiconfig, JVerifyUIConfig.Builder builder) {
@@ -327,50 +396,94 @@ public class JverifyPlugin implements MethodCallHandler {
     Object navText = valueForKey(uiconfig,"navText");
     Object navTextColor = valueForKey(uiconfig,"navTextColor");
     Object navReturnImgPath = valueForKey(uiconfig,"navReturnImgPath");
+
     Object logoImgPath = valueForKey(uiconfig,"logoImgPath");
     Object logoWidth = valueForKey(uiconfig,"logoWidth");
     Object logoHeight = valueForKey(uiconfig,"logoHeight");
     Object logoOffsetY = valueForKey(uiconfig,"logoOffsetY");
+    Object logoOffsetX = valueForKey(uiconfig, "logoOffsetX");
     Object logoHidden = valueForKey(uiconfig,"logoHidden");
+
     Object numberColor = valueForKey(uiconfig,"numberColor");
+    Object numberSize = valueForKey(uiconfig,"numberSize");
     Object numFieldOffsetY = valueForKey(uiconfig,"numFieldOffsetY");
+    Object numFieldOffsetX = valueForKey(uiconfig,"numFieldOffsetX");
+    Object numberFieldWidth = valueForKey(uiconfig,"numberFieldWidth");
+    Object numberFieldHeight = valueForKey(uiconfig,"numberFieldHeight");
+
+
     Object logBtnText = valueForKey(uiconfig,"logBtnText");
     Object logBtnOffsetY = valueForKey(uiconfig,"logBtnOffsetY");
+    Object logBtnOffsetX = valueForKey(uiconfig,"logBtnOffsetX");
+    Object logBtnWidth = valueForKey(uiconfig,"logBtnWidth");
+    Object logBtnHeight = valueForKey(uiconfig,"logBtnHeight");
+    Object logBtnTextSize = valueForKey(uiconfig,"logBtnTextSize");
     Object logBtnTextColor = valueForKey(uiconfig,"logBtnTextColor");
     Object logBtnBackgroundPath = valueForKey(uiconfig,"logBtnBackgroundPath");
+
     Object uncheckedImgPath = valueForKey(uiconfig,"uncheckedImgPath");
     Object checkedImgPath = valueForKey(uiconfig,"checkedImgPath");
+
+    Object privacyTopOffsetY = valueForKey(uiconfig,"privacyTopOffsetY");
     Object privacyOffsetY = valueForKey(uiconfig,"privacyOffsetY");
+    Object privacyOffsetX = valueForKey(uiconfig,"privacyOffsetX");
     Object CLAUSE_NAME = valueForKey(uiconfig,"clauseName");
     Object CLAUSE_URL = valueForKey(uiconfig,"clauseUrl");
     Object CLAUSE_BASE_COLOR = valueForKey(uiconfig,"clauseBaseColor");
     Object CLAUSE_COLOR = valueForKey(uiconfig,"clauseColor");
     Object CLAUSE_NAME_TWO = valueForKey(uiconfig,"clauseNameTwo");
     Object CLAUSE_URL_TWO = valueForKey(uiconfig,"clauseUrlTwo");
-    Object sloganOffsetY = valueForKey(uiconfig,"sloganOffsetY");
-    Object sloganTextColor = valueForKey(uiconfig,"sloganTextColor");
+    Object privacyTextCenterGravity = valueForKey(uiconfig,"privacyTextCenterGravity");
+    Object privacyText = valueForKey(uiconfig,"privacyText");
+    Object privacyTextSize = valueForKey(uiconfig,"privacyTextSize");
+    Object privacyCheckboxHidden = valueForKey(uiconfig,"privacyCheckboxHidden");
+    Object privacyCheckboxSize = valueForKey(uiconfig,"privacyCheckboxSize");
+    Object privacyWithBookTitleMark = valueForKey(uiconfig,"privacyWithBookTitleMark");
+    Object privacyCheckboxInCenter = valueForKey(uiconfig,"privacyCheckboxInCenter");
     Object privacyState = valueForKey(uiconfig,"privacyState");
 
-    if (navColor != null){
-      if (navColor instanceof Long){
-        builder.setNavColor(((Long) navColor).intValue());
-      }else {
-        builder.setNavColor((Integer) navColor);
-      }
+    Object sloganOffsetY = valueForKey(uiconfig,"sloganOffsetY");
+    Object sloganTextColor = valueForKey(uiconfig,"sloganTextColor");
+    Object sloganOffsetX = valueForKey(uiconfig,"sloganOffsetX");
+    Object sloganBottomOffsetY = valueForKey(uiconfig,"sloganBottomOffsetY");
+    Object sloganTextSize = valueForKey(uiconfig,"sloganTextSize");
+    Object sloganHidden = valueForKey(uiconfig,"sloganHidden");
 
+    Object privacyNavColor = valueForKey(uiconfig,"privacyNavColor");
+    Object privacyNavTitleTextColor = valueForKey(uiconfig,"privacyNavTitleTextColor");
+    Object privacyNavTitleTextSize = valueForKey(uiconfig,"privacyNavTitleTextSize");
+    Object privacyNavReturnBtnImage = valueForKey(uiconfig,"privacyNavReturnBtnImage");
+
+
+    /************** nav ***************/
+    if (navColor != null){
+      builder.setNavColor(exchangeObject(navColor));
     }
     if (navText != null){
       builder.setNavText((String) navText);
     }
     if (navTextColor != null){
-      if (navTextColor instanceof Long){
-        builder.setNavTextColor(((Long) navTextColor).intValue());
-      }else {
-        builder.setNavTextColor((Integer) navTextColor);
-      }
+      builder.setNavTextColor(exchangeObject(navTextColor));
     }
     if (navReturnImgPath != null){
       builder.setNavReturnImgPath((String) navReturnImgPath);
+    }
+
+    /************** logo ***************/
+    if (logoWidth != null){
+      builder.setLogoWidth((Integer) logoWidth);
+    }
+    if (logoHeight != null){
+      builder.setLogoHeight((Integer) logoHeight);
+    }
+    if (logoOffsetY != null){
+      builder.setLogoOffsetY((Integer) logoOffsetY);
+    }
+    if (logoOffsetX != null) {
+      builder.setLogoOffsetX((Integer)logoOffsetX);
+    }
+    if (logoHidden != null){
+      builder.setLogoHidden((Boolean)logoHidden);
     }
     if (logoImgPath != null ){
       int res_id = getResourceByReflect((String)logoImgPath);
@@ -378,66 +491,79 @@ public class JverifyPlugin implements MethodCallHandler {
         builder.setLogoImgPath((String)logoImgPath);
       }
     }
-    if (logoWidth != null){
-      if (logoWidth instanceof Long){
-        builder.setLogoWidth(((Long) logoWidth).intValue());
-      }else {
-        builder.setLogoWidth((Integer) logoWidth);
-      }
+
+    /************** number ***************/
+    if (numFieldOffsetY != null){
+      builder.setNumFieldOffsetY((Integer) numFieldOffsetY);
     }
-    if (logoHeight != null){
-      if (logoHeight instanceof Long){
-        builder.setLogoHeight(((Long) logoHeight).intValue());
-      }else {
-        builder.setLogoHeight((Integer) logoHeight);
-      }
+    if (numFieldOffsetX != null) {
+      builder.setNumFieldOffsetX((Integer)numFieldOffsetX);
     }
-    if (logoOffsetY != null){
-      if (logoOffsetY instanceof Long){
-        builder.setLogoOffsetY(((Long) logoOffsetY).intValue());
-      }else {
-        builder.setLogoOffsetY((Integer) logoOffsetY);
-      }
+    if (numberFieldWidth != null) {
+      builder.setNumberFieldWidth((Integer)numberFieldWidth);
     }
-    if (logoHidden != null){
-      builder.setLogoHidden((Boolean)logoHidden);
+    if (numberFieldHeight != null) {
+      builder.setNumberFieldHeight((Integer)numberFieldHeight);
     }
     if (numberColor != null){
-      if (numberColor instanceof Long){
-        builder.setNumberColor(((Long) numberColor).intValue());
-      }else {
-        builder.setNumberColor((Integer) numberColor);
-      }
+      builder.setNumberColor(exchangeObject(numberColor));
     }
-    if (numFieldOffsetY != null){
-      if (numFieldOffsetY instanceof Long){
-        builder.setNumFieldOffsetY(((Long) numFieldOffsetY).intValue());
-      }else {
-        builder.setNumFieldOffsetY((Integer) numFieldOffsetY);
-      }
+    if (numberSize != null) {
+      builder.setNumberSize((Number) numberSize);
+    }
+
+
+    /************** slogan ***************/
+    if (sloganOffsetY!= null){
+      builder.setSloganOffsetY((Integer) sloganOffsetY);
+    }
+    if (sloganOffsetX != null) {
+      builder.setSloganOffsetX((Integer)sloganOffsetX);
+    }
+    if (sloganTextSize != null) {
+      builder.setSloganTextSize((Integer)sloganTextSize);
+    }
+    if (sloganTextColor != null){
+      builder.setSloganTextColor(exchangeObject(sloganTextColor));
+    }
+    if (sloganHidden != null) {
+      builder.setSloganHidden((Boolean)sloganHidden);
+    }
+
+
+    /************** login btn ***************/
+    if (logBtnOffsetY != null){
+      builder.setLogBtnOffsetY((Integer) logBtnOffsetY);
+    }
+    if (logBtnOffsetX != null) {
+      builder.setLogBtnOffsetX((Integer)logBtnOffsetX);
+    }
+    if (logBtnWidth != null) {
+      builder.setLogBtnWidth((Integer)logBtnWidth);
+    }
+    if (logBtnHeight != null) {
+      builder.setLogBtnHeight((Integer)logBtnHeight);
     }
     if (logBtnText != null){
       builder.setLogBtnText((String) logBtnText);
     }
-    if (logBtnOffsetY != null){
-      if (logBtnOffsetY instanceof Long){
-        builder.setLogBtnOffsetY(((Long) logBtnOffsetY).intValue());
-      }else {
-        builder.setLogBtnOffsetY((Integer) logBtnOffsetY);
-      }
+    if (logBtnTextSize != null) {
+      builder.setLogBtnTextSize((Integer)logBtnTextSize);
     }
     if (logBtnTextColor != null){
-      if (logBtnTextColor instanceof Long){
-        builder.setLogBtnTextColor(((Long) logBtnTextColor).intValue());
-      }else {
-        builder.setLogBtnTextColor((Integer) logBtnTextColor);
-      }
+      builder.setLogBtnTextColor(exchangeObject(logBtnTextColor));
     }
     if (logBtnBackgroundPath != null){
       int res_id = getResourceByReflect((String)logBtnBackgroundPath);
       if (res_id > 0) {
         builder.setLogBtnImgPath((String) logBtnBackgroundPath);
       }
+    }
+
+    /************** check box ***************/
+    builder.setPrivacyCheckboxHidden((Boolean)privacyCheckboxHidden);
+    if (privacyCheckboxSize != null) {
+      builder.setPrivacyCheckboxSize((Integer)privacyCheckboxSize);
     }
     if (uncheckedImgPath != null){
       int res_id = getResourceByReflect((String)uncheckedImgPath);
@@ -451,13 +577,37 @@ public class JverifyPlugin implements MethodCallHandler {
         builder.setCheckedImgPath((String)checkedImgPath);
       }
     }
+
+    /************** privacy ***************/
     if (privacyOffsetY != null){
-      if (privacyOffsetY instanceof Long){
-        builder.setPrivacyOffsetY(((Long) privacyOffsetY).intValue());
-      }else {
-        builder.setPrivacyOffsetY((Integer) privacyOffsetY);
+      //设置隐私条款相对于授权页面底部下边缘y偏移
+      builder.setPrivacyOffsetY((Integer) privacyOffsetY);
+    }else {
+      if (privacyTopOffsetY != null) {
+        //设置隐私条款相对导航栏下端y轴偏移。since 2.4.8
+        builder.setPrivacyTopOffsetY((Integer)privacyTopOffsetY);
       }
     }
+    if (privacyOffsetX != null) {
+      builder.setPrivacyOffsetX((Integer)privacyOffsetX);
+    }
+    if (privacyCheckboxSize != null) {
+      builder.setPrivacyCheckboxSize((Integer)privacyCheckboxSize);
+    }
+    if (privacyTextSize != null) {
+      builder.setPrivacyTextSize((Integer)privacyTextSize);
+    }
+    if (privacyText != null){
+      ArrayList<String> privacyTextList = (ArrayList)privacyText;
+      privacyTextList.addAll(Arrays.asList("", "", "", ""));
+      builder.setPrivacyText(privacyTextList.get(0),privacyTextList.get(1),privacyTextList.get(2),privacyTextList.get(3));
+    }
+
+    builder.setPrivacyTextCenterGravity((Boolean)privacyTextCenterGravity);
+    builder.setPrivacyWithBookTitleMark((Boolean)privacyWithBookTitleMark);
+    builder.setPrivacyCheckboxInCenter((Boolean)privacyCheckboxInCenter);
+    builder.setPrivacyState((Boolean) privacyState);
+
     if (CLAUSE_NAME != null && CLAUSE_URL != null){
       builder.setAppPrivacyOne( (String) CLAUSE_NAME, (String) CLAUSE_URL);
     }
@@ -482,23 +632,25 @@ public class JverifyPlugin implements MethodCallHandler {
       builder.setAppPrivacyTwo( (String) CLAUSE_NAME_TWO, (String) CLAUSE_URL_TWO);
     }
 
-    if (sloganOffsetY!= null){
-      if (sloganOffsetY instanceof Long){
-        builder.setSloganOffsetY(((Long) sloganOffsetY).intValue());
-      }else {
-        builder.setSloganOffsetY((Integer) sloganOffsetY);
-      }
+    /************** 隐私 web 页面 ***************/
+    if (privacyNavColor != null){
+      builder.setPrivacyNavColor(exchangeObject(privacyNavColor));
     }
-    if (sloganTextColor != null){
-      if (sloganTextColor instanceof Long){
-        builder.setSloganTextColor(((Long) sloganTextColor).intValue());
-      }else {
-        builder.setSloganTextColor((Integer) sloganTextColor);
-      }
+    if (privacyNavTitleTextSize != null){
+      builder.setPrivacyNavTitleTextSize (exchangeObject(privacyNavTitleTextSize));
+    }
+    if (privacyNavTitleTextColor != null){
+      builder.setPrivacyNavTitleTextColor(exchangeObject(privacyNavTitleTextColor));
     }
 
-    boolean isPrivacyState = (Boolean) privacyState;
-    builder.setPrivacyState(isPrivacyState);
+    if (privacyNavReturnBtnImage != null){
+      int res_id = getResourceByReflect((String)privacyNavReturnBtnImage);
+      if (res_id > 0) {
+        ImageView view = new ImageView(context);
+        view.setImageResource(res_id);
+        builder.setPrivacyNavReturnBtn(view);
+      }
+    }
   }
 
   /** 添加自定义 widget 到 SDK 原有的授权界面里 */
@@ -780,6 +932,14 @@ public class JverifyPlugin implements MethodCallHandler {
       return (int)(dp * density + 0.5F);
     } catch (Exception e) {
       return (int)dp;
+    }
+  }
+
+  private Integer exchangeObject(Object ob) {
+    if (ob instanceof Long){
+      return  ((Long) ob).intValue();
+    }else {
+      return  (Integer)ob;
     }
   }
 
