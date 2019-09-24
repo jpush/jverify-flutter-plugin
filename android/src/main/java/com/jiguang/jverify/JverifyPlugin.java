@@ -392,10 +392,14 @@ public class JverifyPlugin implements MethodCallHandler {
   private  void layoutOriginOuthView(Map uiconfig, JVerifyUIConfig.Builder builder) {
     Log.d(TAG,"layoutOriginOuthView:");
 
+    Object authBackgroundImage = valueForKey(uiconfig,"authBackgroundImage");
+
     Object navColor = valueForKey(uiconfig,"navColor");
     Object navText = valueForKey(uiconfig,"navText");
     Object navTextColor = valueForKey(uiconfig,"navTextColor");
     Object navReturnImgPath = valueForKey(uiconfig,"navReturnImgPath");
+    Object navHidden = valueForKey(uiconfig,"navHidden");
+    Object navReturnBtnHidden = valueForKey(uiconfig,"navReturnBtnHidden");
 
     Object logoImgPath = valueForKey(uiconfig,"logoImgPath");
     Object logoWidth = valueForKey(uiconfig,"logoWidth");
@@ -455,7 +459,21 @@ public class JverifyPlugin implements MethodCallHandler {
     Object privacyNavReturnBtnImage = valueForKey(uiconfig,"privacyNavReturnBtnImage");
 
 
+
+    /************** 背景 ***************/
+    if (authBackgroundImage != null ){
+      int res_id = getResourceByReflect((String)authBackgroundImage);
+      if (res_id > 0) {
+        builder.setAuthBGImgPath((String)authBackgroundImage);
+      }
+    }
     /************** nav ***************/
+    if (navHidden != null) {
+      builder.setNavHidden((Boolean)navHidden);
+    }
+    if (navReturnBtnHidden != null) {
+      builder.setNavReturnBtnHidden((Boolean)navReturnBtnHidden);
+    }
     if (navColor != null){
       builder.setNavColor(exchangeObject(navColor));
     }

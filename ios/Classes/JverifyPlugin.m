@@ -393,6 +393,29 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     unicomUIConfig.barStyle = 0;
     telecomUIConfig.barStyle = 0;
 
+     /************** 背景 ***************/
+    NSString *authBackgroundImage = [config objectForKey:@"authBackgroundImage"];
+    authBackgroundImage = authBackgroundImage?:nil;
+    if (authBackgroundImage) {
+        mobileUIConfig.authPageBackgroundImage = [UIImage imageNamed:authBackgroundImage];
+        unicomUIConfig.authPageBackgroundImage = [UIImage imageNamed:authBackgroundImage];
+        telecomUIConfig.authPageBackgroundImage = [UIImage imageNamed:authBackgroundImage];
+    }
+    
+     /************** 导航栏 ***************/
+    NSNumber *navHidden = [self getValue:config key:@"navHidden"];
+    if (navHidden) {
+        mobileUIConfig.navCustom = [navHidden boolValue];
+        unicomUIConfig.navCustom = [navHidden boolValue];
+        telecomUIConfig.navCustom = [navHidden boolValue];
+    }
+    NSNumber *navReturnBtnHidden = [self getValue:config key:@"navReturnBtnHidden"];
+    if (navReturnBtnHidden) {
+        mobileUIConfig.navReturnHidden = [navReturnBtnHidden boolValue];
+        unicomUIConfig.navReturnHidden = [navReturnBtnHidden boolValue];
+        telecomUIConfig.navReturnHidden = [navReturnBtnHidden boolValue];
+    }
+    
     NSNumber *navColor = [self getValue:config key:@"navColor"];
     if (navColor) {
         mobileUIConfig.navColor  = UIColorFromRGB([navColor intValue]);

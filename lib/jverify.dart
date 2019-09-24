@@ -251,10 +251,17 @@ class Jverify {
 *     Android   以屏幕左侧为 0 作为起点，往右侧则加，如果不传或者传 null，则默认屏幕居中
 * */
 class JVUIConfig {
+
+  /// 授权页背景图片
+  String authBackgroundImage;
+
+  /// 导航栏
   int navColor;
   String navText;
   int navTextColor;
   String navReturnImgPath;
+  bool navHidden = false;
+  bool navReturnBtnHidden = false;
 
   /// logo
   int logoWidth;
@@ -326,10 +333,13 @@ class JVUIConfig {
 
   Map toJsonMap() {
     return {
+      "authBackgroundImage": authBackgroundImage ??=null,
       "navColor": navColor ??= null,
       "navText": navText ??= null,
       "navTextColor": navTextColor ??= null,
       "navReturnImgPath": navReturnImgPath ??= null,
+      "navHidden": navHidden,
+      "navReturnBtnHidden": navReturnBtnHidden,
       "logoImgPath": logoImgPath ??= null,
       "logoWidth": logoWidth ??= null,
       "logoHeight": logoHeight ??= null,
