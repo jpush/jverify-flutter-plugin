@@ -290,8 +290,10 @@ class _MyAppState extends State<MyApp> {
         /// ios项目存放在 Assets.xcassets。
         /// 
         JVUIConfig uiConfig = JVUIConfig();
-        uiConfig.navColor = Colors.red.value;
+        //uiConfig.authBackgroundImage = ;
 
+        //uiConfig.navHidden = true;
+        uiConfig.navColor = Colors.red.value;
         uiConfig.navText = "登录";
         uiConfig.navTextColor = Colors.blue.value;
         uiConfig.navReturnImgPath = "return_bg";//图片必须存在
