@@ -7,9 +7,25 @@
 
 ```yaml
 dependencies:
-  jverify: 0.2.0
+  jverify: 0.3.0
 ```
 
+### 安装
+
+在工程 pubspec.yaml 中加入 dependencies
+
+```yaml
+//pub.dev 集成
+dependencies:
+  jpush_flutter: 0.2.0
+  
+//github 集成  
+dependencies:
+  jmessage_flutter:
+    git:
+      url: git://github.com/jpush/jverify-flutter-plugin.git
+      ref: master
+```
 ### 配置
 
 ##### Android:
