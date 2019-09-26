@@ -170,6 +170,14 @@ class Jverify {
   }
 
   /*
+  * 关闭授权页面
+  * */
+  void dismissLoginAuthView() {
+    print(flutter_log + "dismissLoginAuthView");
+    _channel.invokeMethod("dismissLoginAuthView");
+  }
+
+  /*
   * 设置授权页面
   *
   * @para isAutorotate      是否支持横竖屏，true:支持横竖屏，false：只支持竖屏
