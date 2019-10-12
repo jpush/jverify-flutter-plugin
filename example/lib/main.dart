@@ -409,17 +409,30 @@ class _MyAppState extends State<MyApp> {
         */
 
 
-        /// 调用接口设置 UI
-         jverify.setCustomAuthorizationView(true, uiConfig, landscapeConfig: uiConfig);
+        /// 步骤 1：调用接口设置 UI
+        jverify.setCustomAuthorizationView(true, uiConfig, landscapeConfig: uiConfig);
 
-        /// 开始一键登录
-        jverify.loginAuth(true).then((map) {
-          int code = map[f_code_key];
-          String content = map[f_msg_key];
+        /// 步骤 2： 添加 loginAuth 接口回调的监听 （如果想通过 loginAuth 接口异步返回获取接口数据，则忽略此步骤）
+        jverify.addLoginAuthCallBackListener((event){
           setState(() {
             _loading = false;
-            _result = "[$code] message = $content";
+            _result = "监听获取返回数据：[${event.code}] message = ${event.message}";
           });
+          print("通过添加监听，获取到 loginAuth 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
+        });
+
+        /// 步骤 3：开始调用一键登录接口
+        jverify.loginAuth(true).then((map) {
+
+          /// 步骤 4：获取 loginAuth 接口异步返回数据（如果是通过添加 JVLoginAuthCallBackListener 监听来获取返回数据，则忽略此步骤）
+          int code = map[f_code_key];
+          String content = map[f_msg_key];
+          String operator = map[f_opr_key];
+          setState(() {
+            _loading = false;
+            _result = "接口异步返回数据：[$code] message = $content";
+          });
+          print("通过接口异步返回，获取到 loginAuth 接口返回数据，code=$code,message = $content,operator = $operator");
         });
 
       } else {

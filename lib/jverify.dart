@@ -11,6 +11,17 @@ import 'package:platform/platform.dart';
 typedef JVClickWidgetEventListener = void Function(String widgetId);
 /// 授权页事件回调 @since 2.4.0
 typedef JVAuthPageEventListener = void Function(JVAuthPageEvent event);
+/**
+ * 一键登录接口的回调监听
+ *
+ * @param event
+ *          code     ：返回码，6000代表loginToken获取成功，6001代表loginToken获取失败，其他返回码详见描述
+ *          message  ：返回码的解释信息，若获取成功，内容信息代表loginToken。
+ *          operator ：成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为 null
+ *
+ * @discussion 调用 loginAuth 接口后，可以通过添加此监听事件来监听接口的返回结果
+ * */
+typedef JVLoginAuthCallBackListener = void Function(JVListenerEvent event);
 
 
 
@@ -22,6 +33,7 @@ class JVEventHandlers {
 
   Map<String, JVClickWidgetEventListener> clickEventsMap = Map();
   List<JVAuthPageEventListener> authPageEvents = [];
+  List<JVLoginAuthCallBackListener> loginAuthCallBackEvents = [];
 }
 
 
@@ -54,7 +66,10 @@ class Jverify {
   addAuthPageEventListener(JVAuthPageEventListener callback) {
     _eventHanders.authPageEvents.add(callback);
   }
-
+  /// loginAuth 接口回调的监听
+  addLoginAuthCallBackListener(JVLoginAuthCallBackListener callback) {
+    _eventHanders.loginAuthCallBackEvents.add(callback);
+  }
 
   Future<void> _handlerMethod(MethodCall call) async {
     print("handleMethod method = ${call.method}");
@@ -76,6 +91,15 @@ class Jverify {
         }
       }
         break;
+      case 'onReceiveLoginAuthCallBackEvent': {
+        for (JVLoginAuthCallBackListener cb in _eventHanders.loginAuthCallBackEvents) {
+          Map json = call.arguments.cast<dynamic, dynamic>();
+          JVListenerEvent event = JVListenerEvent.fromJson(json);
+          cb(event);
+          _eventHanders.loginAuthCallBackEvents.remove(cb);
+        }
+      }
+      break;
       default:
         throw new UnsupportedError("Unrecognized Event");
     }
@@ -160,7 +184,12 @@ class Jverify {
   /*
   * SDK请求授权一键登录
   *
-  * v2.4.0 之后同时支持授权页事件监听，开发者需添加 JVAuthPageEventListener 监听
+  * 获取接口回调数据的两种方式：
+  *   1、可通过接口异步返回的 map 获得
+  *   2、通过添加 JVLoginAuthCallBackListener 监听，来监听接口的返回结果
+  *
+  * 授权页面点击事件监听：
+  *   通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件， SDK v2.4.0 开始支持
   *
   * */
   Future<Map<dynamic, dynamic>> loginAuth(bool autoDismiss) async {
@@ -481,20 +510,42 @@ enum JVTextAlignmentType {
   center
 }
 
+/// 监听返回类
+class JVListenerEvent {
+  int code;//返回码，具体事件返回码请查看（https://docs.jiguang.cn/jverification/client/android_api/）
+  String message;//事件描述、事件返回值等
+  String operator;//成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为null
 
-/// 授权页事件
-class JVAuthPageEvent {
-  final int code;//返回码 // 具体事件返回码请查看（https://docs.jiguang.cn/jverification/client/android_api/）
-  final String message;//事件描述
-
-  JVAuthPageEvent.fromJson(Map<dynamic, dynamic> json)
+  JVListenerEvent.fromJson(Map<dynamic, dynamic> json)
       : code = json['code'],
-        message = json['message'];
+        message = json['message'],
+        operator = json['operator'];
 
   Map toMap() {
-    return {'code': code, 'message': message};
+    return {
+      'code': code ??= null,
+      'message': message ??= null,
+      'operator': operator ??= null
+    };
   }
 }
+
+/// 授权页事件
+class JVAuthPageEvent extends JVListenerEvent {
+  @override
+  JVAuthPageEvent.fromJson(Map<dynamic, dynamic> json)
+      : super.fromJson(json);
+
+  @override
+  Map toMap() {
+    return {
+      'code': code ??= null,
+      'message': message ??= null,
+    };
+  }
+}
+
+
 
 /*
 * iOS 布局参照 item (Android 只)
