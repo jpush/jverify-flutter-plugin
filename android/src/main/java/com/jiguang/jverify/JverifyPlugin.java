@@ -288,6 +288,11 @@ public class JverifyPlugin implements MethodCallHandler {
         map.put(j_code_key,code);
         map.put(j_msg_key,content);
         map.put(j_opr_key,operator);
+
+        // 通过 channel 返回
+        channel.invokeMethod("onReceiveLoginAuthCallBackEvent",map);
+
+        // 通过回调返回
         result.success(map);
       }
     }, new AuthPageEventListener() {
@@ -981,19 +986,21 @@ public class JverifyPlugin implements MethodCallHandler {
       r_id = field.getInt(field.getName());
     } catch (Exception e) {
       r_id = 0;
-      Log.e(TAG, "image【"+imageName + "】field no found!");
+      //Log.d(TAG, "image【"+imageName + "】field no found!");
     }
 
     if (r_id == 0) {
       r_id = context.getResources().getIdentifier(imageName, "drawable",context.getPackageName());
-      Log.d(TAG, "image【"+ imageName + "】 drawable found ! r_id = " + r_id);
+      //Log.d(TAG, "image【"+ imageName + "】 drawable found ! r_id = " + r_id);
     }
 
     if (r_id == 0) {
       r_id = context.getResources().getIdentifier(imageName, "mipmap",context.getPackageName());
-      Log.d(TAG, "image【"+ imageName + "】 mipmap found! r_id = " + r_id);
+      //Log.d(TAG, "image【"+ imageName + "】 mipmap found! r_id = " + r_id);
     }
-
+    if (r_id == 0) {
+      Log.d(TAG, "image【"+imageName + "】field no found!");
+    }
     return r_id;
   }
 }

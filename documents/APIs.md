@@ -70,14 +70,24 @@ jverify.getToken().then((map){
 
 调起一键登录授权页面，在用户授权后获取loginToken
 **说明：** ios在拉起授权页面之前，必须先setCustomUI 。
+
 ```dart
+///具体使用可以查看 example 样例
+
 Jverify jverify = new Jverify();
-jverify.loginAuth().then((map){
-          int _code = map["code"]; // 返回码，6000代表loginToken获取成功，6001代表loginToken获取失败，其他返回码详见描述
-          String _token = map["content"]; // 返回码的解释信息，若获取成功，内容信息代表loginToken。
-          String _operator = map["operator"]; // 成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为null
-          ...
-        });
+
+/// 步骤 1：调用接口设置 UI
+jverify.setCustomAuthorizationView();
+
+/// 步骤 2： 添加 loginAuth 接口回调的监听 （如果想通过 loginAuth 接口异步返回获取接口数据，则忽略此步骤）
+jverify.addLoginAuthCallBackListener((event){
+  print("通过添加监听，获取到 loginAuth 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
+});
+/// 步骤 3：开始调用一键登录接口        
+jverify.loginAuth(true).then((map){
+  /// 步骤 4：获取 loginAuth 接口异步返回数据（如果是通过添加 JVLoginAuthCallBackListener 监听来获取返回数据，则忽略此步骤）
+  print("通过接口异步返回，获取到 loginAuth 接口返回数据，code=$code,message = $content,operator = $operator");
+});
 ```
 
 #### setCustomAuthorizationView
