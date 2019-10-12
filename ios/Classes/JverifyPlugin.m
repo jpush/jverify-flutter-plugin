@@ -261,7 +261,11 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
                                j_msg_key :content,
                                j_opr_key :res[@"operator"]?:@""
                                };
+        __strong typeof(weakself) strongself = weakself;
         dispatch_async(dispatch_get_main_queue(), ^{
+            //通过 channel 返回
+            [strongself.channel invokeMethod:@"onReceiveLoginAuthCallBackEvent" arguments:dict];
+            // 通过回调返回
             result(dict);
         });
     } actionBlock:^(NSInteger type, NSString *content) {

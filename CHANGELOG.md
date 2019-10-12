@@ -1,3 +1,5 @@
+## 0.4.0
++ 新增：一键登录接口（loginAuth）返回数据支持添加监听获取 [addLoginAuthCallBackListener],具体使用查看 API 文档或者 demo 样例；
 ## 0.3.0
 + 新增：关闭授权页面接口
 ## 0.2.0
