@@ -1,3 +1,5 @@
+## 0.5.0
++ 新增：一键登录的同步接口 [loginAuthSyncApi]
 ## 0.4.0
 + 新增：一键登录接口（loginAuth）返回数据支持添加监听获取 [addLoginAuthCallBackListener],具体使用查看 API 文档或者 demo 样例；
 ## 0.3.0
