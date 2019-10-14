@@ -46,7 +46,7 @@ jverify.checkVerifyEnable().then((map){
       }else{
         // 当前网络环境不支持认证
       }
-    });
+});
 ```
 
 #### getToken
@@ -62,7 +62,7 @@ jverify.getToken().then((map){
           String _token = map["content"]; // 成功时为token，可用于调用验证手机号接口。token有效期为1分钟，超过时效需要重新获取才能使用。失败时为失败信息
           String _operator = map["operator"]; // 成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为null
           ...
-        });
+});
 ```
 
 
@@ -77,17 +77,40 @@ jverify.getToken().then((map){
 Jverify jverify = new Jverify();
 
 /// 步骤 1：调用接口设置 UI
-jverify.setCustomAuthorizationView();
+jverify.setCustomAuthorizationView(true, uiConfig, landscapeConfig: uiConfig);
 
-/// 步骤 2： 添加 loginAuth 接口回调的监听 （如果想通过 loginAuth 接口异步返回获取接口数据，则忽略此步骤）
+/// 步骤 2：调用一键登录接口
+    
+/// 方式一：使用同步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
+/// 先，添加 loginAuthSyncApi 接口回调的监听 
 jverify.addLoginAuthCallBackListener((event){
-  print("通过添加监听，获取到 loginAuth 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
+  setState(() {
+    _loading = false;
+    _result = "监听获取返回数据：[${event.code}] message = ${event.message}";
+  });
+  print("通过添加监听，获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
 });
-/// 步骤 3：开始调用一键登录接口        
-jverify.loginAuth(true).then((map){
-  /// 步骤 4：获取 loginAuth 接口异步返回数据（如果是通过添加 JVLoginAuthCallBackListener 监听来获取返回数据，则忽略此步骤）
+/// 再，执行同步的一键登录接口
+jverify.loginAuthSyncApi(autoDismiss: true);
+
+/*   
+/// 方式二：使用异步接口 （如果想使用异步接口，则忽略此步骤，看方式一）
+    
+/// 先，执行异步的一键登录接口
+jverify.loginAuth(true).then((map) {
+
+  /// 再，在回调里获取 loginAuth 接口异步返回数据（如果是通过添加 JVLoginAuthCallBackListener 监听来获取返回数据，则忽略此步骤）
+  int code = map[f_code_key];
+  String content = map[f_msg_key];
+  String operator = map[f_opr_key];
+  setState(() {
+    _loading = false;
+    _result = "接口异步返回数据：[$code] message = $content";
+  });
   print("通过接口异步返回，获取到 loginAuth 接口返回数据，code=$code,message = $content,operator = $operator");
-});
+});   
+*/
+        
 ```
 
 #### setCustomAuthorizationView

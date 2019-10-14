@@ -49,7 +49,9 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
         [self verifyNumber:call result:result];
     }else if([methodName isEqualToString:@"loginAuth"]){
         [self loginAuth:call result:result];
-    }else if([methodName isEqualToString:@"preLogin"]){
+    }else if ([methodName isEqualToString:@"loginAuthSyncApi"]){
+        [self loginAuthSyncApi:call result:result];
+    } else if([methodName isEqualToString:@"preLogin"]){
         [self preLogin:call result:result];
     }else if([methodName isEqualToString:@"dismissLoginAuthView"]){
         [self dismissLoginController:call result:result];
@@ -237,8 +239,16 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     [JVERIFICATIONService clearPreLoginCache];
 }
 #pragma mark - SDK 请求授权一键登录
--(void)loginAuth:(FlutterMethodCall*) call result:(FlutterResult)result{
+-(void)loginAuth:(FlutterMethodCall*) call result:(FlutterResult)result {
     JVLog(@"Action - loginAuth::%@",call.arguments);
+    [self loginAuthSync:NO call:call result:result];
+}
+-(void)loginAuthSyncApi:(FlutterMethodCall*) call result:(FlutterResult)result {
+    JVLog(@"Action - loginAuthSyncApi::%@",call.arguments);
+    [self loginAuthSync:YES call:call result:result];
+}
+-(void)loginAuthSync:(BOOL)isSync call:(FlutterMethodCall*)call result:(FlutterResult)result {
+    JVLog(@"Action - loginAuthSync::%@",call.arguments);
 
     NSDictionary *arguments = [call arguments];
     NSNumber *hide = arguments[@"autoDismiss"];
@@ -263,10 +273,13 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
                                };
         __strong typeof(weakself) strongself = weakself;
         dispatch_async(dispatch_get_main_queue(), ^{
-            //通过 channel 返回
-            [strongself.channel invokeMethod:@"onReceiveLoginAuthCallBackEvent" arguments:dict];
-            // 通过回调返回
-            result(dict);
+            if (isSync) {
+                //通过 channel 返回
+                [strongself.channel invokeMethod:@"onReceiveLoginAuthCallBackEvent" arguments:dict];
+            }else{
+                // 通过回调返回
+                result(dict);
+            }
         });
     } actionBlock:^(NSInteger type, NSString *content) {
         JVLog("Authorization actionBlock: type = %ld", (long)type);

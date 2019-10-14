@@ -91,10 +91,12 @@ public class JverifyPlugin implements MethodCallHandler {
       getToken(call,result);
     }else if (call.method.equals("verifyNumber")) {
       verifyNumber(call,result);
+    }else if (call.method.equals("preLogin")) {
+      preLogin(call, result);
     }else if (call.method.equals("loginAuth")) {
       loginAuth(call, result);
-    }else  if (call.method.equals("preLogin")) {
-      preLogin(call, result);
+    }else if (call.method.equals("loginAuthSyncApi")) {
+      loginAuthSyncApi(call, result);
     }else if (call.method.equals("dismissLoginAuthView")) {
       dismissLoginAuthView(call, result);
     }else if (call.method.equals("setCustomUI")) {
@@ -270,9 +272,18 @@ public class JverifyPlugin implements MethodCallHandler {
   }
 
 
-  /** SDK请求授权一键登录 */
+  /** SDK请求授权一键登录，异步 */
   private void loginAuth(MethodCall call,final Result result){
     Log.d(TAG,"Action - loginAuth:");
+    loginAuthInterface(false,call,result);
+  }
+  /** SDK请求授权一键登录，同步 */
+  private void loginAuthSyncApi(MethodCall call,final Result result) {
+    Log.d(TAG,"Action - loginAuthSyncApi:");
+    loginAuthInterface(true,call,result);
+  }
+  private void loginAuthInterface(final Boolean isSync, MethodCall call, final Result result) {
+    Log.d(TAG,"Action - loginAuthInterface:");
 
     Object autoFinish =  getValueByKey(call,"autoDismiss");
 
@@ -288,12 +299,13 @@ public class JverifyPlugin implements MethodCallHandler {
         map.put(j_code_key,code);
         map.put(j_msg_key,content);
         map.put(j_opr_key,operator);
-
-        // 通过 channel 返回
-        channel.invokeMethod("onReceiveLoginAuthCallBackEvent",map);
-
-        // 通过回调返回
-        result.success(map);
+        if (isSync) {
+          // 通过 channel 返回
+          channel.invokeMethod("onReceiveLoginAuthCallBackEvent",map);
+        }else {
+          // 通过回调返回
+          result.success(map);
+        }
       }
     }, new AuthPageEventListener() {
       @Override

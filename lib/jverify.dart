@@ -182,20 +182,29 @@ class Jverify {
   }
 
   /*
-  * SDK请求授权一键登录
+  * SDK请求授权一键登录（异步接口）
   *
-  * 获取接口回调数据的两种方式：
-  *   1、可通过接口异步返回的 map 获得
-  *   2、通过添加 JVLoginAuthCallBackListener 监听，来监听接口的返回结果
+  * @return 通过接口异步返回的 map 获得
   *
-  * 授权页面点击事件监听：
-  *   通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件， SDK v2.4.0 开始支持
+  * @discussion since SDK v2.4.0，授权页面点击事件监听：通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件
   *
   * */
   Future<Map<dynamic, dynamic>> loginAuth(bool autoDismiss) async {
     print("$flutter_log" + "loginAuth");
-    return await _channel
-        .invokeMethod("loginAuth", {"autoDismiss": autoDismiss});
+    return await _channel.invokeMethod("loginAuth", {"autoDismiss": autoDismiss});
+  }
+
+  /*
+  * SDK请求授权一键登录（同步接口）
+  *
+  * 通过添加 JVLoginAuthCallBackListener 监听，来监听接口的返回结果
+  *
+  * @discussion since SDK v2.4.0，授权页面点击事件监听：通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件
+  *
+  * */
+  void loginAuthSyncApi({@required bool autoDismiss}) {
+    print("$flutter_log" + "loginAuthSyncApi");
+    _channel.invokeMethod("loginAuthSyncApi", {"autoDismiss": autoDismiss});
   }
 
   /*
