@@ -1,3 +1,7 @@
+## 0.5.1
++ 修复：iOS 授权页 loading 框位置偏移问题
++ 修复：iOS 授权页监听点击事件 bug
++ 同步 JVerification SDK 2.5.0 版本
 ## 0.5.0
 + 新增：一键登录的同步接口 [loginAuthSyncApi]
 ## 0.4.0
