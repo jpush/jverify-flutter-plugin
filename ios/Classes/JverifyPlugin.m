@@ -275,7 +275,7 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
         dispatch_async(dispatch_get_main_queue(), ^{
             if (isSync) {
                 //通过 channel 返回
-                [strongself.channel invokeMethod:@"onReceiveAuthPageEvent" arguments:dict];
+                [strongself.channel invokeMethod:@"onReceiveLoginAuthCallBackEvent" arguments:dict];
             }else{
                 // 通过回调返回
                 result(dict);
@@ -317,48 +317,14 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     [self layoutUIConfig:portraitConfig widgets:widgets isAutorotate:isAutorotate];
 }
 
-- (void)layoutUIConfig:(NSDictionary *)uiconfig widgets:(NSArray *)widgets isAutorotate:(BOOL)isAutorotate {
+- (void)layoutUIConfig:(NSDictionary *)uiconfigPara widgets:(NSArray *)widgets isAutorotate:(BOOL)isAutorotate {
    
-    /*移动*/
-    JVMobileUIConfig *mobileUIConfig = [[JVMobileUIConfig alloc] init];
-    mobileUIConfig.autoLayout = YES;
-    mobileUIConfig.shouldAutorotate = isAutorotate;
-    /*联通*/
-    JVUnicomUIConfig *unicomUIConfig = [[JVUnicomUIConfig alloc] init];
-    unicomUIConfig.autoLayout = YES;
-    unicomUIConfig.shouldAutorotate = isAutorotate;
-    /*电信*/
-    JVTelecomUIConfig *telecomUIConfig = [[JVTelecomUIConfig alloc] init];
-    telecomUIConfig.autoLayout = YES;
-    telecomUIConfig.shouldAutorotate = isAutorotate;
+    JVUIConfig *config = [[JVUIConfig alloc] init];
+    config.autoLayout = YES;
     
-    [self setCustomUIWithConfigWithMobile:mobileUIConfig unicom:unicomUIConfig telecom:telecomUIConfig configArguments:uiconfig];
+    [self setCustomUIWithUIConfig:config configArguments:uiconfigPara];
     
-    [JVERIFICATIONService customUIWithConfig:mobileUIConfig customViews:^(UIView *customAreaView) {
-        for (NSDictionary *widgetDic in widgets) {
-            NSString *type = [self getValue:widgetDic key:@"type"];
-            if ([type isEqualToString:@"textView"]) {
-                [customAreaView addSubview:[self addCustomTextWidget:widgetDic]];
-            }else if ([type isEqualToString:@"button"]){
-                [customAreaView addSubview:[self addCustomButtonWidget:widgetDic]];
-            }else{
-                
-            }
-        }
-    }];
-    [JVERIFICATIONService customUIWithConfig:unicomUIConfig customViews:^(UIView *customAreaView) {
-        for (NSDictionary *widgetDic in widgets) {
-            NSString *type = [self getValue:widgetDic key:@"type"];
-            if ([type isEqualToString:@"textView"]) {
-                [customAreaView addSubview:[self addCustomTextWidget:widgetDic]];
-            }else if ([type isEqualToString:@"button"]){
-                [customAreaView addSubview:[self addCustomButtonWidget:widgetDic]];
-            }else{
-                
-            }
-        }
-    }];
-    [JVERIFICATIONService customUIWithConfig:telecomUIConfig customViews:^(UIView *customAreaView) {
+    [JVERIFICATIONService customUIWithConfig:config customViews:^(UIView *customAreaView) {
         for (NSDictionary *widgetDic in widgets) {
             NSString *type = [self getValue:widgetDic key:@"type"];
             if ([type isEqualToString:@"textView"]) {
@@ -392,52 +358,32 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     return [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemNone attribute:NSLayoutAttributeHeight multiplier:1 constant:height];
 }
 
-/**
- 自定义授权页面原有的 UI 控件
-
- @param mobileUIConfig 移动
- @param unicomUIConfig 联通
- @param telecomUIConfig 电信
- @param config 自定义配置
- */
-- (void)setCustomUIWithConfigWithMobile:(JVUIConfig *)mobileUIConfig
-                                 unicom:(JVUIConfig *)unicomUIConfig
-                                telecom:(JVUIConfig *)telecomUIConfig
-                        configArguments:(NSDictionary *)config {
-    JVLog(@"Action - setCustomUIWithConfigWithMobile:::");
+//自定义授权页面原有的 UI 控件
+- (void)setCustomUIWithUIConfig:(JVUIConfig *)uiconfig configArguments:(NSDictionary *)config {
+    JVLog(@"Action - setCustomUIWithUIConfig::");
     
-    mobileUIConfig.barStyle = 0;
-    unicomUIConfig.barStyle = 0;
-    telecomUIConfig.barStyle = 0;
+    uiconfig.preferredStatusBarStyle = 0;
 
      /************** 背景 ***************/
     NSString *authBackgroundImage = [config objectForKey:@"authBackgroundImage"];
     authBackgroundImage = authBackgroundImage?:nil;
     if (authBackgroundImage) {
-        mobileUIConfig.authPageBackgroundImage = [UIImage imageNamed:authBackgroundImage];
-        unicomUIConfig.authPageBackgroundImage = [UIImage imageNamed:authBackgroundImage];
-        telecomUIConfig.authPageBackgroundImage = [UIImage imageNamed:authBackgroundImage];
+        uiconfig.authPageBackgroundImage = [UIImage imageNamed:authBackgroundImage];
     }
     
      /************** 导航栏 ***************/
     NSNumber *navHidden = [self getValue:config key:@"navHidden"];
     if (navHidden) {
-        mobileUIConfig.navCustom = [navHidden boolValue];
-        unicomUIConfig.navCustom = [navHidden boolValue];
-        telecomUIConfig.navCustom = [navHidden boolValue];
+        uiconfig.navCustom = [navHidden boolValue];
     }
     NSNumber *navReturnBtnHidden = [self getValue:config key:@"navReturnBtnHidden"];
     if (navReturnBtnHidden) {
-        mobileUIConfig.navReturnHidden = [navReturnBtnHidden boolValue];
-        unicomUIConfig.navReturnHidden = [navReturnBtnHidden boolValue];
-        telecomUIConfig.navReturnHidden = [navReturnBtnHidden boolValue];
+        uiconfig.navReturnHidden = [navReturnBtnHidden boolValue];
     }
     
     NSNumber *navColor = [self getValue:config key:@"navColor"];
     if (navColor) {
-        mobileUIConfig.navColor  = UIColorFromRGB([navColor intValue]);
-        unicomUIConfig.navColor  = UIColorFromRGB([navColor intValue]);
-        telecomUIConfig.navColor = UIColorFromRGB([navColor intValue]);
+        uiconfig.navColor  = UIColorFromRGB([navColor intValue]);
     }
     
     NSString *navText = [self getValue:config key:@"navText"];
@@ -450,20 +396,13 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     }
     NSDictionary *navTextAttr = @{NSForegroundColorAttributeName:navTextColor};
     NSAttributedString *attr = [[NSAttributedString alloc]initWithString:navText attributes:navTextAttr];
-    mobileUIConfig.navText = attr;
-    unicomUIConfig.navText = attr;
-    telecomUIConfig.navText = attr;
+    uiconfig.navText = attr;
     
     NSString *imageName =[self getValue:config key:@"navReturnImgPath"];
     if(imageName){
-        mobileUIConfig.navReturnImg  = [UIImage imageNamed:imageName];
-        unicomUIConfig.navReturnImg  = [UIImage imageNamed:imageName];
-        telecomUIConfig.navReturnImg = [UIImage imageNamed:imageName];
+        uiconfig.navReturnImg  = [UIImage imageNamed:imageName];
     }
-    mobileUIConfig.navReturnHidden = NO;
-    unicomUIConfig.navReturnHidden = NO;
-    telecomUIConfig.navReturnHidden = NO;
-    
+    uiconfig.navReturnHidden = NO;
     
     /************** logo ***************/
     JVLayoutItem logoLayoutItem = [self getLayotItem:[self getValue:config key:@"logoVerticalLayoutItem"]];
@@ -472,17 +411,9 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     NSNumber *logoOffsetX = [self getNumberValue:config key:@"logoOffsetX"];
     NSNumber *logoOffsetY = [self getNumberValue:config key:@"logoOffsetY"];
     if (logoLayoutItem == JVLayoutItemNone) {
-        mobileUIConfig.logoWidth = [logoWidth floatValue];
-        mobileUIConfig.logoHeight = [logoHeight floatValue];
-        mobileUIConfig.logoOffsetY = [logoOffsetY floatValue];
-        
-        unicomUIConfig.logoWidth = [logoWidth floatValue];
-        unicomUIConfig.logoHeight = [logoHeight floatValue];
-        unicomUIConfig.logoOffsetY = [logoOffsetY floatValue];
-        
-        telecomUIConfig.logoWidth = [logoWidth floatValue];
-        telecomUIConfig.logoHeight = [logoHeight floatValue];
-        telecomUIConfig.logoOffsetY = [logoOffsetY floatValue];
+        uiconfig.logoWidth = [logoWidth floatValue];
+        uiconfig.logoHeight = [logoHeight floatValue];
+        uiconfig.logoOffsetY = [logoOffsetY floatValue];
     }else{
         
         JVLayoutConstraint *logo_cons_x = JVLayoutCenterX([logoOffsetX floatValue]);
@@ -490,27 +421,18 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
         JVLayoutConstraint *logo_cons_w = JVLayoutWidth([logoWidth floatValue]);
         JVLayoutConstraint *logo_cons_h = JVLayoutHeight([logoHeight floatValue]);
         
-        mobileUIConfig.logoConstraints = @[logo_cons_x,logo_cons_y,logo_cons_w,logo_cons_h];
-        unicomUIConfig.logoConstraints = @[logo_cons_x,logo_cons_y,logo_cons_w,logo_cons_h];
-        telecomUIConfig.logoConstraints = @[logo_cons_x,logo_cons_y,logo_cons_w,logo_cons_h];
-        
-        mobileUIConfig.logoHorizontalConstraints = mobileUIConfig.logoConstraints;
-        unicomUIConfig.logoHorizontalConstraints = unicomUIConfig.logoConstraints;
-        telecomUIConfig.logoHorizontalConstraints = telecomUIConfig.logoConstraints;
+        uiconfig.logoConstraints = @[logo_cons_x,logo_cons_y,logo_cons_w,logo_cons_h];
+        uiconfig.logoHorizontalConstraints = uiconfig.logoConstraints;
     }
     
     NSString *logoImgPath =[self getValue:config key:@"logoImgPath"];
     if(logoImgPath){
-        mobileUIConfig.logoImg  = [UIImage imageNamed:logoImgPath];
-        unicomUIConfig.logoImg  = [UIImage imageNamed:logoImgPath];
-        telecomUIConfig.logoImg = [UIImage imageNamed:logoImgPath];
+        uiconfig.logoImg  = [UIImage imageNamed:logoImgPath];
     }
     
     NSNumber *logoHidden = [self getValue:config key:@"logoHidden"];
     if(logoHidden){
-        mobileUIConfig.logoHidden  = [logoHidden boolValue];
-        unicomUIConfig.logoHidden  = [logoHidden boolValue];
-        telecomUIConfig.logoHidden = [logoHidden boolValue];
+        uiconfig.logoHidden  = [logoHidden boolValue];
     }
     
     /************** num ***************/
@@ -520,36 +442,25 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     NSNumber *numberFieldWidth = [self getNumberValue:config key:@"numberFieldWidth"];
     NSNumber *numberFieldHeight = [self getNumberValue:config key:@"numberFieldHeight"];
     if (numberLayoutItem == JVLayoutItemNone) {
-        mobileUIConfig.numFieldOffsetY = [numFieldOffsetY floatValue];
-        unicomUIConfig.numFieldOffsetY = [numFieldOffsetY floatValue];
-        telecomUIConfig.numFieldOffsetY = [numFieldOffsetY floatValue];
+        uiconfig.numFieldOffsetY = [numFieldOffsetY floatValue];
     }else{
         JVLayoutConstraint *num_cons_x = JVLayoutCenterX([numFieldOffsetX floatValue]);
         JVLayoutConstraint *num_cons_y = JVLayoutTop([numFieldOffsetY floatValue],numberLayoutItem,NSLayoutAttributeBottom);
         JVLayoutConstraint *num_cons_w = JVLayoutWidth([numberFieldWidth floatValue]);
         JVLayoutConstraint *num_cons_h = JVLayoutHeight([numberFieldHeight floatValue]);
         
-        mobileUIConfig.numberConstraints = @[num_cons_x,num_cons_y,num_cons_w,num_cons_h];
-        unicomUIConfig.numberConstraints = @[num_cons_x,num_cons_y,num_cons_w,num_cons_h];
-        telecomUIConfig.numberConstraints = @[num_cons_x,num_cons_y,num_cons_w,num_cons_h];
-        
-        mobileUIConfig.numberHorizontalConstraints = mobileUIConfig.numberConstraints;
-        unicomUIConfig.numberHorizontalConstraints = unicomUIConfig.numberConstraints;
-        telecomUIConfig.numberHorizontalConstraints = telecomUIConfig.numberConstraints;
+        uiconfig.numberConstraints = @[num_cons_x,num_cons_y,num_cons_w,num_cons_h];
+        uiconfig.numberHorizontalConstraints = uiconfig.numberConstraints;
     }
     
     NSNumber *numberColor = [self getValue:config key:@"numberColor"];
     if(numberColor){
-        mobileUIConfig.numberColor  = UIColorFromRGB([numberColor intValue]);
-        unicomUIConfig.numberColor  = UIColorFromRGB([numberColor intValue]);
-        telecomUIConfig.numberColor = UIColorFromRGB([numberColor intValue]);
+        uiconfig.numberColor  = UIColorFromRGB([numberColor intValue]);
     }
     
     NSNumber *numberSize = [self getValue:config key:@"numberSize"];
     if (numberSize) {
-        mobileUIConfig.numberFont = [UIFont systemFontOfSize:[numberSize floatValue]];
-        unicomUIConfig.numberFont = [UIFont systemFontOfSize:[numberSize floatValue]];
-        telecomUIConfig.numberFont = [UIFont systemFontOfSize:[numberSize floatValue]];
+        uiconfig.numberFont = [UIFont systemFontOfSize:[numberSize floatValue]];
     }
     
     /************** slogan ***************/
@@ -557,34 +468,23 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     NSNumber *sloganOffsetX = [self getNumberValue:config key:@"sloganOffsetX"];
     NSNumber *sloganOffsetY = [self getNumberValue:config key:@"sloganOffsetY"];
     if (sloganLayoutItem == JVLayoutItemNone) {
-        mobileUIConfig.sloganOffsetY = [sloganOffsetY floatValue];
-        unicomUIConfig.sloganOffsetY = [sloganOffsetY floatValue];
-        telecomUIConfig.sloganOffsetY = [sloganOffsetY floatValue];
+        uiconfig.sloganOffsetY = [sloganOffsetY floatValue];
     }else{
         JVLayoutConstraint *slogan_cons_top = JVLayoutTop([sloganOffsetY floatValue], sloganLayoutItem,NSLayoutAttributeBottom);
         JVLayoutConstraint *slogan_cons_centerx = JVLayoutCenterX([sloganOffsetX floatValue]);
         
-        mobileUIConfig.sloganConstraints = @[slogan_cons_top,slogan_cons_centerx];
-        unicomUIConfig.sloganConstraints = @[slogan_cons_top,slogan_cons_centerx];
-        telecomUIConfig.sloganConstraints = @[slogan_cons_top,slogan_cons_centerx];
-        
-        mobileUIConfig.sloganHorizontalConstraints = mobileUIConfig.sloganConstraints;
-        unicomUIConfig.sloganHorizontalConstraints = unicomUIConfig.sloganConstraints;
-        telecomUIConfig.sloganHorizontalConstraints = telecomUIConfig.sloganConstraints;
+        uiconfig.sloganConstraints = @[slogan_cons_top,slogan_cons_centerx];
+        uiconfig.sloganHorizontalConstraints = uiconfig.sloganConstraints;
     }
     
     NSNumber *sloganTextColor = [self getValue:config key:@"sloganTextColor"];
     if(sloganTextColor){
-        mobileUIConfig.sloganTextColor  = UIColorFromRGB([sloganTextColor integerValue]);
-        unicomUIConfig.sloganTextColor  = UIColorFromRGB([sloganTextColor integerValue]);
-        telecomUIConfig.sloganTextColor = UIColorFromRGB([sloganTextColor integerValue]);
+        uiconfig.sloganTextColor  = UIColorFromRGB([sloganTextColor integerValue]);
     }
     
     NSNumber *sloganTextSize = [self getValue:config key:@"sloganTextSize"];
     if (sloganTextSize) {
-        mobileUIConfig.sloganFont = [UIFont systemFontOfSize:[sloganTextSize floatValue]];
-        unicomUIConfig.sloganFont = [UIFont systemFontOfSize:[sloganTextSize floatValue]];
-        telecomUIConfig.sloganFont = [UIFont systemFontOfSize:[sloganTextSize floatValue]];
+        uiconfig.sloganFont = [UIFont systemFontOfSize:[sloganTextSize floatValue]];
     }
     
     /************** login btn ***************/
@@ -594,41 +494,28 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     NSNumber *logBtnWidth   = [self getNumberValue:config key:@"logBtnWidth"];
     NSNumber *logBtnHeight  = [self getNumberValue:config key:@"logBtnHeight"];
     if (logBtnLayoutItem == JVLayoutItemNone) {
-        mobileUIConfig.logBtnOffsetY = [logBtnOffsetY floatValue];
-        unicomUIConfig.logBtnOffsetY = [logBtnOffsetY floatValue];
-        telecomUIConfig.logBtnOffsetY = [logBtnOffsetY floatValue];
+        uiconfig.logBtnOffsetY = [logBtnOffsetY floatValue];
     }else{
         JVLayoutConstraint *logoBtn_cons_x = JVLayoutCenterX([logBtnOffsetX floatValue]);
         JVLayoutConstraint *logoBtn_cons_y = JVLayoutTop([logBtnOffsetY floatValue], logBtnLayoutItem,NSLayoutAttributeBottom);
         JVLayoutConstraint *logoBtn_cons_w = JVLayoutWidth([logBtnWidth floatValue]);
         JVLayoutConstraint *logoBtn_cons_h = JVLayoutHeight([logBtnHeight floatValue]);
         
-        mobileUIConfig.logBtnConstraints  = @[logoBtn_cons_x,logoBtn_cons_y,logoBtn_cons_w,logoBtn_cons_h];
-        unicomUIConfig.logBtnConstraints  = @[logoBtn_cons_x,logoBtn_cons_y,logoBtn_cons_w,logoBtn_cons_h];
-        telecomUIConfig.logBtnConstraints = @[logoBtn_cons_x,logoBtn_cons_y,logoBtn_cons_w,logoBtn_cons_h];
-        
-        mobileUIConfig.logBtnHorizontalConstraints  = mobileUIConfig.logBtnConstraints;
-        unicomUIConfig.logBtnHorizontalConstraints  = unicomUIConfig.logBtnConstraints;
-        telecomUIConfig.logBtnHorizontalConstraints = telecomUIConfig.logBtnConstraints;
+        uiconfig.logBtnConstraints  = @[logoBtn_cons_x,logoBtn_cons_y,logoBtn_cons_w,logoBtn_cons_h];
+        uiconfig.logBtnHorizontalConstraints  = uiconfig.logBtnConstraints;
     }
     
     NSString *logBtnText = [self getValue:config key:@"logBtnText"];
     if(logBtnText){
-        mobileUIConfig.logBtnText  = logBtnText;
-        unicomUIConfig.logBtnText  = logBtnText;
-        telecomUIConfig.logBtnText = logBtnText;
+        uiconfig.logBtnText  = logBtnText;
     }
     NSNumber *logBtnTextSize = [self getValue:config key:@"logBtnTextSize"];
     if (logBtnTextSize) {
-        mobileUIConfig.logBtnFont = [UIFont systemFontOfSize:[logBtnTextSize floatValue]];
-        unicomUIConfig.logBtnFont = [UIFont systemFontOfSize:[logBtnTextSize floatValue]];
-        telecomUIConfig.logBtnFont = [UIFont systemFontOfSize:[logBtnTextSize floatValue]];
+        uiconfig.logBtnFont = [UIFont systemFontOfSize:[logBtnTextSize floatValue]];
     }
     NSNumber *logBtnTextColor = [self getValue:config key:@"logBtnTextColor"];
     if(logBtnTextColor){
-        mobileUIConfig.logBtnTextColor  = UIColorFromRGB([logBtnTextColor integerValue]);
-        unicomUIConfig.logBtnTextColor  = UIColorFromRGB([logBtnTextColor integerValue]);
-        telecomUIConfig.logBtnTextColor = UIColorFromRGB([logBtnTextColor integerValue]);
+        uiconfig.logBtnTextColor  = UIColorFromRGB([logBtnTextColor integerValue]);
     }
     
     NSString *loginBtnNormalImage = [config objectForKey:@"loginBtnNormalImage"];
@@ -638,9 +525,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     NSString *loginBtnUnableImage = [config objectForKey:@"loginBtnUnableImage"];
     loginBtnUnableImage = loginBtnUnableImage?:nil;
     NSArray * images =[[NSArray alloc]initWithObjects:[UIImage imageNamed:loginBtnNormalImage],[UIImage imageNamed:loginBtnPressedImage],[UIImage imageNamed:loginBtnUnableImage],nil];
-    mobileUIConfig.logBtnImgs = images;
-    unicomUIConfig.logBtnImgs = images;
-    telecomUIConfig.logBtnImgs = images;
+    uiconfig.logBtnImgs = images;
     
     /************** chck box ***************/
     CGFloat privacyCheckboxSize = [[self getNumberValue:config key:@"privacyCheckboxSize"] floatValue];
@@ -657,81 +542,56 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     JVLayoutConstraint *box_cons_w = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemNone attribute:NSLayoutAttributeWidth multiplier:1 constant:privacyCheckboxSize];
     JVLayoutConstraint *box_cons_h = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemNone attribute:NSLayoutAttributeHeight multiplier:1 constant:privacyCheckboxSize];
     
-    mobileUIConfig.checkViewConstraints = @[box_cons_x,box_cons_y,box_cons_w,box_cons_h];
-    unicomUIConfig.checkViewConstraints = @[box_cons_x,box_cons_y,box_cons_w,box_cons_h];
-    telecomUIConfig.checkViewConstraints = @[box_cons_x,box_cons_y,box_cons_w,box_cons_h];
-    
-    mobileUIConfig.checkViewHorizontalConstraints = mobileUIConfig.checkViewConstraints;
-    unicomUIConfig.checkViewHorizontalConstraints = unicomUIConfig.checkViewConstraints;
-    telecomUIConfig.checkViewHorizontalConstraints = telecomUIConfig.checkViewConstraints;
+    uiconfig.checkViewConstraints = @[box_cons_x,box_cons_y,box_cons_w,box_cons_h];
+    uiconfig.checkViewHorizontalConstraints = uiconfig.checkViewConstraints;
     
     BOOL privacyCheckboxHidden = [[self getValue:config key:@"privacyCheckboxHidden"] boolValue];
-    mobileUIConfig.checkViewHidden = privacyCheckboxHidden;
-    unicomUIConfig.checkViewHidden = privacyCheckboxHidden;
-    telecomUIConfig.checkViewHidden = privacyCheckboxHidden;
+    uiconfig.checkViewHidden = privacyCheckboxHidden;
     
     NSNumber *privacyState = [self getValue:config key:@"privacyState"];
-    mobileUIConfig.privacyState = [privacyState boolValue];
-    unicomUIConfig.privacyState = [privacyState boolValue];
-    telecomUIConfig.privacyState = [privacyState boolValue];
+    uiconfig.privacyState = [privacyState boolValue];
     
     NSString *uncheckedImgPath = [config objectForKey:@"uncheckedImgPath"];
     if (uncheckedImgPath) {
-        mobileUIConfig.uncheckedImg  = [UIImage imageNamed:uncheckedImgPath];
-        unicomUIConfig.uncheckedImg  = [UIImage imageNamed:uncheckedImgPath];
-        telecomUIConfig.uncheckedImg = [UIImage imageNamed:uncheckedImgPath];
+        uiconfig.uncheckedImg  = [UIImage imageNamed:uncheckedImgPath];
     }
     NSString *checkedImgPath = [config objectForKey:@"checkedImgPath"];
     if (checkedImgPath) {
-        mobileUIConfig.checkedImg  = [UIImage imageNamed:checkedImgPath];
-        unicomUIConfig.checkedImg  = [UIImage imageNamed:checkedImgPath];
-        telecomUIConfig.checkedImg = [UIImage imageNamed:checkedImgPath];
+        uiconfig.checkedImg  = [UIImage imageNamed:checkedImgPath];
     }
 
     /************** privacy ***************/
     BOOL isCenter = [[self getValue:config key:@"privacyTextCenterGravity"] boolValue];
     NSTextAlignment alignmet = isCenter?NSTextAlignmentCenter:NSTextAlignmentLeft;
-    mobileUIConfig.privacyTextAlignment = alignmet;
-    unicomUIConfig.privacyTextAlignment = alignmet;
-    telecomUIConfig.privacyTextAlignment = alignmet;
+    uiconfig.privacyTextAlignment = alignmet;
     
     BOOL privacyWithBookTitleMark = [[self getValue:config key:@"privacyWithBookTitleMark"] boolValue];
-    mobileUIConfig.privacyShowBookSymbol = privacyWithBookTitleMark;
-    unicomUIConfig.privacyShowBookSymbol = privacyWithBookTitleMark;
-    telecomUIConfig.privacyShowBookSymbol = privacyWithBookTitleMark;
+    uiconfig.privacyShowBookSymbol = privacyWithBookTitleMark;
     
     NSString *tempSting = @"";
     NSString *clauseName = [self getValue:config key:@"clauseName"];
     NSString *clauseUrl = [self getValue:config key:@"clauseUrl"];
     if (clauseName && clauseUrl) {
-        mobileUIConfig.appPrivacyOne  = @[clauseName,clauseUrl];
-        unicomUIConfig.appPrivacyOne  = @[clauseName,clauseUrl];
-        telecomUIConfig.appPrivacyOne = @[clauseName,clauseUrl];
+        uiconfig.appPrivacyOne  = @[clauseName,clauseUrl];
         tempSting = [tempSting stringByAppendingFormat:@"%@%@%@",(privacyWithBookTitleMark?@"《":@""),clauseName,(privacyWithBookTitleMark?@"》":@"")];
     }
     
     NSString *clauseNameTwo = [self getValue:config key:@"clauseNameTwo"];
     NSString *clauseUrlTwo = [self getValue:config key:@"clauseUrlTwo"];
     if (clauseNameTwo && clauseUrlTwo) {
-        mobileUIConfig.appPrivacyTwo  = @[clauseNameTwo,clauseUrlTwo];
-        unicomUIConfig.appPrivacyTwo  = @[clauseNameTwo,clauseUrlTwo];
-        telecomUIConfig.appPrivacyTwo = @[clauseNameTwo,clauseUrlTwo];
+        uiconfig.appPrivacyTwo  = @[clauseNameTwo,clauseUrlTwo];
         tempSting = [tempSting stringByAppendingFormat:@"%@%@%@",(privacyWithBookTitleMark?@"《":@""),clauseNameTwo,(privacyWithBookTitleMark?@"》":@"")];
     }
     
     NSArray *privacyComponents = [self getValue:config key:@"privacyText"];
     if (privacyComponents.count) {
-        mobileUIConfig.privacyComponents = privacyComponents;
-        unicomUIConfig.privacyComponents = privacyComponents;
-        telecomUIConfig.privacyComponents = privacyComponents;
+        uiconfig.privacyComponents = privacyComponents;
         tempSting = [tempSting stringByAppendingString:[privacyComponents componentsJoinedByString:@"、"]];
     }
     
     NSNumber *privacyTextSize = [self getValue:config key:@"privacyTextSize"];
     if (privacyTextSize) {
-        mobileUIConfig.privacyTextFontSize = [privacyTextSize floatValue];
-        unicomUIConfig.privacyTextFontSize = [privacyTextSize floatValue];
-        telecomUIConfig.privacyTextFontSize = [privacyTextSize floatValue];
+        uiconfig.privacyTextFontSize = [privacyTextSize floatValue];
     }
     
     JVLayoutItem privacyLayoutItem = [self getLayotItem:[self getValue:config key:@"privacyVerticalLayoutItem"]];
@@ -741,7 +601,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     CGFloat privacyLeftSpace = 0;
     CGFloat privacyRightSpace = 15;
     if (privacyOffsetX == nil) {
-        mobileUIConfig.privacyTextAlignment = NSTextAlignmentCenter;
+        uiconfig.privacyTextAlignment = NSTextAlignmentCenter;
         privacyOffsetX = @(15);
         privacyLeftSpace = [privacyOffsetX floatValue] + privacyCheckboxSize;
         privacyRightSpace = privacyCheckboxSize;
@@ -763,17 +623,10 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     JVLayoutConstraint *privacy_cons_h = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemNone attribute:NSLayoutAttributeHeight multiplier:1 constant:lablesize.height];
     
     if (privacyLayoutItem == JVLayoutItemNone) {
-        mobileUIConfig.privacyOffsetY = [privacyOffsetY floatValue];
-        unicomUIConfig.privacyOffsetY = [privacyOffsetY floatValue];
-        telecomUIConfig.privacyOffsetY = [privacyOffsetY floatValue];
+        uiconfig.privacyOffsetY = [privacyOffsetY floatValue];
     }else{
-        mobileUIConfig.privacyConstraints = @[privacy_cons_left,privacy_cons_y,privacy_cons_right,privacy_cons_h];
-        unicomUIConfig.privacyConstraints = @[privacy_cons_left,privacy_cons_y,privacy_cons_right,privacy_cons_h];
-        telecomUIConfig.privacyConstraints = @[privacy_cons_left,privacy_cons_y,privacy_cons_right,privacy_cons_h];
-        
-        mobileUIConfig.privacyHorizontalConstraints = mobileUIConfig.privacyConstraints;
-        unicomUIConfig.privacyHorizontalConstraints = unicomUIConfig.privacyConstraints;
-        telecomUIConfig.privacyHorizontalConstraints = telecomUIConfig.privacyConstraints;
+        uiconfig.privacyConstraints = @[privacy_cons_left,privacy_cons_y,privacy_cons_right,privacy_cons_h];
+        uiconfig.privacyHorizontalConstraints = uiconfig.privacyConstraints;
     }
     
     NSNumber *clauseBaseColor = [self getValue:config key:@"clauseBaseColor"];
@@ -786,17 +639,12 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     if(clauseColor){
         privacyColor =UIColorFromRGB([clauseColor integerValue]);
     }
-    mobileUIConfig.appPrivacyColor  = @[privacyBasicColor,privacyColor];
-    unicomUIConfig.appPrivacyColor  = @[privacyBasicColor,privacyColor];
-    telecomUIConfig.appPrivacyColor = @[privacyBasicColor,privacyColor];
-    
+    uiconfig.appPrivacyColor  = @[privacyBasicColor,privacyColor];
     
     /************** 协议 web 页面 ***************/
     NSNumber *privacyNavColor = [self getValue:config key:@"privacyNavColor"];
     if (navColor) {
-        mobileUIConfig.agreementNavBackgroundColor  = UIColorFromRGB([privacyNavColor intValue]);
-        unicomUIConfig.agreementNavBackgroundColor  = UIColorFromRGB([privacyNavColor intValue]);
-        telecomUIConfig.agreementNavBackgroundColor = UIColorFromRGB([privacyNavColor intValue]);
+        uiconfig.agreementNavBackgroundColor  = UIColorFromRGB([privacyNavColor intValue]);
     }
     
     NSString *privacyNavText = @"服务条款"; //[self getValue:config key:@"navText"];
@@ -812,15 +660,11 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     NSDictionary *privayNavTextAttr = @{NSForegroundColorAttributeName:privacyNavTitleTextColor,
                                         NSFontAttributeName:[UIFont systemFontOfSize:[privacyNavTitleTextSize floatValue]]};
     NSAttributedString *privayAttr = [[NSAttributedString alloc]initWithString:privacyNavText attributes:privayNavTextAttr];
-    mobileUIConfig.agreementNavText = privayAttr;
-    unicomUIConfig.agreementNavText = privayAttr;
-    telecomUIConfig.agreementNavText = privayAttr;
+    uiconfig.agreementNavText = privayAttr;
     
     NSString *privacyNavReturnBtnImage =[self getValue:config key:@"privacyNavReturnBtnImage"];
     if(privacyNavReturnBtnImage){
-        mobileUIConfig.agreementNavReturnImage  = [UIImage imageNamed:privacyNavReturnBtnImage];
-        unicomUIConfig.agreementNavReturnImage  = [UIImage imageNamed:privacyNavReturnBtnImage];
-        telecomUIConfig.agreementNavReturnImage = [UIImage imageNamed:privacyNavReturnBtnImage];
+        uiconfig.agreementNavReturnImage  = [UIImage imageNamed:privacyNavReturnBtnImage];
     }
     
     //loading
@@ -829,12 +673,8 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     JVLayoutConstraint *loadingConstraintW = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemNone attribute:NSLayoutAttributeWidth multiplier:1 constant:30];
     JVLayoutConstraint *loadingConstraintH = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemNone attribute:NSLayoutAttributeHeight multiplier:1 constant:30];
 
-    mobileUIConfig.loadingConstraints = @[loadingConstraintX,loadingConstraintY,loadingConstraintW,loadingConstraintH];
-    mobileUIConfig.loadingHorizontalConstraints = mobileUIConfig.loadingConstraints;
-    unicomUIConfig.loadingConstraints = @[loadingConstraintX,loadingConstraintY,loadingConstraintW,loadingConstraintH];
-    unicomUIConfig.loadingHorizontalConstraints = unicomUIConfig.loadingConstraints;
-    telecomUIConfig.loadingConstraints = @[loadingConstraintX,loadingConstraintY,loadingConstraintW,loadingConstraintH];
-    telecomUIConfig.loadingHorizontalConstraints = telecomUIConfig.loadingConstraints;
+    uiconfig.loadingConstraints = @[loadingConstraintX,loadingConstraintY,loadingConstraintW,loadingConstraintH];
+    uiconfig.loadingHorizontalConstraints = uiconfig.loadingConstraints;
 }
 
 #pragma mark - 添加 label
