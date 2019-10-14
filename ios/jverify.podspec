@@ -10,12 +10,13 @@ A new flutter plugin project.
                        DESC
   s.homepage         = 'https://www.jiguang.cn'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'skk' => 'shikunkun.cool@163.com' }
+  s.author           = { 'xudong.rao' => 'xudong.rao@outlook.com' }
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
-  s.dependency 'JVerification', '2.4.8'
+  s.dependency 'JVerification', '2.5.0'
+  s.dependency 'JCore', '2.1.4-noidfa'
 
   s.ios.deployment_target = '8.0'
   s.static_framework = true

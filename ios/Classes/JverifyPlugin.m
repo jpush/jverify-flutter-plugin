@@ -275,7 +275,7 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
         dispatch_async(dispatch_get_main_queue(), ^{
             if (isSync) {
                 //通过 channel 返回
-                [strongself.channel invokeMethod:@"onReceiveLoginAuthCallBackEvent" arguments:dict];
+                [strongself.channel invokeMethod:@"onReceiveAuthPageEvent" arguments:dict];
             }else{
                 // 通过回调返回
                 result(dict);
@@ -290,7 +290,7 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
                                   };
         __strong typeof(weakself) strongself = weakself;
         dispatch_async(dispatch_get_main_queue(), ^{
-            [strongself.channel invokeMethod:@"onReceiveClickWidgetEvent" arguments:jsonMap];
+            [strongself.channel invokeMethod:@"onReceiveAuthPageEvent" arguments:jsonMap];
         });
     }];
 }
@@ -822,6 +822,19 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
         unicomUIConfig.agreementNavReturnImage  = [UIImage imageNamed:privacyNavReturnBtnImage];
         telecomUIConfig.agreementNavReturnImage = [UIImage imageNamed:privacyNavReturnBtnImage];
     }
+    
+    //loading
+    JVLayoutConstraint *loadingConstraintX = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemSuper attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
+    JVLayoutConstraint *loadingConstraintY = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemSuper attribute:NSLayoutAttributeCenterY multiplier:1 constant:0];
+    JVLayoutConstraint *loadingConstraintW = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemNone attribute:NSLayoutAttributeWidth multiplier:1 constant:30];
+    JVLayoutConstraint *loadingConstraintH = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemNone attribute:NSLayoutAttributeHeight multiplier:1 constant:30];
+
+    mobileUIConfig.loadingConstraints = @[loadingConstraintX,loadingConstraintY,loadingConstraintW,loadingConstraintH];
+    mobileUIConfig.loadingHorizontalConstraints = mobileUIConfig.loadingConstraints;
+    unicomUIConfig.loadingConstraints = @[loadingConstraintX,loadingConstraintY,loadingConstraintW,loadingConstraintH];
+    unicomUIConfig.loadingHorizontalConstraints = unicomUIConfig.loadingConstraints;
+    telecomUIConfig.loadingConstraints = @[loadingConstraintX,loadingConstraintY,loadingConstraintW,loadingConstraintH];
+    telecomUIConfig.loadingHorizontalConstraints = telecomUIConfig.loadingConstraints;
 }
 
 #pragma mark - 添加 label
