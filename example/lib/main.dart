@@ -358,6 +358,8 @@ class _MyAppState extends State<MyApp> {
         uiConfig.privacyNavColor =  Colors.red.value;;
         uiConfig.privacyNavTitleTextColor = Colors.blue.value;
         uiConfig.privacyNavTitleTextSize = 16;
+        uiConfig.privacyNavTitleTitle1 = "协议1 web页标题";
+        uiConfig.privacyNavTitleTitle2 = "协议2 web页标题";
         uiConfig.privacyNavReturnBtnImage = "return_bg";//图片必须存在;
 
         /// 添加自定义的 控件 到授权界面
@@ -406,6 +408,15 @@ class _MyAppState extends State<MyApp> {
           }
         });
         widgetList.add(buttonWidget);
+        */
+
+
+        /* 弹框模式
+        JVPopViewConfig popViewConfig = JVPopViewConfig();
+        popViewConfig.width = (screenWidth - 100.0).toInt();
+        popViewConfig.height = (screenHeight - 150.0).toInt();
+
+        uiConfig.popViewConfig = popViewConfig;
         */
 
 
@@ -458,7 +469,13 @@ class _MyAppState extends State<MyApp> {
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
     String platformVersion;
-    jverify.setDebugMode(false); // 打开调试模式
+
+    // 初始化 SDK 之前添加监听
+    jverify.addSDKSetupCallBackListener((JVSDKSetupEvent event){
+      print("receive sdk setup call back event :${event.toMap()}");
+    });
+
+    jverify.setDebugMode(true); // 打开调试模式
     jverify.setup(
         appKey: "你自己应用的 AppKey",//"你自己应用的 AppKey",
         channel: "devloper-default"); // 初始化sdk,  appKey 和 channel 只对ios设置有效

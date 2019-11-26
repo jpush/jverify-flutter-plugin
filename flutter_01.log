@@ -1,0 +1,134 @@
+Flutter crash report; please file at https://github.com/flutter/flutter/issues.
+
+## command
+
+flutter upgrade
+
+## exception
+
+VersionCheckError: VersionCheckError: Command exited with code -9: git log -n 1 --pretty=format:%ad --date=iso
+Standard error: 
+
+```
+#0      _runSync (package:flutter_tools/src/version.dart:521:5)
+#1      FlutterVersion._latestGitCommitDate (package:flutter_tools/src/version.dart:141:12)
+#2      FlutterVersion.frameworkCommitDate (package:flutter_tools/src/version.dart:132:37)
+#3      FlutterVersion.toString (package:flutter_tools/src/version.dart:109:99)
+#4      UpgradeCommandRunner.updatePackages (package:flutter_tools/src/commands/upgrade.dart:190:32)
+<asynchronous suspension>
+#5      UpgradeCommandRunner.runCommand (package:flutter_tools/src/commands/upgrade.dart:90:11)
+<asynchronous suspension>
+#6      UpgradeCommand.runCommand (package:flutter_tools/src/commands/upgrade.dart:47:32)
+<asynchronous suspension>
+#7      FlutterCommand.verifyThenRunCommand (package:flutter_tools/src/runner/flutter_command.dart:478:18)
+<asynchronous suspension>
+#8      FlutterCommand.run.<anonymous closure> (package:flutter_tools/src/runner/flutter_command.dart:383:33)
+<asynchronous suspension>
+#9      AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:153:29)
+<asynchronous suspension>
+#10     _rootRun (dart:async/zone.dart:1124:13)
+#11     _CustomZone.run (dart:async/zone.dart:1021:19)
+#12     _runZoned (dart:async/zone.dart:1516:10)
+#13     runZoned (dart:async/zone.dart:1463:12)
+#14     AppContext.run (package:flutter_tools/src/base/context.dart:152:18)
+<asynchronous suspension>
+#15     FlutterCommand.run (package:flutter_tools/src/runner/flutter_command.dart:375:20)
+#16     CommandRunner.runCommand (package:args/command_runner.dart:197:27)
+<asynchronous suspension>
+#17     FlutterCommandRunner.runCommand.<anonymous closure> (package:flutter_tools/src/runner/flutter_command_runner.dart:396:21)
+<asynchronous suspension>
+#18     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:153:29)
+<asynchronous suspension>
+#19     _rootRun (dart:async/zone.dart:1124:13)
+#20     _CustomZone.run (dart:async/zone.dart:1021:19)
+#21     _runZoned (dart:async/zone.dart:1516:10)
+#22     runZoned (dart:async/zone.dart:1463:12)
+#23     AppContext.run (package:flutter_tools/src/base/context.dart:152:18)
+<asynchronous suspension>
+#24     FlutterCommandRunner.runCommand (package:flutter_tools/src/runner/flutter_command_runner.dart:356:19)
+<asynchronous suspension>
+#25     CommandRunner.run.<anonymous closure> (package:args/command_runner.dart:112:25)
+#26     new Future.sync (dart:async/future.dart:224:31)
+#27     CommandRunner.run (package:args/command_runner.dart:112:14)
+#28     FlutterCommandRunner.run (package:flutter_tools/src/runner/flutter_command_runner.dart:242:18)
+#29     run.<anonymous closure>.<anonymous closure> (package:flutter_tools/runner.dart:62:22)
+<asynchronous suspension>
+#30     _rootRun (dart:async/zone.dart:1124:13)
+#31     _CustomZone.run (dart:async/zone.dart:1021:19)
+#32     _runZoned (dart:async/zone.dart:1516:10)
+#33     runZoned (dart:async/zone.dart:1500:12)
+#34     run.<anonymous closure> (package:flutter_tools/runner.dart:60:18)
+<asynchronous suspension>
+#35     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:153:29)
+<asynchronous suspension>
+#36     _rootRun (dart:async/zone.dart:1124:13)
+#37     _CustomZone.run (dart:async/zone.dart:1021:19)
+#38     _runZoned (dart:async/zone.dart:1516:10)
+#39     runZoned (dart:async/zone.dart:1463:12)
+#40     AppContext.run (package:flutter_tools/src/base/context.dart:152:18)
+<asynchronous suspension>
+#41     runInContext (package:flutter_tools/src/context_runner.dart:56:24)
+<asynchronous suspension>
+#42     run (package:flutter_tools/runner.dart:51:10)
+#43     main (package:flutter_tools/executable.dart:62:9)
+<asynchronous suspension>
+#44     main (file:///Applications/flutter/packages/flutter_tools/bin/flutter_tools.dart:8:3)
+#45     _startIsolate.<anonymous closure> (dart:isolate-patch/isolate_patch.dart:299:32)
+#46     _RawReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.dart:172:12)
+```
+
+## flutter doctor
+
+```
+encountered exception: VersionCheckError: Command exited with code -9: git log -n 1 --pretty=format:%ad --date=iso
+Standard error: 
+
+#0      _runSync (package:flutter_tools/src/version.dart:521:5)
+#1      FlutterVersion._latestGitCommitDate (package:flutter_tools/src/version.dart:141:12)
+#2      FlutterVersion.frameworkCommitDate (package:flutter_tools/src/version.dart:132:37)
+#3      FlutterVersion.frameworkDate (package:flutter_tools/src/version.dart:94:31)
+#4      FlutterValidator.validate (package:flutter_tools/src/doctor.dart:501:127)
+<asynchronous suspension>
+#5      Doctor.startValidatorTasks (package:flutter_tools/src/doctor.dart:152:52)
+#6      Doctor.diagnose (package:flutter_tools/src/doctor.dart:223:41)
+<asynchronous suspension>
+#7      _doctorText.<anonymous closure> (package:flutter_tools/runner.dart:193:26)
+#8      AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:153:29)
+<asynchronous suspension>
+#9      _rootRun (dart:async/zone.dart:1124:13)
+#10     _CustomZone.run (dart:async/zone.dart:1021:19)
+#11     _runZoned (dart:async/zone.dart:1516:10)
+#12     runZoned (dart:async/zone.dart:1463:12)
+#13     AppContext.run (package:flutter_tools/src/base/context.dart:152:18)
+<asynchronous suspension>
+#14     _doctorText (package:flutter_tools/runner.dart:192:19)
+<asynchronous suspension>
+#15     _createLocalCrashReport (package:flutter_tools/runner.dart:170:32)
+<asynchronous suspension>
+#16     _handleToolError (package:flutter_tools/runner.dart:125:33)
+<asynchronous suspension>
+#17     run.<anonymous closure>.<anonymous closure> (package:flutter_tools/runner.dart:65:22)
+<asynchronous suspension>
+#18     _rootRun (dart:async/zone.dart:1124:13)
+#19     _CustomZone.run (dart:async/zone.dart:1021:19)
+#20     _runZoned (dart:async/zone.dart:1516:10)
+#21     runZoned (dart:async/zone.dart:1500:12)
+#22     run.<anonymous closure> (package:flutter_tools/runner.dart:60:18)
+<asynchronous suspension>
+#23     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:153:29)
+<asynchronous suspension>
+#24     _rootRun (dart:async/zone.dart:1124:13)
+#25     _CustomZone.run (dart:async/zone.dart:1021:19)
+#26     _runZoned (dart:async/zone.dart:1516:10)
+#27     runZoned (dart:async/zone.dart:1463:12)
+#28     AppContext.run (package:flutter_tools/src/base/context.dart:152:18)
+<asynchronous suspension>
+#29     runInContext (package:flutter_tools/src/context_runner.dart:56:24)
+<asynchronous suspension>
+#30     run (package:flutter_tools/runner.dart:51:10)
+#31     main (package:flutter_tools/executable.dart:62:9)
+<asynchronous suspension>
+#32     main (file:///Applications/flutter/packages/flutter_tools/bin/flutter_tools.dart:8:3)
+#33     _startIsolate.<anonymous closure> (dart:isolate-patch/isolate_patch.dart:299:32)
+#34     _RawReceivePortImpl._handleMessage (dart:isolate-patch/isolate_patch.dart:172:12)
+```

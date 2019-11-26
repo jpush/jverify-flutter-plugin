@@ -23,6 +23,16 @@ typedef JVAuthPageEventListener = void Function(JVAuthPageEvent event);
  * */
 typedef JVLoginAuthCallBackListener = void Function(JVListenerEvent event);
 
+/**
+ * SDK 初始接口回调监听
+ *
+ * @param event
+ *          code     ：返回码，8000代表初始化成功，其他为失败，详见错误码描述
+ *          message  ：返回码的解释信息，若获取成功，内容信息代表loginToken。
+ *
+ * @discussion 调用 setup 接口后，可以通过添加此监听事件来监听接口的返回结果
+ * */
+typedef JVSDKSetupCallBackListener  = void Function(JVSDKSetupEvent event);
 
 
 class JVEventHandlers {
@@ -34,6 +44,7 @@ class JVEventHandlers {
   Map<String, JVClickWidgetEventListener> clickEventsMap = Map();
   List<JVAuthPageEventListener> authPageEvents = [];
   List<JVLoginAuthCallBackListener> loginAuthCallBackEvents = [];
+  JVSDKSetupCallBackListener sdkSetupCallBackListener;
 }
 
 
@@ -70,6 +81,10 @@ class Jverify {
   addLoginAuthCallBackListener(JVLoginAuthCallBackListener callback) {
     _eventHanders.loginAuthCallBackEvents.add(callback);
   }
+  /// SDK 初始化回调监听
+  addSDKSetupCallBackListener(JVSDKSetupCallBackListener callback) {
+    _eventHanders.sdkSetupCallBackListener = callback;
+  }
 
   Future<void> _handlerMethod(MethodCall call) async {
     print("handleMethod method = ${call.method}");
@@ -99,6 +114,14 @@ class Jverify {
           _eventHanders.loginAuthCallBackEvents.remove(cb);
         }
       }
+        break;
+      case 'onReceiveSDKSetupCallBackEvent': {
+        if (_eventHanders.sdkSetupCallBackListener != null) {
+          Map json = call.arguments.cast<dynamic, dynamic>();
+          JVSDKSetupEvent event = JVSDKSetupEvent.fromJson(json);
+          _eventHanders.sdkSetupCallBackListener(event);
+        }
+      }
       break;
       default:
         throw new UnsupportedError("Unrecognized Event");
@@ -106,15 +129,13 @@ class Jverify {
     return ;
   }
 
-  /// 初始化
-  void setup({String appKey, String channel, bool useIDFA}) {
+  /// 初始化, timeout单位毫秒，合法范围是(0,30000]，推荐设置为5000-10000,默认值为10000
+  void setup({@required String appKey, String channel, bool useIDFA, int timeout = 10000}) {
     print("$flutter_log" + "setup");
 
     _channel.setMethodCallHandler(_handlerMethod);
 
-    _channel.invokeMethod(
-        "setup", {"appKey": appKey, "channel": channel, "useIDFA": useIDFA}
-        );
+    _channel.invokeMethod("setup", {"appKey": appKey, "channel": channel, "useIDFA": useIDFA, "timeout": timeout});
   }
 
   /// 设置 debug 模式
@@ -157,7 +178,7 @@ class Jverify {
 
 
   /// SDK 一键登录预取号,timeOut 有效取值范围[3000,10000]
-  Future<Map<dynamic, dynamic>> preLogin({int timeOut}) async {
+  Future<Map<dynamic, dynamic>> preLogin({int timeOut=10000}) async {
     var para = new Map();
     if (timeOut != null) {
       if (timeOut >= 3000 && timeOut <= 10000) {
@@ -184,27 +205,33 @@ class Jverify {
   /*
   * SDK请求授权一键登录（异步接口）
   *
+  * @param autoDismiss  设置登录完成后是否自动关闭授权页
+  * @param timeout      设置超时时间，单位毫秒。 合法范围（0，30000],范围以外默认设置为10000
+  *
   * @return 通过接口异步返回的 map 获得
   *
   * @discussion since SDK v2.4.0，授权页面点击事件监听：通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件
   *
   * */
-  Future<Map<dynamic, dynamic>> loginAuth(bool autoDismiss) async {
+  Future<Map<dynamic, dynamic>> loginAuth(bool autoDismiss,{int timeout=10000}) async {
     print("$flutter_log" + "loginAuth");
-    return await _channel.invokeMethod("loginAuth", {"autoDismiss": autoDismiss});
+    return await _channel.invokeMethod("loginAuth", {"autoDismiss": autoDismiss,"timeout":timeout});
   }
 
   /*
   * SDK请求授权一键登录（同步接口）
   *
-  * 通过添加 JVLoginAuthCallBackListener 监听，来监听接口的返回结果
+  * @param autoDismiss  设置登录完成后是否自动关闭授权页
+  * @param timeout      设置超时时间，单位毫秒。 合法范围（0，30000],范围以外默认设置为10000
   *
-  * @discussion since SDK v2.4.0，授权页面点击事件监听：通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件
+  * 接口回调返回数据监听：通过添加 JVLoginAuthCallBackListener 监听，来监听接口的返回结果
+  *
+  * 授权页面点击事件监听：通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件
   *
   * */
-  void loginAuthSyncApi({@required bool autoDismiss}) {
+  void loginAuthSyncApi({@required bool autoDismiss,int timeout=10000}) {
     print("$flutter_log" + "loginAuthSyncApi");
-    _channel.invokeMethod("loginAuthSyncApi", {"autoDismiss": autoDismiss});
+    _channel.invokeMethod("loginAuthSyncApi", {"autoDismiss": autoDismiss,"timeout":timeout});
   }
 
   /*
@@ -360,22 +387,27 @@ class JVUIConfig {
   int privacyOffsetY; // 隐私条款相对于授权页面底部下边缘 y 偏移
   int privacyOffsetX; // 隐私条款相对于屏幕左边 x 轴偏移
   JVIOSLayoutItem privacyVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
-  String clauseName;
-  String clauseUrl;
+  String clauseName;    // 协议1 名字
+  String clauseUrl;     // 协议1 URL
+  String clauseNameTwo; // 协议2 名字
+  String clauseUrlTwo;  // 协议2 URL
   int clauseBaseColor;
   int clauseColor;
-  String clauseNameTwo;
-  String clauseUrlTwo;
   List<String> privacyText;
   int privacyTextSize;
   bool privacyWithBookTitleMark = true;//设置隐私条款运营商协议名是否加书名号
   bool privacyTextCenterGravity = false;//隐私条款文字是否居中对齐（默认左对齐）
 
-  /// 隐私协议页面
-  int privacyNavColor;
-  int privacyNavTitleTextColor;
-  int privacyNavTitleTextSize;
+  /// 隐私协议 web 页 UI 配置
+  int privacyNavColor;          // 导航栏颜色
+  int privacyNavTitleTextColor; // 标题颜色
+  int privacyNavTitleTextSize;  // 标题大小
+  String privacyNavTitleTitle1; // 协议1 web页面导航栏标题
+  String privacyNavTitleTitle2; // 协议2 web页面导航栏标题
   String privacyNavReturnBtnImage;
+
+  /// 授权页弹窗模式 配置，选填
+  JVPopViewConfig popViewConfig;
 
   Map toJsonMap() {
     return {
@@ -441,11 +473,48 @@ class JVUIConfig {
       "privacyNavColor": privacyNavColor ??= null,
       "privacyNavTitleTextColor": privacyNavTitleTextColor ??= null,
       "privacyNavTitleTextSize": privacyNavTitleTextSize ??= null,
+      "privacyNavTitleTitle1": privacyNavTitleTitle1 ??= null,
+      "privacyNavTitleTitle2": privacyNavTitleTitle2 ??= null,
       "privacyNavReturnBtnImage": privacyNavReturnBtnImage ??= null,
+      "popViewConfig": popViewConfig!=null ? popViewConfig.toJsonMap() : null,
     }..removeWhere((key,value) => value == null);
   }
 }
 
+/*
+ * 授权页弹窗模式配置
+ *
+ * 注意：Android 的相关配置可以从 AndroidManifest 中配置，具体做法参考https://docs.jiguang.cn/jverification/client/android_api/#sdk_11
+ * */
+class JVPopViewConfig {
+
+
+  int width;
+  int height;
+  int offsetCenterX = 0;// 窗口相对屏幕中心的x轴偏移量
+  int offsetCenterY = 0;// 窗口相对屏幕中心的y轴偏移量
+  bool isBottom = false;// only Android，窗口是否居屏幕底部。设置后 offsetCenterY 将失效，
+  double popViewCornerRadius = 5.0;// only ios，弹窗圆角大小，Android 从 AndroidManifest 配置中读取
+  double backgroundAlpha = 0.3;// only ios，背景的透明度，Android 从 AndroidManifest 配置中读取
+
+  bool isPopViewTheme;// 是否支持弹窗模式
+  JVPopViewConfig(){
+    this.isPopViewTheme = true;
+  }
+
+  Map toJsonMap() {
+    return {
+      "isPopViewTheme":isPopViewTheme,
+      "width": width ??= null,
+      "height": height ??= null,
+      "offsetCenterX": offsetCenterX ??= null,
+      "offsetCenterY": offsetCenterY ??= null,
+      "isBottom": isBottom ??= null,
+      "popViewCornerRadius": popViewCornerRadius,
+      "backgroundAlpha": backgroundAlpha,
+    }..removeWhere((key,value) => value == null);
+  }
+}
 
 /// 自定义控件
 class JVCustomWidget {
@@ -525,6 +594,10 @@ class JVListenerEvent {
   String message;//事件描述、事件返回值等
   String operator;//成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为null
 
+  JVListenerEvent(){
+    print("JVListenerEvent init");
+  }
+
   JVListenerEvent.fromJson(Map<dynamic, dynamic> json)
       : code = json['code'],
         message = json['message'],
@@ -541,6 +614,7 @@ class JVListenerEvent {
 
 /// 授权页事件
 class JVAuthPageEvent extends JVListenerEvent {
+
   @override
   JVAuthPageEvent.fromJson(Map<dynamic, dynamic> json)
       : super.fromJson(json);
@@ -552,6 +626,12 @@ class JVAuthPageEvent extends JVListenerEvent {
       'message': message ??= null,
     };
   }
+}
+/// SDK 初始化回调事件
+class JVSDKSetupEvent extends JVAuthPageEvent {
+  @override
+  JVSDKSetupEvent.fromJson(Map<dynamic, dynamic> json)
+      : super.fromJson(json);
 }
 
 

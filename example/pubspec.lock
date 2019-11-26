@@ -7,14 +7,14 @@ packages:
       name: async
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "2.2.0"
+    version: "2.3.0"
   boolean_selector:
     dependency: transitive
     description:
       name: boolean_selector
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.0.4"
+    version: "1.0.5"
   charcode:
     dependency: transitive
     description:
@@ -52,7 +52,7 @@ packages:
       path: ".."
       relative: true
     source: path
-    version: "0.5.2"
+    version: "0.6.0"
   matcher:
     dependency: transitive
     description:
@@ -66,7 +66,7 @@ packages:
       name: meta
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.1.6"
+    version: "1.1.7"
   modal_progress_hud:
     dependency: "direct main"
     description:
@@ -80,14 +80,14 @@ packages:
       name: path
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.6.2"
+    version: "1.6.4"
   pedantic:
     dependency: transitive
     description:
       name: pedantic
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.7.0"
+    version: "1.8.0+1"
   platform:
     dependency: transitive
     description:
@@ -101,7 +101,7 @@ packages:
       name: quiver
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "2.0.3"
+    version: "2.0.5"
   sky_engine:
     dependency: transitive
     description: flutter
@@ -134,7 +134,7 @@ packages:
       name: string_scanner
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "1.0.4"
+    version: "1.0.5"
   term_glyph:
     dependency: transitive
     description:

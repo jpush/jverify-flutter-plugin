@@ -94,7 +94,7 @@ jverify.addLoginAuthCallBackListener((event){
 jverify.loginAuthSyncApi(autoDismiss: true);
 
 /*   
-/// 方式二：使用异步接口 （如果想使用异步接口，则忽略此步骤，看方式一）
+/// 方式二：使用异步接口 （如果想使用同步接口，则忽略此步骤，看方式一）
     
 /// 先，执行异步的一键登录接口
 jverify.loginAuth(true).then((map) {
