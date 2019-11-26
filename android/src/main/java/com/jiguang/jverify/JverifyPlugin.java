@@ -33,7 +33,9 @@ import cn.jiguang.verifysdk.api.AuthPageEventListener;
 import cn.jiguang.verifysdk.api.JVerificationInterface;
 import cn.jiguang.verifysdk.api.JVerifyUIClickCallback;
 import cn.jiguang.verifysdk.api.JVerifyUIConfig;
+import cn.jiguang.verifysdk.api.LoginSettings;
 import cn.jiguang.verifysdk.api.PreLoginListener;
+import cn.jiguang.verifysdk.api.RequestCallback;
 import cn.jiguang.verifysdk.api.VerifyListener;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
@@ -116,7 +118,18 @@ public class JverifyPlugin implements MethodCallHandler {
   /** SDK 初始换  */
   private void setup(MethodCall call,Result result){
     Log.d(TAG,"Action - setup:");
-    JVerificationInterface.init(context);
+
+    Object timeout =  getValueByKey(call,"timeout");
+    JVerificationInterface.init(context, (Integer)timeout, new RequestCallback<String>() {
+      @Override
+      public void onResult(int code, String message) {
+        Map<String,Object> map = new HashMap<>();
+        map.put(j_code_key,code);
+        map.put(j_msg_key,message);
+        // 通过 channel 返回
+        channel.invokeMethod("onReceiveSDKSetupCallBackEvent",map);
+      }
+    });
   }
 
   /** SDK设置debug模式 */
@@ -286,8 +299,24 @@ public class JverifyPlugin implements MethodCallHandler {
     Log.d(TAG,"Action - loginAuthInterface:");
 
     Object autoFinish =  getValueByKey(call,"autoDismiss");
+    Integer timeOut = call.argument("timeout");
 
-    JVerificationInterface.loginAuth(context, (Boolean) autoFinish, new VerifyListener() {
+    LoginSettings settings = new LoginSettings();
+    settings.setAutoFinish((Boolean)autoFinish);
+    settings.setTimeout(timeOut);
+    settings.setAuthPageEventListener(new AuthPageEventListener() {
+      @Override
+      public void onEvent(int cmd, String msg) {
+        Log.d(TAG,"Action - AuthPageEventListener: cmd = " + cmd);
+        /// 事件
+        final HashMap jsonMap = new HashMap();
+        jsonMap.put(j_code_key, cmd);
+        jsonMap.put(j_msg_key, msg);
+        channel.invokeMethod("onReceiveAuthPageEvent", jsonMap);
+      }
+    });
+
+    JVerificationInterface.loginAuth(context, settings, new VerifyListener() {
       @Override
       public void onResult(int code, String content, String operator) {
         if (code == 6000){
@@ -307,16 +336,6 @@ public class JverifyPlugin implements MethodCallHandler {
           result.success(map);
         }
       }
-    }, new AuthPageEventListener() {
-      @Override
-      public void onEvent(int cmd, String msg) {
-        Log.d(TAG,"Action - AuthPageEventListener: cmd = " + cmd);
-        /// 事件
-        final HashMap jsonMap = new HashMap();
-        jsonMap.put(j_code_key, cmd);
-        jsonMap.put(j_msg_key, msg);
-        channel.invokeMethod("onReceiveAuthPageEvent", jsonMap);
-      }
     });
   }
 
@@ -325,6 +344,12 @@ public class JverifyPlugin implements MethodCallHandler {
     Log.d(TAG,"Action - dismissLoginAuthView:");
 
     JVerificationInterface.dismissLoginAuthActivity();
+    JVerificationInterface.dismissLoginAuthActivity(true, new RequestCallback<String>() {
+      @Override
+      public void onResult(int i, String s) {
+
+      }
+    });
   }
 
   /** 自定义授权界面 UI 、添加自定义控件*/
@@ -474,8 +499,10 @@ public class JverifyPlugin implements MethodCallHandler {
     Object privacyNavTitleTextColor = valueForKey(uiconfig,"privacyNavTitleTextColor");
     Object privacyNavTitleTextSize = valueForKey(uiconfig,"privacyNavTitleTextSize");
     Object privacyNavReturnBtnImage = valueForKey(uiconfig,"privacyNavReturnBtnImage");
+    Object privacyNavTitleTitle1 = valueForKey(uiconfig,"privacyNavTitleTitle1");
+    Object privacyNavTitleTitle2 = valueForKey(uiconfig,"privacyNavTitleTitle2");
 
-
+    Object popViewConfig = valueForKey(uiconfig,"popViewConfig");
 
     /************** 背景 ***************/
     if (authBackgroundImage != null ){
@@ -677,6 +704,12 @@ public class JverifyPlugin implements MethodCallHandler {
     if (privacyNavTitleTextColor != null){
       builder.setPrivacyNavTitleTextColor(exchangeObject(privacyNavTitleTextColor));
     }
+    if (privacyNavTitleTitle1 != null) {
+      builder.setAppPrivacyNavTitle1((String) privacyNavTitleTitle1);
+    }
+    if (privacyNavTitleTitle2 != null) {
+      builder.setAppPrivacyNavTitle2((String) privacyNavTitleTitle2);
+    }
 
     if (privacyNavReturnBtnImage != null){
       int res_id = getResourceByReflect((String)privacyNavReturnBtnImage);
@@ -684,6 +717,23 @@ public class JverifyPlugin implements MethodCallHandler {
         ImageView view = new ImageView(context);
         view.setImageResource(res_id);
         builder.setPrivacyNavReturnBtn(view);
+      }
+    }
+
+    builder.enableHintToast(true,null);
+    /************** 授权页弹窗模式 ***************/
+    if (popViewConfig != null) {
+      Map popViewConfigMap = (Map)popViewConfig;
+      Object isPopViewTheme = valueForKey(popViewConfigMap,"isPopViewTheme");
+      if ((Boolean) isPopViewTheme) {
+        Object width = valueForKey(popViewConfigMap,"width");
+        Object height = valueForKey(popViewConfigMap,"height");
+        Object offsetCenterX = valueForKey(popViewConfigMap,"offsetCenterX");
+        Object offsetCenterY = valueForKey(popViewConfigMap,"offsetCenterY");
+        Object isBottom = valueForKey(popViewConfigMap,"isBottom");
+
+        builder.setDialogTheme((int)width, (int)height, (int)offsetCenterX, (int)offsetCenterY, (Boolean)isBottom);
+
       }
     }
   }
