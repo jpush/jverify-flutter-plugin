@@ -8,7 +8,7 @@
 ```yaml
 //pub 集成
 dependencies:
-  jverify: 0.5.2
+  jverify: 0.6.0
 
   
 //github 集成  

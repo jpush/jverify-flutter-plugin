@@ -86,6 +86,7 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     NSString *appKey = arguments[@"appKey"];
     NSString *channel = arguments[@"channel"];
     NSNumber *useIDFA = arguments[@"useIDFA"];
+    NSNumber *timeout = arguments[@"timeout"];
     
     JVAuthConfig *config = [[JVAuthConfig alloc] init];
     if (![appKey isKindOfClass:[NSNull class]]) {
@@ -95,6 +96,11 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     if (![channel isKindOfClass:[NSNull class]]) {
         config.channel = channel;
     }
+    if ([timeout isKindOfClass:[NSNull class]]) {
+        timeout = @(10000);
+    }
+    config.timeout = [timeout longLongValue];
+    
     NSString *idfaStr = NULL;
     if(![useIDFA isKindOfClass:[NSNull class]]){
         if([useIDFA boolValue]){
@@ -102,6 +108,22 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
             config.advertisingId = idfaStr;
         }
     }
+    
+    __weak typeof(self) weakself = self;
+    config.authBlock = ^(NSDictionary *result) {
+        JVLog(@"初始化结果 result:%@", result);
+        __strong typeof(weakself) strongself = weakself;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            NSString *message = result[@"content"];
+                   NSString *code = result[@"code"];
+                   NSDictionary *dic = @{
+                       j_code_key:(code?@([code intValue]):@(0)),
+                       j_msg_key:(message?message:@"")
+                   };
+            //通过 channel 返回
+            [strongself.channel invokeMethod:@"onReceiveSDKSetupCallBackEvent" arguments:dic];
+        });
+    };
     [JVERIFICATIONService setupWithConfig:config];
 }
 
@@ -252,11 +274,12 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
 
     NSDictionary *arguments = [call arguments];
     NSNumber *hide = arguments[@"autoDismiss"];
+    NSTimeInterval timeout = [arguments[@"timeout"] longLongValue];
     
     UIViewController *vc = [UIApplication sharedApplication].keyWindow.rootViewController;
     
     __weak typeof(self) weakself = self;
-    [JVERIFICATIONService getAuthorizationWithController:vc hide:[hide boolValue] completion:^(NSDictionary *res) {
+    [JVERIFICATIONService getAuthorizationWithController:vc hide:[hide boolValue] animated:YES timeout:timeout completion:^(NSDictionary *res) {
         JVLog(@"getAuthorizationWithController result = %@",res);
         
         NSString *content = @"";
@@ -297,7 +320,9 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
 #pragma mark - SDK关闭授权页面
 -(void)dismissLoginController:(FlutterMethodCall*) call result:(FlutterResult)result{
     JVLog(@"Action - dismissLoginController::");
-    [JVERIFICATIONService dismissLoginController];
+    [JVERIFICATIONService dismissLoginControllerAnimated:YES completion:^{
+        
+    }];
 }
 
 #pragma mark - 自定义授权页面所有的 UI （包括：原有的、新加的）
@@ -647,7 +672,10 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
         uiconfig.agreementNavBackgroundColor  = UIColorFromRGB([privacyNavColor intValue]);
     }
     
-    NSString *privacyNavText = @"服务条款"; //[self getValue:config key:@"navText"];
+    NSString *privacyNavText = [self getValue:config key:@"privacyNavTitleTitle1"];
+    if (!privacyNavText) {
+        privacyNavText =  @"服务条款";
+    }
 
     UIColor *privacyNavTitleTextColor = UIColorFromRGB(-1);
     if ([self getValue:config key:@"privacyNavTitleTextColor"]) {
@@ -667,7 +695,27 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
         uiconfig.agreementNavReturnImage  = [UIImage imageNamed:privacyNavReturnBtnImage];
     }
     
-    //loading
+    // 自定义协议 1
+    NSString *privacyNavTitleTitle1 = [self getValue:config key:@"privacyNavTitleTitle1"];
+    if (!privacyNavTitleTitle1) {
+        privacyNavTitleTitle1 =  @"服务条款";
+    }
+    NSDictionary *privayNavTextAttr1 = @{NSForegroundColorAttributeName:privacyNavTitleTextColor,
+                                        NSFontAttributeName:[UIFont systemFontOfSize:[privacyNavTitleTextSize floatValue]]};
+    NSAttributedString *privayAttr1 = [[NSAttributedString alloc]initWithString:privacyNavTitleTitle1 attributes:privayNavTextAttr1];
+    uiconfig.firstPrivacyAgreementNavText = privayAttr1;
+    
+    // 自定义协议 2
+    NSString *privacyNavTitleTitle2 = [self getValue:config key:@"privacyNavTitleTitle2"];
+    if (!privacyNavTitleTitle2) {
+        privacyNavTitleTitle2 =  @"服务条款";
+    }
+    NSDictionary *privayNavTextAttr2 = @{NSForegroundColorAttributeName:privacyNavTitleTextColor,
+                                        NSFontAttributeName:[UIFont systemFontOfSize:[privacyNavTitleTextSize floatValue]]};
+    NSAttributedString *privayAttr2 = [[NSAttributedString alloc]initWithString:privacyNavTitleTitle2 attributes:privayNavTextAttr2];
+    uiconfig.secondPrivacyAgreementNavText = privayAttr2;
+    
+    /************** loading 框 ***************/
     JVLayoutConstraint *loadingConstraintX = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemSuper attribute:NSLayoutAttributeCenterX multiplier:1 constant:0];
     JVLayoutConstraint *loadingConstraintY = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemSuper attribute:NSLayoutAttributeCenterY multiplier:1 constant:0];
     JVLayoutConstraint *loadingConstraintW = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemNone attribute:NSLayoutAttributeWidth multiplier:1 constant:30];
@@ -675,6 +723,38 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
 
     uiconfig.loadingConstraints = @[loadingConstraintX,loadingConstraintY,loadingConstraintW,loadingConstraintH];
     uiconfig.loadingHorizontalConstraints = uiconfig.loadingConstraints;
+    
+    /************** 窗口模式样式设置 ***************/
+    NSDictionary *popViewConfig = [self getValue:config key:@"popViewConfig"];
+    if (popViewConfig) {
+        NSNumber *isPopViewTheme = [self getValue:popViewConfig key:@""];
+        NSNumber *width = [self getValue:popViewConfig key:@"width"];
+        NSNumber *height = [self getValue:popViewConfig key:@"height"];
+        NSNumber *offsetCenterX = [self getValue:popViewConfig key:@"offsetCenterX"];
+        NSNumber *offsetCenterY = [self getValue:popViewConfig key:@"offsetCenterY"];
+        
+        NSNumber *popViewCornerRadius = [self getValue:popViewConfig key:@"popViewCornerRadius"];
+        NSNumber *backgroundAlpha = [self getValue:popViewConfig key:@"backgroundAlpha"];
+        if ([isPopViewTheme boolValue]) {
+            return;
+        }
+        
+        uiconfig.showWindow = YES;
+        uiconfig.navCustom = YES;
+        uiconfig.windowCornerRadius = [popViewCornerRadius floatValue];
+        uiconfig.windowBackgroundAlpha = [backgroundAlpha floatValue];
+
+        CGFloat windowW = [width floatValue];
+        CGFloat windowH = [height floatValue];
+        CGFloat windowX = [offsetCenterX floatValue];
+        CGFloat windowY = [offsetCenterY floatValue];
+        JVLayoutConstraint *windowConstraintX = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemSuper attribute:NSLayoutAttributeCenterX multiplier:1 constant:windowX];
+        JVLayoutConstraint *windowConstraintY = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemSuper attribute:NSLayoutAttributeCenterY multiplier:1 constant:windowY];
+        JVLayoutConstraint *windowConstraintW = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemNone attribute:NSLayoutAttributeWidth multiplier:1 constant:windowW];
+        JVLayoutConstraint *windowConstraintH = [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemNone attribute:NSLayoutAttributeHeight multiplier:1 constant:windowH];
+        uiconfig.windowConstraints = @[windowConstraintX,windowConstraintY,windowConstraintW,windowConstraintH];
+        uiconfig.windowHorizontalConstraints = uiconfig.windowConstraints;
+    }
 }
 
 #pragma mark - 添加 label
