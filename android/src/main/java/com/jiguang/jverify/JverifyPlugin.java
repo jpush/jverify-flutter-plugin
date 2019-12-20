@@ -10,6 +10,9 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.media.Image;
 import android.nfc.Tag;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -43,6 +46,11 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
+class JVRequestItem {
+  public MethodCall call;
+  Result result;
+}
+
 /** JverifyPlugin */
 public class JverifyPlugin implements MethodCallHandler {
 
@@ -60,10 +68,13 @@ public class JverifyPlugin implements MethodCallHandler {
   private static  String  j_opr_key  = "operator";
   // 默认超时时间
   private  static  int j_default_timeout = 5000;
+  // 重复请求
+  private  static  int j_error_code_repeat = -1;
 
 
   private Context context;
   private MethodChannel channel;
+  private HashMap<String,JVRequestItem> requestQueue = new HashMap();
 
   /** Plugin registration. */
   public static void registerWith(Registrar registrar) {
@@ -81,6 +92,29 @@ public class JverifyPlugin implements MethodCallHandler {
   public void onMethodCall(MethodCall call, Result result) {
     Log.d(TAG,"onMethodCall:" + call.method);
 
+//    JVRequestItem item = requestQueue.get(call.method);
+//    if (item == null) {
+//      item = new JVRequestItem();
+//      item.call = call;
+//      item.result = result;
+//
+//      requestQueue.put(call.method,item);
+//
+//      processMethod(call, result);
+//    }else {
+//      String error_repeat_desc = call.method + " is requesting, please try again later.";
+//
+//      Map<String,Object> map = new HashMap<>();
+//      map.put(j_code_key,j_error_code_repeat);
+//      map.put(j_msg_key,error_repeat_desc);
+//
+//      result.success(map);
+//    }
+    processMethod(call,result);
+  }
+
+  private void processMethod(MethodCall call, Result result) {
+    Log.d(TAG,"processMethod:" + call.method);
     if (call.method.equals("setup")) {
       setup(call,result);
     }else if (call.method.equals("setDebugMode")) {
@@ -115,6 +149,34 @@ public class JverifyPlugin implements MethodCallHandler {
     }
   }
 
+  private void methodCallBack(Object object,String method) {
+    Log.d(TAG,"Action - methodCallBack:" + method);
+
+    JVRequestItem item = requestQueue.get(method);
+    if (item != null) {
+      if (item.result != null) {
+        item.result.success(object);
+      }
+    }
+    requestQueue.remove(method);
+  }
+
+  // 主线程再返回数据
+  private void runMainThread(final Map<String,Object> map, final Result result, final String method) {
+    android.os.Handler handler = new Handler(Looper.getMainLooper());
+    handler.post(new Runnable() {
+      @Override
+      public void run() {
+        if (result == null && method != null){
+          channel.invokeMethod(method,map);
+        } else {
+          result.success(map);
+        }
+      }
+    });
+  }
+
+
   /** SDK 初始换  */
   private void setup(MethodCall call,Result result){
     Log.d(TAG,"Action - setup:");
@@ -127,7 +189,8 @@ public class JverifyPlugin implements MethodCallHandler {
         map.put(j_code_key,code);
         map.put(j_msg_key,message);
         // 通过 channel 返回
-        channel.invokeMethod("onReceiveSDKSetupCallBackEvent",map);
+        //channel.invokeMethod("onReceiveSDKSetupCallBackEvent",map);
+        runMainThread(map,null,"onReceiveSDKSetupCallBackEvent");
       }
     });
   }
@@ -142,7 +205,7 @@ public class JverifyPlugin implements MethodCallHandler {
 
     Map<String,Object> map = new HashMap<>();
     map.put(j_result_key,enable);
-    result.success(map);
+    runMainThread(map,result,null);
   }
 
   /** 获取 SDK 初始化是否成功标识 */
@@ -155,7 +218,7 @@ public class JverifyPlugin implements MethodCallHandler {
 
     Map<String,Object> map = new HashMap<>();
     map.put(j_result_key, isSuccess);
-    result.success(map);
+    runMainThread(map,result,null);
 
     return isSuccess;
   }
@@ -171,13 +234,13 @@ public class JverifyPlugin implements MethodCallHandler {
 
     Map<String,Object> map = new HashMap<>();
     map.put(j_result_key, verifyEnable);
-    result.success(map);
+    runMainThread(map,result,null);
 
     return verifyEnable;
   }
 
   /** SDK获取号码认证token*/
-  private void getToken(MethodCall call, final Result result) {
+  private void getToken(final MethodCall call, final Result result) {
     Log.d(TAG,"Action - getToken:");
 
     int timeOut = j_default_timeout;
@@ -206,7 +269,8 @@ public class JverifyPlugin implements MethodCallHandler {
         map.put(j_code_key,code);
         map.put(j_msg_key,content);
         map.put(j_opr_key,operator);
-        result.success(map);
+
+        runMainThread(map,result,null);
       }
     });
   }
@@ -251,7 +315,7 @@ public class JverifyPlugin implements MethodCallHandler {
   }
 
   /** SDK 一键登录预取号 */
-  private  void  preLogin(MethodCall call,final Result result) {
+  private  void  preLogin(final MethodCall call, final Result result) {
     Log.d(TAG,"Action - preLogin:" + call.arguments);
 
     int timeOut = j_default_timeout;
@@ -265,18 +329,20 @@ public class JverifyPlugin implements MethodCallHandler {
       public void onResult(int code, String message) {
 
         if (code == 7000){//code: 返回码，7000代表获取成功，其他为失败，详见错误码描述
-          Log.d(TAG, "verify consistent, message =" + message);
+          Log.d(TAG, "verify success, message =" + message);
         }else {
-          Log.e(TAG, "code=" + code + ", message =" + message);
+          Log.e(TAG, "verify fail，code=" + code + ", message =" + message);
         }
-
         Map<String,Object> map = new HashMap<>();
         map.put(j_code_key,code);
         map.put(j_msg_key,message);
-        result.success(map);
+
+        runMainThread(map,result,null);
       }
     });
   }
+
+
 
   /** SDK清除预取号缓存 */
   private  void  clearPreLoginCache(MethodCall call,final Result result) {
@@ -295,7 +361,7 @@ public class JverifyPlugin implements MethodCallHandler {
     Log.d(TAG,"Action - loginAuthSyncApi:");
     loginAuthInterface(true,call,result);
   }
-  private void loginAuthInterface(final Boolean isSync, MethodCall call, final Result result) {
+  private void loginAuthInterface(final Boolean isSync, final MethodCall call, final Result result) {
     Log.d(TAG,"Action - loginAuthInterface:");
 
     Object autoFinish =  getValueByKey(call,"autoDismiss");
@@ -312,7 +378,8 @@ public class JverifyPlugin implements MethodCallHandler {
         final HashMap jsonMap = new HashMap();
         jsonMap.put(j_code_key, cmd);
         jsonMap.put(j_msg_key, msg);
-        channel.invokeMethod("onReceiveAuthPageEvent", jsonMap);
+
+        runMainThread(jsonMap,null,"onReceiveAuthPageEvent");
       }
     });
 
@@ -330,10 +397,10 @@ public class JverifyPlugin implements MethodCallHandler {
         map.put(j_opr_key,operator);
         if (isSync) {
           // 通过 channel 返回
-          channel.invokeMethod("onReceiveLoginAuthCallBackEvent",map);
+          runMainThread(map,null,"onReceiveLoginAuthCallBackEvent");
         }else {
           // 通过回调返回
-          result.success(map);
+          runMainThread(map,result,null);
         }
       }
     });
@@ -928,7 +995,7 @@ public class JverifyPlugin implements MethodCallHandler {
       @Override
       public void onClicked(Context context, View view) {
         Log.d(TAG,"onClicked button widget.");
-        channel.invokeMethod("onReceiveClickWidgetEvent", jsonMap);
+        runMainThread(jsonMap,null,"onReceiveClickWidgetEvent");
       }
     });
   }

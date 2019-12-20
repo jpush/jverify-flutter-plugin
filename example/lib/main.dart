@@ -120,21 +120,9 @@ class _MyAppState extends State<MyApp> {
             child: SizedBox(
               child: new CustomButton(
                 onPressed: () {
-                  verifyNumber();
-                },
-                title: "验证号码",
-              ),
-              width: double.infinity,
-            ),
-            margin: EdgeInsets.fromLTRB(40, 5, 40, 5),
-          ),
-          new Container(
-            child: SizedBox(
-              child: new CustomButton(
-                onPressed: () {
                   preLogin();
                 },
-                title: "登录预号",
+                title: "预取号",
               ),
               width: double.infinity,
             ),
@@ -213,47 +201,18 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  /// 发起号码认证，验证手机号码和本机SIM卡号码是否一致
-  void verifyNumber() {
-    print(controllerPHone.text);
-    if (controllerPHone.text == null || controllerPHone.text == "") {
-      setState(() {
-        _result = "电话号码不能为空";
-      });
-      return;
-    }
-    setState(() {
-      _loading = true;
-    });
-    jverify.checkVerifyEnable().then((map) {
-      bool result = map[f_result_key];
-      if (result) {
-        jverify.verifyNumber(controllerPHone.text, token: _token ?? null).then((map) {
-          int code = map[f_code_key];
-          String content = map[f_msg_key];
-          setState(() {
-            _loading = false;
-            _result = "[$code] message = $content";
-          });
-        });
-      } else {
-        setState(() {
-          _loading = false;
-          _result = "[2016], msg = 当前网络环境不支持认证";
-        });
-      }
-    });
-  }
 
   /// 登录预取号
   void preLogin(){
     setState(() {
       _loading = true;
     });
+
     jverify.checkVerifyEnable().then((map) {
       bool result = map[f_result_key];
       if (result) {
         jverify.preLogin().then((map) {
+          print("预取号接口回调：${map.toString()}");
           int code = map[f_code_key];
           String message = map[f_msg_key];
           setState(() {
@@ -477,7 +436,7 @@ class _MyAppState extends State<MyApp> {
 
     jverify.setDebugMode(true); // 打开调试模式
     jverify.setup(
-        appKey: "你自己应用的 AppKey",//"你自己应用的 AppKey",
+        appKey: "a0e6ace8d5b3e0247e3f58db",//"你自己应用的 AppKey",
         channel: "devloper-default"); // 初始化sdk,  appKey 和 channel 只对ios设置有效
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
