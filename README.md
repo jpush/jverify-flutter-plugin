@@ -5,19 +5,23 @@
 
 在工程 pubspec.yaml 中加入 dependencies
 
-```yaml
-//pub 集成
-dependencies:
-  jverify: 0.6.0
++ github 集成 
 
-  
-//github 集成  
+``` 
 dependencies:
   jverify:
     git:
       url: git://github.com/jpush/jverify-flutter-plugin.git
       ref: master
 ```
+
++ pub 集成
+
+```
+dependencies:
+  jverify: 0.6.1
+```
+
 ### 配置
 
 ##### Android:
