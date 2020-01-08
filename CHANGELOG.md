@@ -1,3 +1,6 @@
+## 0.6.2
++ 同步 JVerification SDK 版本
++ 内部安全策略优化
 ## 0.6.1
 + 优化：Android 回调 flutter 的回调函数
 + 优化重复请求逻辑

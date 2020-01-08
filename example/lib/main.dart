@@ -82,7 +82,7 @@ class _MyAppState extends State<MyApp> {
                     onPressed: (){
                       isInitSuccess();
                     },
-                    title: "SDK 是否初始化成功"
+                    title: "初始化状态"
                 ),
                 new Text("   "),
                 new CustomButton(
