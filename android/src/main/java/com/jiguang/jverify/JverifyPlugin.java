@@ -46,10 +46,7 @@ import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
 import io.flutter.plugin.common.PluginRegistry.Registrar;
 
-class JVRequestItem {
-  public MethodCall call;
-  Result result;
-}
+
 
 /** JverifyPlugin */
 public class JverifyPlugin implements MethodCallHandler {
@@ -74,7 +71,6 @@ public class JverifyPlugin implements MethodCallHandler {
 
   private Context context;
   private MethodChannel channel;
-  private HashMap<String,JVRequestItem> requestQueue = new HashMap();
 
   /** Plugin registration. */
   public static void registerWith(Registrar registrar) {
@@ -92,28 +88,6 @@ public class JverifyPlugin implements MethodCallHandler {
   public void onMethodCall(MethodCall call, Result result) {
     Log.d(TAG,"onMethodCall:" + call.method);
 
-//    JVRequestItem item = requestQueue.get(call.method);
-//    if (item == null) {
-//      item = new JVRequestItem();
-//      item.call = call;
-//      item.result = result;
-//
-//      requestQueue.put(call.method,item);
-//
-//      processMethod(call, result);
-//    }else {
-//      String error_repeat_desc = call.method + " is requesting, please try again later.";
-//
-//      Map<String,Object> map = new HashMap<>();
-//      map.put(j_code_key,j_error_code_repeat);
-//      map.put(j_msg_key,error_repeat_desc);
-//
-//      result.success(map);
-//    }
-    processMethod(call,result);
-  }
-
-  private void processMethod(MethodCall call, Result result) {
     Log.d(TAG,"processMethod:" + call.method);
     if (call.method.equals("setup")) {
       setup(call,result);
@@ -149,17 +123,6 @@ public class JverifyPlugin implements MethodCallHandler {
     }
   }
 
-  private void methodCallBack(Object object,String method) {
-    Log.d(TAG,"Action - methodCallBack:" + method);
-
-    JVRequestItem item = requestQueue.get(method);
-    if (item != null) {
-      if (item.result != null) {
-        item.result.success(object);
-      }
-    }
-    requestQueue.remove(method);
-  }
 
   // 主线程再返回数据
   private void runMainThread(final Map<String,Object> map, final Result result, final String method) {
