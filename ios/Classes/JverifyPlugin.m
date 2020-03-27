@@ -134,7 +134,10 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     if (!isSetup) {
         JVLog(@"初始化未完成!");
     }
-    result(@{j_result_key:[NSNumber numberWithBool:isSetup]});
+    dispatch_async(dispatch_get_main_queue(), ^{
+        result(@{j_result_key:[NSNumber numberWithBool:isSetup]});
+    });
+    
     // 初始换成功
     //···
     return isSetup;
@@ -147,7 +150,10 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     if(!isEnable) {
         JVLog(@"当前网络环境不支持认证！");
     }
-    result(@{j_result_key:[NSNumber numberWithBool:isEnable]});
+    dispatch_async(dispatch_get_main_queue(), ^{
+        result(@{j_result_key:[NSNumber numberWithBool:isEnable]});
+    });
+    
     //继续获取token操作
     //...
     return isEnable;
@@ -929,7 +935,12 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     NSString *tag = [NSString stringWithFormat:@"%@",@(button.tag)];
     if (tag) {
         NSString *widgetId = [self.customWidgetIdDic objectForKey:tag];
-        [_channel invokeMethod:@"onReceiveClickWidgetEvent" arguments:@{@"widgetId":widgetId}];
+        __weak typeof(self) weakself = self;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            __strong typeof(weakself) strongself = weakself;
+            [strongself.channel invokeMethod:@"onReceiveClickWidgetEvent" arguments:@{@"widgetId":widgetId}];
+        });
+        
     }
 }
 
