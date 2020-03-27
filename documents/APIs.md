@@ -74,43 +74,184 @@ jverify.getToken().then((map){
 ```dart
 ///具体使用可以查看 example 样例
 
-Jverify jverify = new Jverify();
+    Jverify jverify = new Jverify();
 
-/// 步骤 1：调用接口设置 UI
-jverify.setCustomAuthorizationView(true, uiConfig, landscapeConfig: uiConfig);
+    final screenSize = MediaQuery.of(context).size;
+    final screenWidth = screenSize.width;
+    final screenHeight = screenSize.height;
+    bool isiOS = Platform.isIOS;
 
-/// 步骤 2：调用一键登录接口
-    
-/// 方式一：使用同步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
-/// 先，添加 loginAuthSyncApi 接口回调的监听 
-jverify.addLoginAuthCallBackListener((event){
-  setState(() {
-    _loading = false;
-    _result = "监听获取返回数据：[${event.code}] message = ${event.message}";
-  });
-  print("通过添加监听，获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
-});
-/// 再，执行同步的一键登录接口
-jverify.loginAuthSyncApi(autoDismiss: true);
+    /// 自定义授权的 UI 界面，以下设置的图片必须添加到资源文件里，
+    /// android项目将图片存放至drawable文件夹下，可使用图片选择器的文件名,例如：btn_login.xml,入参为"btn_login"。
+    /// ios项目存放在 Assets.xcassets。
+    /// 
+    JVUIConfig uiConfig = JVUIConfig();
+    //uiConfig.authBackgroundImage = ;
 
-/*   
-/// 方式二：使用异步接口 （如果想使用同步接口，则忽略此步骤，看方式一）
-    
-/// 先，执行异步的一键登录接口
-jverify.loginAuth(true).then((map) {
+    //uiConfig.navHidden = true;
+    uiConfig.navColor = Colors.red.value;
+    uiConfig.navText = "登录";
+    uiConfig.navTextColor = Colors.blue.value;
+    uiConfig.navReturnImgPath = "return_bg";//图片必须存在
 
-  /// 再，在回调里获取 loginAuth 接口异步返回数据（如果是通过添加 JVLoginAuthCallBackListener 监听来获取返回数据，则忽略此步骤）
-  int code = map[f_code_key];
-  String content = map[f_msg_key];
-  String operator = map[f_opr_key];
-  setState(() {
-    _loading = false;
-    _result = "接口异步返回数据：[$code] message = $content";
-  });
-  print("通过接口异步返回，获取到 loginAuth 接口返回数据，code=$code,message = $content,operator = $operator");
-});   
-*/
-        
+    uiConfig.logoWidth = 100;
+    uiConfig.logoHeight = 100;
+    //uiConfig.logoOffsetX = isiOS ? 0 : null;//(screenWidth/2 - uiConfig.logoWidth/2).toInt();
+    uiConfig.logoOffsetY = 10;
+    uiConfig.logoVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
+    uiConfig.logoHidden = false;
+    uiConfig.logoImgPath = "logo";
+
+    uiConfig.numberFieldWidth = 200;
+    uiConfig.numberFieldHeight = 40 ;
+    //uiConfig.numFieldOffsetX = isiOS ? 0 : null;//(screenWidth/2 - uiConfig.numberFieldWidth/2).toInt();
+    uiConfig.numFieldOffsetY = isiOS ? 20 : 120;
+    uiConfig.numberVerticalLayoutItem = JVIOSLayoutItem.ItemLogo;
+    uiConfig.numberColor = Colors.blue.value;
+    uiConfig.numberSize = 18;
+
+    uiConfig.sloganOffsetY = isiOS ? 20 : 160;
+    uiConfig.sloganVerticalLayoutItem = JVIOSLayoutItem.ItemNumber;
+    uiConfig.sloganTextColor = Colors.black.value;
+    uiConfig.sloganTextSize = 15;
+    //uiConfig.sloganHidden = 0;
+
+    uiConfig.logBtnWidth = 220;
+    uiConfig.logBtnHeight = 50;
+    //uiConfig.logBtnOffsetX = isiOS ? 0 : null;//(screenWidth/2 - uiConfig.logBtnWidth/2).toInt();
+    uiConfig.logBtnOffsetY = isiOS ? 20 : 230;
+    uiConfig.logBtnVerticalLayoutItem = JVIOSLayoutItem.ItemSlogan;
+    uiConfig.logBtnText = "登录按钮";
+    uiConfig.logBtnTextColor = Colors.brown.value;
+    uiConfig.logBtnTextSize = 16;
+    uiConfig.loginBtnNormalImage = "login_btn_normal";//图片必须存在
+    uiConfig.loginBtnPressedImage = "login_btn_press";//图片必须存在
+    uiConfig.loginBtnUnableImage = "login_btn_unable";//图片必须存在
+
+
+    uiConfig.privacyState = true;//设置默认勾选
+    uiConfig.privacyCheckboxSize = 20;
+    uiConfig.checkedImgPath = "check_image";//图片必须存在
+    uiConfig.uncheckedImgPath = "uncheck_image";//图片必须存在
+    uiConfig.privacyCheckboxInCenter = true;
+    //uiConfig.privacyCheckboxHidden = false;
+
+    //uiConfig.privacyOffsetX = isiOS ? (20 + uiConfig.privacyCheckboxSize) : null;
+    uiConfig.privacyOffsetY = 15;// 距离底部距离
+    uiConfig.privacyVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
+    uiConfig.clauseName = "协议1";
+    uiConfig.clauseUrl = "http://www.baidu.com";
+    uiConfig.clauseBaseColor = Colors.black.value;
+    uiConfig.clauseNameTwo = "协议二";
+    uiConfig.clauseUrlTwo = "http://www.hao123.com";
+    uiConfig.clauseColor = Colors.red.value;
+    uiConfig.privacyText = ["1极","2光","3认","4证"];
+    uiConfig.privacyTextSize = 13;
+    //uiConfig.privacyWithBookTitleMark = true;
+    //uiConfig.privacyTextCenterGravity = false;
+
+
+    uiConfig.privacyNavColor =  Colors.red.value;;
+    uiConfig.privacyNavTitleTextColor = Colors.blue.value;
+    uiConfig.privacyNavTitleTextSize = 16;
+    uiConfig.privacyNavTitleTitle1 = "协议1 web页标题";
+    uiConfig.privacyNavTitleTitle2 = "协议2 web页标题";
+    uiConfig.privacyNavReturnBtnImage = "return_bg";//图片必须存在;
+
+    /// 添加自定义的 控件 到授权界面
+    List<JVCustomWidget>widgetList = [];
+
+    /*
+    final String text_widgetId = "jv_add_custom_text";// 标识控件 id
+    JVCustomWidget textWidget = JVCustomWidget(text_widgetId, JVCustomWidgetType.textView);
+    textWidget.title = "新加 text view 控件";
+    textWidget.left = 20;
+    textWidget.top = 360 ;
+    textWidget.width = 200;
+    textWidget.height  = 40;
+    textWidget.backgroundColor = Colors.yellow.value;
+    textWidget.isShowUnderline = true;
+    textWidget.textAlignment = JVTextAlignmentType.center;
+    textWidget.isClickEnable = true;
+
+    // 添加点击事件监听
+    jverify.addClikWidgetEventListener(text_widgetId, (eventId) {
+      print("receive listener - click widget event :$eventId");
+      if (text_widgetId == eventId) {
+        print("receive listener - 点击【新加 text】");
+      }
+    });
+    widgetList.add(textWidget);
+
+    final String btn_widgetId = "jv_add_custom_button";// 标识控件 id
+    JVCustomWidget buttonWidget = JVCustomWidget(btn_widgetId, JVCustomWidgetType.button);
+    buttonWidget.title = "新加 button 控件";
+    buttonWidget.left = 100;
+    buttonWidget.top = 400;
+    buttonWidget.width = 150;
+    buttonWidget.height  = 40;
+    buttonWidget.isShowUnderline = true;
+    buttonWidget.backgroundColor = Colors.brown.value;
+    //buttonWidget.btnNormalImageName = "";
+    //buttonWidget.btnPressedImageName = "";
+    //buttonWidget.textAlignment = JVTextAlignmentType.left;
+
+    // 添加点击事件监听
+    jverify.addClikWidgetEventListener(btn_widgetId, (eventId) {
+      print("receive listener - click widget event :$eventId");
+      if (btn_widgetId == eventId) {
+        print("receive listener - 点击【新加 button】");
+      }
+    });
+    widgetList.add(buttonWidget);
+    */
+
+
+    /* 弹框模式
+    JVPopViewConfig popViewConfig = JVPopViewConfig();
+    popViewConfig.width = (screenWidth - 100.0).toInt();
+    popViewConfig.height = (screenHeight - 150.0).toInt();
+
+    uiConfig.popViewConfig = popViewConfig;
+    */
+
+
+    /// 步骤 1：调用接口设置 UI
+    jverify.setCustomAuthorizationView(true, uiConfig, landscapeConfig: uiConfig);
+
+    /// 步骤 2：调用一键登录接口
+
+    /// 方式一：使用同步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
+    /// 先，添加 loginAuthSyncApi 接口回调的监听
+    jverify.addLoginAuthCallBackListener((event){
+      setState(() {
+        _loading = false;
+        _result = "监听获取返回数据：[${event.code}] message = ${event.message}";
+      });
+      print("通过添加监听，获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
+    });
+    /// 再，执行同步的一键登录接口
+    jverify.loginAuthSyncApi(autoDismiss: true);
+
+    /*
+
+    /// 方式二：使用异步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
+
+    /// 先，执行异步的一键登录接口
+    jverify.loginAuth(true).then((map) {
+
+      /// 再，在回调里获取 loginAuth 接口异步返回数据（如果是通过添加 JVLoginAuthCallBackListener 监听来获取返回数据，则忽略此步骤）
+      int code = map[f_code_key];
+      String content = map[f_msg_key];
+      String operator = map[f_opr_key];
+      setState(() {
+        _loading = false;
+        _result = "接口异步返回数据：[$code] message = $content";
+      });
+      print("通过接口异步返回，获取到 loginAuth 接口返回数据，code=$code,message = $content,operator = $operator");
+    });
+
+    */
 ```
 
 #### setCustomAuthorizationView
