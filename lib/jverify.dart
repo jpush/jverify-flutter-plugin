@@ -35,7 +35,9 @@ typedef JVSDKSetupCallBackListener = void Function(JVSDKSetupEvent event);
 
 class JVEventHandlers {
   static final JVEventHandlers _instance = new JVEventHandlers._internal();
+
   JVEventHandlers._internal();
+
   factory JVEventHandlers() => _instance;
 
   Map<String, JVClickWidgetEventListener> clickEventsMap = Map();
@@ -216,13 +218,13 @@ class Jverify {
 
     String method = "getToken";
     var repeatError = isRepeatRequest(method: method);
-    if (repeatError == null){
+    if (repeatError == null) {
       var para = {"timeOut": timeOut};
       para.remove((key, value) => value == null);
       var result = await _channel.invokeMethod(method, para);
       requestQueue.remove(method);
       return result;
-    }else{
+    } else {
       return repeatError;
     }
   }
@@ -257,11 +259,11 @@ class Jverify {
 
     String method = "preLogin";
     var repeatError = isRepeatRequest(method: method);
-    if (repeatError == null){
+    if (repeatError == null) {
       var result = await _channel.invokeMethod(method, para);
       requestQueue.remove(method);
       return result;
-    }else{
+    } else {
       return repeatError;
     }
   }
@@ -291,17 +293,18 @@ class Jverify {
   * @discussion since SDK v2.4.0，授权页面点击事件监听：通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件
   *
   * */
-  Future<Map<dynamic, dynamic>> loginAuth(bool autoDismiss, {int timeout = 10000}) async {
+  Future<Map<dynamic, dynamic>> loginAuth(bool autoDismiss,
+      {int timeout = 10000}) async {
     print("$flutter_log" + "loginAuth");
 
     String method = "loginAuth";
     var repeatError = isRepeatRequest(method: method);
-    if (repeatError == null){
+    if (repeatError == null) {
       var map = {"autoDismiss": autoDismiss, "timeout": timeout};
       var result = await _channel.invokeMethod(method, map);
       requestQueue.remove(method);
       return result;
-    }else{
+    } else {
       return repeatError;
     }
   }
@@ -322,11 +325,11 @@ class Jverify {
 
     String method = "loginAuthSyncApi";
     var repeatError = isRepeatRequest(method: method);
-    if (repeatError == null){
+    if (repeatError == null) {
       var map = {"autoDismiss": autoDismiss, "timeout": timeout};
       _channel.invokeMethod(method, map);
       requestQueue.remove(method);
-    }else{
+    } else {
       print("$flutter_log" + repeatError.toString());
     }
   }
@@ -499,6 +502,24 @@ class JVUIConfig {
   String privacyNavTitleTitle2; // 协议2 web页面导航栏标题
   String privacyNavReturnBtnImage;
 
+
+  bool privacyStatusBarColorWithNav = false;//web状态栏是否与导航栏同色
+  bool privacyStatusBarDarkMode = false;//web状态栏是否暗色
+  bool privacyStatusBarTransparent = false;//web页状态栏是否透明
+  bool privacyStatusBarHidden = false;//web页状态栏是否隐藏
+  bool privacyVirtualButtonTransparent = false;//web页虚拟按键背景是否透明
+
+  ///导航栏
+  bool statusBarColorWithNav =false;//状态栏是否跟导航栏同色
+  bool statusBarDarkMode =false;//状态栏是否为暗色
+  bool statusBarTransparent =false;//状态栏是否透明
+  bool statusBarHidden =false;//状态栏是否隐藏
+  bool virtualButtonTransparent =false;//虚拟按键背景是否透明
+
+  ///是否需要动画
+  bool needStartAnim =false;//设置拉起授权页时是否需要显示默认动画
+  bool needCloseAnim =false;//设置关闭授权页时是否需要显示默认动画
+
   /// 授权页弹窗模式 配置，选填
   JVPopViewConfig popViewConfig;
 
@@ -570,6 +591,22 @@ class JVUIConfig {
       "privacyNavTitleTitle2": privacyNavTitleTitle2 ??= null,
       "privacyNavReturnBtnImage": privacyNavReturnBtnImage ??= null,
       "popViewConfig": popViewConfig != null ? popViewConfig.toJsonMap() : null,
+
+      "privacyStatusBarColorWithNav":privacyStatusBarColorWithNav,
+      "privacyStatusBarDarkMode":privacyStatusBarDarkMode,
+      "privacyStatusBarTransparent":privacyStatusBarTransparent,
+      "privacyStatusBarHidden":privacyStatusBarHidden,
+      "privacyVirtualButtonTransparent":privacyVirtualButtonTransparent,
+
+      "statusBarColorWithNav":statusBarColorWithNav,
+      "statusBarDarkMode":statusBarDarkMode,
+      "statusBarTransparent":statusBarTransparent,
+      "statusBarHidden":statusBarHidden,
+      "virtualButtonTransparent":virtualButtonTransparent,
+
+      "needStartAnim":needStartAnim,
+      "needCloseAnim":needCloseAnim,
+
     }..removeWhere((key, value) => value == null);
   }
 }

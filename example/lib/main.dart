@@ -24,7 +24,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
 
-
   /// 统一 key
   final String f_result_key = "result";
   /// 错误码
@@ -313,6 +312,15 @@ class _MyAppState extends State<MyApp> {
         //uiConfig.privacyWithBookTitleMark = true;
         //uiConfig.privacyTextCenterGravity = false;
 
+
+        uiConfig.statusBarColorWithNav = true;
+        uiConfig.virtualButtonTransparent = true;
+
+        uiConfig.privacyStatusBarColorWithNav = true;
+        uiConfig.privacyVirtualButtonTransparent = true;
+
+        uiConfig.needStartAnim = true;
+        uiConfig.needCloseAnim = true;
 
         uiConfig.privacyNavColor =  Colors.red.value;;
         uiConfig.privacyNavTitleTextColor = Colors.blue.value;
