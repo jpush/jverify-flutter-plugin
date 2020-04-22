@@ -182,6 +182,37 @@ class Jverify {
     _channel.invokeMethod("setDebugMode", {"debug": debug});
   }
 
+  ///设置前后两次获取验证码的时间间隔，默认 30000ms，有效范围(0,300000)
+  void setSmsIntervalTime(int intervalTime) {
+    print("$flutter_log" + "setSmsIntervalTime");
+    _channel.invokeMethod("setSmsIntervalTime", {"intervalTime": intervalTime});
+  }
+
+/*
+   * SDK 获取短信验证码
+   *
+   * return Map
+   *        key = "code", vlaue = 状态码，3000代表获取成功
+   *        key = "message", value = 成功即为验证码，失败为提示
+   * */
+  Future<Map<dynamic, dynamic>> getSMSCode(
+      String phoneNum, String signId, String tempId) async {
+    print("$flutter_log" + "getSMSCode");
+
+    var args = <String, String>{};
+    args["phoneNumber"] = phoneNum;
+
+    if (signId != null) {
+      args["signId"] = signId;
+    }
+
+    if (tempId != null) {
+      args["tempId"] = tempId;
+    }
+
+    return await _channel.invokeMethod("getSMSCode", args);
+  }
+
   /*
    * 获取 SDK 初始化是否成功标识
    *
@@ -502,23 +533,23 @@ class JVUIConfig {
   String privacyNavTitleTitle2; // 协议2 web页面导航栏标题
   String privacyNavReturnBtnImage;
 
+  ///only android
+  bool privacyStatusBarColorWithNav = false; //web状态栏是否与导航栏同色
+  bool privacyStatusBarDarkMode = false; //web状态栏是否暗色
+  bool privacyStatusBarTransparent = false; //web页状态栏是否透明
+  bool privacyStatusBarHidden = false; //web页状态栏是否隐藏
+  bool privacyVirtualButtonTransparent = false; //web页虚拟按键背景是否透明
 
-  bool privacyStatusBarColorWithNav = false;//web状态栏是否与导航栏同色
-  bool privacyStatusBarDarkMode = false;//web状态栏是否暗色
-  bool privacyStatusBarTransparent = false;//web页状态栏是否透明
-  bool privacyStatusBarHidden = false;//web页状态栏是否隐藏
-  bool privacyVirtualButtonTransparent = false;//web页虚拟按键背景是否透明
+  ///导航栏only android
+  bool statusBarColorWithNav = false; //状态栏是否跟导航栏同色
+  bool statusBarDarkMode = false; //状态栏是否为暗色
+  bool statusBarTransparent = false; //状态栏是否透明
+  bool statusBarHidden = false; //状态栏是否隐藏
+  bool virtualButtonTransparent = false; //虚拟按键背景是否透明
 
-  ///导航栏
-  bool statusBarColorWithNav =false;//状态栏是否跟导航栏同色
-  bool statusBarDarkMode =false;//状态栏是否为暗色
-  bool statusBarTransparent =false;//状态栏是否透明
-  bool statusBarHidden =false;//状态栏是否隐藏
-  bool virtualButtonTransparent =false;//虚拟按键背景是否透明
-
-  ///是否需要动画
-  bool needStartAnim =false;//设置拉起授权页时是否需要显示默认动画
-  bool needCloseAnim =false;//设置关闭授权页时是否需要显示默认动画
+  ///是否需要动画only android
+  bool needStartAnim = false; //设置拉起授权页时是否需要显示默认动画
+  bool needCloseAnim = false; //设置关闭授权页时是否需要显示默认动画
 
   /// 授权页弹窗模式 配置，选填
   JVPopViewConfig popViewConfig;
@@ -592,21 +623,20 @@ class JVUIConfig {
       "privacyNavReturnBtnImage": privacyNavReturnBtnImage ??= null,
       "popViewConfig": popViewConfig != null ? popViewConfig.toJsonMap() : null,
 
-      "privacyStatusBarColorWithNav":privacyStatusBarColorWithNav,
-      "privacyStatusBarDarkMode":privacyStatusBarDarkMode,
-      "privacyStatusBarTransparent":privacyStatusBarTransparent,
-      "privacyStatusBarHidden":privacyStatusBarHidden,
-      "privacyVirtualButtonTransparent":privacyVirtualButtonTransparent,
+      "privacyStatusBarColorWithNav": privacyStatusBarColorWithNav,
+      "privacyStatusBarDarkMode": privacyStatusBarDarkMode,
+      "privacyStatusBarTransparent": privacyStatusBarTransparent,
+      "privacyStatusBarHidden": privacyStatusBarHidden,
+      "privacyVirtualButtonTransparent": privacyVirtualButtonTransparent,
 
-      "statusBarColorWithNav":statusBarColorWithNav,
-      "statusBarDarkMode":statusBarDarkMode,
-      "statusBarTransparent":statusBarTransparent,
-      "statusBarHidden":statusBarHidden,
-      "virtualButtonTransparent":virtualButtonTransparent,
+      "statusBarColorWithNav": statusBarColorWithNav,
+      "statusBarDarkMode": statusBarDarkMode,
+      "statusBarTransparent": statusBarTransparent,
+      "statusBarHidden": statusBarHidden,
+      "virtualButtonTransparent": virtualButtonTransparent,
 
-      "needStartAnim":needStartAnim,
-      "needCloseAnim":needCloseAnim,
-
+      "needStartAnim": needStartAnim,
+      "needCloseAnim": needCloseAnim,
     }..removeWhere((key, value) => value == null);
   }
 }

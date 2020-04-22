@@ -113,6 +113,10 @@ public class JverifyPlugin implements MethodCallHandler {
             clearPreLoginCache(call, result);
         } else if (call.method.equals("setCustomAuthorizationView")) {
             setCustomAuthorizationView(call, result);
+        } else if (call.method.equals("getSMSCode")) {
+            getSMSCode(call, result);
+        } else if (call.method.equals("setSmsIntervalTime")) {
+            setSmsIntervalTime(call, result);
         } else {
             result.notImplemented();
         }
@@ -186,6 +190,48 @@ public class JverifyPlugin implements MethodCallHandler {
         return isSuccess;
     }
 
+    /**
+     * 设置前后两次获取验证码的时间间隔，默认 30000ms，有效范围(0,300000)
+     */
+    private void setSmsIntervalTime(MethodCall call, Result result) {
+        Log.d(TAG, "Action - setSmsIntervalTime:");
+        Object intervalTime = getValueByKey(call, "intervalTime");
+        JVerificationInterface.setSmsIntervalTime((Long) intervalTime);
+    }
+
+    /**
+     * 获取短信验证码
+     */
+    private void getSMSCode(MethodCall call, final Result result) {
+
+        Object phoneNum = getValueByKey(call, "phoneNumber");
+        Object signId = getValueByKey(call, "signId");
+        Object tempId = getValueByKey(call, "tempId");
+
+        if (phoneNum == null) {
+            phoneNum = "0";
+        }
+
+        Log.d(TAG, "Action - getSmsCode:" + phoneNum);
+
+        JVerificationInterface.getSmsCode(context, (String) phoneNum, (String) signId, (String) tempId, new RequestCallback<String>() {
+            @Override
+            public void onResult(int code, String s) {
+
+                if (code == 3000) {//code: 返回码，3000代表获取成功，其他为失败
+                    Log.d(TAG, "uuid:" + s);
+                } else {
+                    Log.e(TAG, "code=" + code + ", message=" + s);
+                }
+
+                Map<String, Object> map = new HashMap<>();
+                map.put(j_code_key, code);
+                map.put(j_msg_key, s);
+
+                runMainThread(map, result, null);
+            }
+        });
+    }
 
     /**
      * SDK 判断网络环境是否支持
@@ -257,7 +303,7 @@ public class JverifyPlugin implements MethodCallHandler {
 
         int timeOut = j_default_timeout;
         if (call.hasArgument("timeOut")) {
-          timeOut = call.argument("timeOut");
+            timeOut = call.argument("timeOut");
         }
 
         JVerificationInterface.preLogin(context, timeOut, new PreLoginListener() {
