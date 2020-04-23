@@ -424,8 +424,10 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
 //自定义授权页面原有的 UI 控件
 - (void)setCustomUIWithUIConfig:(JVUIConfig *)uiconfig configArguments:(NSDictionary *)config {
     JVLog(@"Action - setCustomUIWithUIConfig::");
-    
-    uiconfig.preferredStatusBarStyle = 0;
+    NSString *authStatusBarStyle = [config objectForKey:@"authStatusBarStyle"];
+    NSString *privacyStatusBarStyle = [config objectForKey:@"privacyStatusBarStyle"];
+    uiconfig.preferredStatusBarStyle = [self getStatusBarStyle:authStatusBarStyle];
+    uiconfig.agreementPreferredStatusBarStyle = [self getStatusBarStyle:privacyStatusBarStyle];
     uiconfig.dismissAnimationFlag = needCloseAnim;
      /************** 背景 ***************/
     NSString *authBackgroundImage = [config objectForKey:@"authBackgroundImage"];
@@ -1005,6 +1007,21 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
 //    }
 //    return nil;
 //}
+
+- (UIStatusBarStyle)getStatusBarStyle:(NSString*)itemStr{
+    if ([itemStr isEqualToString:@"StatusBarStyleDefault"]){
+        return UIStatusBarStyleDefault;
+    }else if ([itemStr isEqualToString:@"StatusBarStyleLightContent"]){
+        return UIStatusBarStyleLightContent;
+    }else if ([itemStr isEqualToString:@"StatusBarStyleDarkContent"]){
+        if (@available(iOS 13.0, *)) {
+            return UIStatusBarStyleDarkContent;
+        }
+    }
+    return UIStatusBarStyleDefault;
+}
+
+
 - (JVLayoutItem)getLayotItem:(NSString *)itemString {
     JVLayoutItem item = JVLayoutItemNone;
     if (itemString) {

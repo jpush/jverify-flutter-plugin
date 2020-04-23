@@ -533,6 +533,7 @@ class JVUIConfig {
   String privacyNavTitleTitle1; // 协议1 web页面导航栏标题
   String privacyNavTitleTitle2; // 协议2 web页面导航栏标题
   String privacyNavReturnBtnImage;
+  JVIOSBarStyle  privacyStatusBarStyle; //隐私协议web页 状态栏样式设置 only iOS
 
   ///隐私页
   bool privacyStatusBarColorWithNav = false; //隐私页web状态栏是否与导航栏同色 only android
@@ -548,7 +549,9 @@ class JVUIConfig {
   bool statusBarHidden = false; //授权页状态栏是否隐藏 only android
   bool virtualButtonTransparent = false; //授权页虚拟按键背景是否透明 only android
 
-  ///是否需要动画only android
+  JVIOSBarStyle authStatusBarStyle;//授权页状态栏样式设置 only iOS
+
+  ///是否需要动画
   bool needStartAnim = false; //设置拉起授权页时是否需要显示默认动画
   bool needCloseAnim = false; //设置关闭授权页时是否需要显示默认动画
 
@@ -635,6 +638,8 @@ class JVUIConfig {
       "statusBarTransparent": statusBarTransparent,
       "statusBarHidden": statusBarHidden,
       "virtualButtonTransparent": virtualButtonTransparent,
+      "authStatusBarStyle":authStatusBarStyle,
+      "privacyStatusBarStyle":privacyStatusBarStyle,
 
       "needStartAnim": needStartAnim,
       "needCloseAnim": needCloseAnim,
@@ -815,6 +820,12 @@ enum JVIOSLayoutItem {
   ItemCheck,
   ItemPrivacy,
   ItemSuper
+}
+
+enum JVIOSBarStyle {
+  StatusBarStyleDefault,    // Automatically chooses light or dark content based on the user interface style
+  StatusBarStyleLightContent, // Light content, for use on dark backgrounds iOS 7 以上
+  StatusBarStyleDarkContent // Dark content, for use on light backgrounds  iOS 13 以上
 }
 
 String getStringFromEnum<T>(T) {
