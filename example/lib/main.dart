@@ -24,7 +24,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
 
-
   /// 统一 key
   final String f_result_key = "result";
   /// 错误码
@@ -139,7 +138,19 @@ class _MyAppState extends State<MyApp> {
               width: double.infinity,
             ),
             margin: EdgeInsets.fromLTRB(40, 5, 40, 5),
-          )
+          ),
+          new Container(
+            child: SizedBox(
+              child: new CustomButton(
+                onPressed: () {
+                  getSMSCode();
+                },
+                title: "获取验证码",
+              ),
+              width: double.infinity,
+            ),
+            margin: EdgeInsets.fromLTRB(40, 5, 40, 5),
+          ),
         ],
         mainAxisAlignment: MainAxisAlignment.start,
       ),
@@ -200,14 +211,45 @@ class _MyAppState extends State<MyApp> {
       }
     });
   }
-
+  /// 获取短信验证码
+  void getSMSCode(){
+    setState(() {
+      _loading = true;
+    });
+    String phoneNum = controllerPHone.text;
+    if(phoneNum == null||phoneNum.isEmpty){
+      setState(() {
+        _loading = false;
+        _result = "[3002],msg = 没有输入手机号码";
+      });
+      return;
+    }
+    jverify.checkVerifyEnable().then((map) {
+      bool result = map[f_result_key];
+      if (result) {
+        jverify.getSMSCode(phoneNum: phoneNum).then((map) {
+          print("获取短信验证码：${map.toString()}");
+          int code = map[f_code_key];
+          String message = map[f_msg_key];
+          setState(() {
+            _loading = false;
+            _result = "[$code] message = $message";
+          });
+        });
+      }else {
+        setState(() {
+          _loading = false;
+          _result = "[3004],msg = 获取短信验证码异常";
+        });
+      }
+    });
+  }
 
   /// 登录预取号
   void preLogin(){
     setState(() {
       _loading = true;
     });
-
     jverify.checkVerifyEnable().then((map) {
       bool result = map[f_result_key];
       if (result) {
@@ -234,7 +276,6 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _loading = true;
     });
-
     jverify.checkVerifyEnable().then((map) {
       bool result = map[f_result_key];
       if (result) {
@@ -247,7 +288,7 @@ class _MyAppState extends State<MyApp> {
         /// 自定义授权的 UI 界面，以下设置的图片必须添加到资源文件里，
         /// android项目将图片存放至drawable文件夹下，可使用图片选择器的文件名,例如：btn_login.xml,入参为"btn_login"。
         /// ios项目存放在 Assets.xcassets。
-        /// 
+        ///
         JVUIConfig uiConfig = JVUIConfig();
         //uiConfig.authBackgroundImage = ;
 
@@ -258,7 +299,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.navReturnImgPath = "return_bg";//图片必须存在
 
         uiConfig.logoWidth = 100;
-        uiConfig.logoHeight = 100;
+        uiConfig.logoHeight = 80;
         //uiConfig.logoOffsetX = isiOS ? 0 : null;//(screenWidth/2 - uiConfig.logoWidth/2).toInt();
         uiConfig.logoOffsetY = 10;
         uiConfig.logoVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
@@ -277,6 +318,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.sloganVerticalLayoutItem = JVIOSLayoutItem.ItemNumber;
         uiConfig.sloganTextColor = Colors.black.value;
         uiConfig.sloganTextSize = 15;
+//        uiConfig.slogan
         //uiConfig.sloganHidden = 0;
 
         uiConfig.logBtnWidth = 220;
@@ -312,7 +354,17 @@ class _MyAppState extends State<MyApp> {
         uiConfig.privacyTextSize = 13;
         //uiConfig.privacyWithBookTitleMark = true;
         //uiConfig.privacyTextCenterGravity = false;
+        uiConfig.authStatusBarStyle =  JVIOSBarStyle.StatusBarStyleDarkContent;
+        uiConfig.privacyStatusBarStyle = JVIOSBarStyle.StatusBarStyleDefault;
 
+        uiConfig.statusBarColorWithNav = true;
+        uiConfig.virtualButtonTransparent = true;
+
+        uiConfig.privacyStatusBarColorWithNav = true;
+        uiConfig.privacyVirtualButtonTransparent = true;
+
+        uiConfig.needStartAnim = true;
+        uiConfig.needCloseAnim = true;
 
         uiConfig.privacyNavColor =  Colors.red.value;;
         uiConfig.privacyNavTitleTextColor = Colors.blue.value;
@@ -323,6 +375,27 @@ class _MyAppState extends State<MyApp> {
 
         /// 添加自定义的 控件 到授权界面
         List<JVCustomWidget>widgetList = [];
+        /// 步骤 1：调用接口设置 UI
+        jverify.setCustomAuthorizationView(true, uiConfig, landscapeConfig: uiConfig);
+
+        /// 步骤 2：调用一键登录接口
+
+        /// 方式一：使用同步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
+        /// 先，添加 loginAuthSyncApi 接口回调的监听
+        jverify.addLoginAuthCallBackListener((event){
+          setState(() {
+            _loading = false;
+            _result = "监听获取返回数据：[${event.code}] message = ${event.message}";
+          });
+          print("通过添加监听，获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
+        });
+        /// 再，执行同步的一键登录接口
+        jverify.loginAuthSyncApi(autoDismiss: true);
+      } else {
+        setState(() {
+          _loading = false;
+          _result = "[2016],msg = 当前网络环境不支持认证";
+        });
 
         /*
         final String text_widgetId = "jv_add_custom_text";// 标识控件 id
@@ -379,23 +452,6 @@ class _MyAppState extends State<MyApp> {
         */
 
 
-        /// 步骤 1：调用接口设置 UI
-        jverify.setCustomAuthorizationView(true, uiConfig, landscapeConfig: uiConfig);
-
-        /// 步骤 2：调用一键登录接口
-
-        /// 方式一：使用同步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
-        /// 先，添加 loginAuthSyncApi 接口回调的监听
-        jverify.addLoginAuthCallBackListener((event){
-          setState(() {
-            _loading = false;
-            _result = "监听获取返回数据：[${event.code}] message = ${event.message}";
-          });
-          print("通过添加监听，获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
-        });
-        /// 再，执行同步的一键登录接口
-        jverify.loginAuthSyncApi(autoDismiss: true);
-
         /*
 
         /// 方式二：使用异步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
@@ -416,14 +472,12 @@ class _MyAppState extends State<MyApp> {
 
         */
 
-      } else {
-        setState(() {
-          _loading = false;
-          _result = "[2016],msg = 当前网络环境不支持认证";
-        });
       }
     });
   }
+
+
+
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
@@ -476,3 +530,5 @@ class CustomButton extends StatelessWidget {
     );
   }
 }
+
+

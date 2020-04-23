@@ -35,7 +35,9 @@ typedef JVSDKSetupCallBackListener = void Function(JVSDKSetupEvent event);
 
 class JVEventHandlers {
   static final JVEventHandlers _instance = new JVEventHandlers._internal();
+
   JVEventHandlers._internal();
+
   factory JVEventHandlers() => _instance;
 
   Map<String, JVClickWidgetEventListener> clickEventsMap = Map();
@@ -180,6 +182,38 @@ class Jverify {
     _channel.invokeMethod("setDebugMode", {"debug": debug});
   }
 
+  ///设置前后两次获取验证码的时间间隔，默认 30000ms，有效范围(0,300000)
+  void setGetCodeInternal(int intervalTime) {
+    print("$flutter_log" + "setGetCodeInternal");
+    _channel.invokeMethod("setGetCodeInternal", {"timeInterval": intervalTime});
+  }
+
+/*
+   * SDK 获取短信验证码
+   *
+   * return Map
+   *        key = "code", vlaue = 状态码，3000代表获取成功
+   *        key = "message", 提示信息
+   *        key = "result",uuid
+   * */
+  Future<Map<dynamic, dynamic>> getSMSCode(
+      {@required String phoneNum, String signId, String tempId}) async {
+    print("$flutter_log" + "getSMSCode");
+
+    var args = <String, String>{};
+    args["phoneNumber"] = phoneNum;
+
+    if (signId != null) {
+      args["signId"] = signId;
+    }
+
+    if (tempId != null) {
+      args["tempId"] = tempId;
+    }
+
+    return await _channel.invokeMethod("getSMSCode", args);
+  }
+
   /*
    * 获取 SDK 初始化是否成功标识
    *
@@ -216,13 +250,13 @@ class Jverify {
 
     String method = "getToken";
     var repeatError = isRepeatRequest(method: method);
-    if (repeatError == null){
+    if (repeatError == null) {
       var para = {"timeOut": timeOut};
       para.remove((key, value) => value == null);
       var result = await _channel.invokeMethod(method, para);
       requestQueue.remove(method);
       return result;
-    }else{
+    } else {
       return repeatError;
     }
   }
@@ -257,11 +291,11 @@ class Jverify {
 
     String method = "preLogin";
     var repeatError = isRepeatRequest(method: method);
-    if (repeatError == null){
+    if (repeatError == null) {
       var result = await _channel.invokeMethod(method, para);
       requestQueue.remove(method);
       return result;
-    }else{
+    } else {
       return repeatError;
     }
   }
@@ -291,17 +325,18 @@ class Jverify {
   * @discussion since SDK v2.4.0，授权页面点击事件监听：通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件
   *
   * */
-  Future<Map<dynamic, dynamic>> loginAuth(bool autoDismiss, {int timeout = 10000}) async {
+  Future<Map<dynamic, dynamic>> loginAuth(bool autoDismiss,
+      {int timeout = 10000}) async {
     print("$flutter_log" + "loginAuth");
 
     String method = "loginAuth";
     var repeatError = isRepeatRequest(method: method);
-    if (repeatError == null){
+    if (repeatError == null) {
       var map = {"autoDismiss": autoDismiss, "timeout": timeout};
       var result = await _channel.invokeMethod(method, map);
       requestQueue.remove(method);
       return result;
-    }else{
+    } else {
       return repeatError;
     }
   }
@@ -322,11 +357,11 @@ class Jverify {
 
     String method = "loginAuthSyncApi";
     var repeatError = isRepeatRequest(method: method);
-    if (repeatError == null){
+    if (repeatError == null) {
       var map = {"autoDismiss": autoDismiss, "timeout": timeout};
       _channel.invokeMethod(method, map);
       requestQueue.remove(method);
-    }else{
+    } else {
       print("$flutter_log" + repeatError.toString());
     }
   }
@@ -498,6 +533,27 @@ class JVUIConfig {
   String privacyNavTitleTitle1; // 协议1 web页面导航栏标题
   String privacyNavTitleTitle2; // 协议2 web页面导航栏标题
   String privacyNavReturnBtnImage;
+  JVIOSBarStyle  privacyStatusBarStyle; //隐私协议web页 状态栏样式设置 only iOS
+
+  ///隐私页
+  bool privacyStatusBarColorWithNav = false; //隐私页web状态栏是否与导航栏同色 only android
+  bool privacyStatusBarDarkMode = false; //隐私页web状态栏是否暗色 only android
+  bool privacyStatusBarTransparent = false; //隐私页web页状态栏是否透明 only android
+  bool privacyStatusBarHidden = false; //隐私页web页状态栏是否隐藏 only android
+  bool privacyVirtualButtonTransparent = false; //隐私页web页虚拟按键背景是否透明 only android
+
+  ///授权页
+  bool statusBarColorWithNav = false; //授权页状态栏是否跟导航栏同色 only android
+  bool statusBarDarkMode = false; //授权页状态栏是否为暗色 only android
+  bool statusBarTransparent = false; //授权页栏状态栏是否透明 only android
+  bool statusBarHidden = false; //授权页状态栏是否隐藏 only android
+  bool virtualButtonTransparent = false; //授权页虚拟按键背景是否透明 only android
+
+  JVIOSBarStyle authStatusBarStyle = JVIOSBarStyle.StatusBarStyleDefault;//授权页状态栏样式设置 only iOS
+
+  ///是否需要动画
+  bool needStartAnim = false; //设置拉起授权页时是否需要显示默认动画
+  bool needCloseAnim = false; //设置关闭授权页时是否需要显示默认动画
 
   /// 授权页弹窗模式 配置，选填
   JVPopViewConfig popViewConfig;
@@ -570,6 +626,23 @@ class JVUIConfig {
       "privacyNavTitleTitle2": privacyNavTitleTitle2 ??= null,
       "privacyNavReturnBtnImage": privacyNavReturnBtnImage ??= null,
       "popViewConfig": popViewConfig != null ? popViewConfig.toJsonMap() : null,
+
+      "privacyStatusBarColorWithNav": privacyStatusBarColorWithNav,
+      "privacyStatusBarDarkMode": privacyStatusBarDarkMode,
+      "privacyStatusBarTransparent": privacyStatusBarTransparent,
+      "privacyStatusBarHidden": privacyStatusBarHidden,
+      "privacyVirtualButtonTransparent": privacyVirtualButtonTransparent,
+
+      "statusBarColorWithNav": statusBarColorWithNav,
+      "statusBarDarkMode": statusBarDarkMode,
+      "statusBarTransparent": statusBarTransparent,
+      "statusBarHidden": statusBarHidden,
+      "virtualButtonTransparent": virtualButtonTransparent,
+      "authStatusBarStyle":getStringFromEnum(authStatusBarStyle),
+      "privacyStatusBarStyle":getStringFromEnum(privacyStatusBarStyle),
+
+      "needStartAnim": needStartAnim,
+      "needCloseAnim": needCloseAnim,
     }..removeWhere((key, value) => value == null);
   }
 }
@@ -747,6 +820,18 @@ enum JVIOSLayoutItem {
   ItemCheck,
   ItemPrivacy,
   ItemSuper
+}
+/*
+*
+* iOS状态栏设置，需要设置info.plist文件中
+* View controller-based status barappearance值为YES
+* 授权页和隐私页状态栏才会生效
+*
+* */
+enum JVIOSBarStyle {
+  StatusBarStyleDefault,    // Automatically chooses light or dark content based on the user interface style
+  StatusBarStyleLightContent, // Light content, for use on dark backgrounds iOS 7 以上
+  StatusBarStyleDarkContent // Dark content, for use on light backgrounds  iOS 13 以上
 }
 
 String getStringFromEnum<T>(T) {
