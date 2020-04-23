@@ -212,15 +212,18 @@ class _MyAppState extends State<MyApp> {
     });
   }
   /// 获取短信验证码
-  void getSMSCode(String phoneNum,{String signId,String tempId}){
+  void getSMSCode(){
     setState(() {
       _loading = true;
     });
-
+    String phoneNum = controllerPHone.text;
+    if(phoneNum == null){
+    //TODO: 提示
+    }
     jverify.checkVerifyEnable().then((map) {
       bool result = map[f_result_key];
       if (result) {
-        jverify.getSMSCode(phoneNum,signId,tempId).then((map) {
+        jverify.getSMSCode(phoneNum: phoneNum).then((map) {
           print("获取短信验证码：${map.toString()}");
           int code = map[f_code_key];
           String message = map[f_msg_key];
@@ -243,8 +246,6 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _loading = true;
     });
-    getSMSCode();
-
     jverify.checkVerifyEnable().then((map) {
       bool result = map[f_result_key];
       if (result) {
@@ -263,12 +264,6 @@ class _MyAppState extends State<MyApp> {
           _result = "[2016],msg = 当前网络环境不支持认证";
         });
       }
-    });
-  }
-
-  void getSMSCode(){
-    jverify.getSMSCode(phoneNumber: "18565775329").then((map){
-      print("预取号接口回调：${map.toString()}");
     });
   }
 
@@ -355,7 +350,8 @@ class _MyAppState extends State<MyApp> {
         uiConfig.privacyTextSize = 13;
         //uiConfig.privacyWithBookTitleMark = true;
         //uiConfig.privacyTextCenterGravity = false;
-
+        uiConfig.authStatusBarStyle =  JVIOSBarStyle.StatusBarStyleDarkContent;
+        uiConfig.privacyStatusBarStyle = JVIOSBarStyle.StatusBarStyleDefault;
 
         uiConfig.statusBarColorWithNav = true;
         uiConfig.virtualButtonTransparent = true;
