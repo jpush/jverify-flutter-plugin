@@ -197,7 +197,7 @@ class Jverify {
    *        key = "result",uuid
    * */
   Future<Map<dynamic, dynamic>> getSMSCode(
-      String phoneNum, String signId, String tempId) async {
+      {@required String phoneNum, String signId, String tempId}) async {
     print("$flutter_log" + "getSMSCode");
 
     var args = <String, String>{};
@@ -821,7 +821,13 @@ enum JVIOSLayoutItem {
   ItemPrivacy,
   ItemSuper
 }
-
+/*
+*
+* iOS状态栏设置，需要设置info.plist文件中
+* View controller-based status barappearance值为YES
+* 授权页和隐私页状态栏才会生效
+*
+* */
 enum JVIOSBarStyle {
   StatusBarStyleDefault,    // Automatically chooses light or dark content based on the user interface style
   StatusBarStyleLightContent, // Light content, for use on dark backgrounds iOS 7 以上
