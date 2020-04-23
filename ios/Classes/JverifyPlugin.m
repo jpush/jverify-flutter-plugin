@@ -63,13 +63,43 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
         [self clearPreLoginCache:call result:result];
     }else if ([methodName isEqualToString:@"setCustomAuthorizationView"]) {
         [self setCustomAuthorizationView:call result:result];
+    }else if ([methodName isEqualToString:@"getSMSCode"]){
+        [self getSMSCode:call result:result];
+    }else if ([methodName isEqualToString:@"setGetCodeInternal"]){
+        [self setGetCodeInternal:call result:result];
     }
     else {
         result(FlutterMethodNotImplemented);
     }
 }
-
-
+#pragma mark -SMS
+- (void)getSMSCode:(FlutterMethodCall*) call result:(FlutterResult)resultDict{
+    NSDictionary *arguments = call.arguments;
+    JVLog(@"Action - getSMSCode:%@",arguments);
+    NSString *phoneNumber = arguments[@"phoneNumber"];
+    NSString *singId = arguments[@"signId"];
+    NSString *tempId = arguments[@"tempId"];
+    [JVERIFICATIONService getSMSCode:phoneNumber templateID:tempId signID:singId completionHandler:^(NSDictionary * _Nonnull result) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+           NSNumber *code = [result objectForKey:@"code"];
+           NSString *msg = [result objectForKey:@"msg"];
+           NSString *uuid =  [result objectForKey:@"uuid"];
+            if ([code intValue] == 3000) {
+                NSDictionary*dict = @{@"code":code,@"message":msg,@"result":uuid};
+                resultDict(dict);
+            }else{
+                NSDictionary*dict = @{@"code":code,@"message":msg};
+                resultDict(dict);
+            }
+        });
+    }];
+}
+- (void)setGetCodeInternal:(FlutterMethodCall*) call result:(FlutterResult)resultDict{
+    JVLog(@"Action - setGetCodeInternal::");
+    NSDictionary *arguments = call.arguments;
+    NSNumber *time = arguments[@"timeInterval"];
+    [JVERIFICATIONService setGetCodeInternal:[time intValue]];
+}
 #pragma mark - 设置日志 debug 模式
 -(void)setDebugMode:(FlutterMethodCall*) call result:(FlutterResult)result{
     JVLog(@"Action - setDebugMode::");
@@ -498,13 +528,19 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     JVLayoutItem sloganLayoutItem = [self getLayotItem:[self getValue:config key:@"sloganVerticalLayoutItem"]];
     NSNumber *sloganOffsetX = [self getNumberValue:config key:@"sloganOffsetX"];
     NSNumber *sloganOffsetY = [self getNumberValue:config key:@"sloganOffsetY"];
+    NSNumber *sloganWidth = [self getNumberValue:config key:@"sloganWidth"];
+    NSNumber *sloganHeight = [self getNumberValue:config key:@"sloganHeight"];
+
     if (sloganLayoutItem == JVLayoutItemNone) {
         uiconfig.sloganOffsetY = [sloganOffsetY floatValue];
     }else{
         JVLayoutConstraint *slogan_cons_top = JVLayoutTop([sloganOffsetY floatValue], sloganLayoutItem,NSLayoutAttributeBottom);
         JVLayoutConstraint *slogan_cons_centerx = JVLayoutCenterX([sloganOffsetX floatValue]);
-        
-        uiconfig.sloganConstraints = @[slogan_cons_top,slogan_cons_centerx];
+        CGFloat sloganH = sloganHeight?[sloganHeight floatValue]:20;
+        CGFloat sloganW = sloganWidth?[sloganWidth floatValue]:200;
+        JVLayoutConstraint *slogan_cons_width = JVLayoutWidth(sloganW);
+        JVLayoutConstraint *slogan_cons_height = JVLayoutHeight(sloganH);
+        uiconfig.sloganConstraints = @[slogan_cons_top,slogan_cons_centerx,slogan_cons_width,slogan_cons_height];
         uiconfig.sloganHorizontalConstraints = uiconfig.sloganConstraints;
     }
     
