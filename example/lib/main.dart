@@ -139,7 +139,19 @@ class _MyAppState extends State<MyApp> {
               width: double.infinity,
             ),
             margin: EdgeInsets.fromLTRB(40, 5, 40, 5),
-          )
+          ),
+          new Container(
+            child: SizedBox(
+              child: new CustomButton(
+                onPressed: () {
+                  getSMSCode();
+                },
+                title: "获取验证码",
+              ),
+              width: double.infinity,
+            ),
+            margin: EdgeInsets.fromLTRB(40, 5, 40, 5),
+          ),
         ],
         mainAxisAlignment: MainAxisAlignment.start,
       ),
@@ -207,6 +219,7 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _loading = true;
     });
+    getSMSCode();
 
     jverify.checkVerifyEnable().then((map) {
       bool result = map[f_result_key];
@@ -229,12 +242,17 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  void getSMSCode(){
+    jverify.getSMSCode(phoneNumber: "18565775329").then((map){
+      print("预取号接口回调：${map.toString()}");
+    });
+  }
+
   /// SDK 请求授权一键登录
   void loginAuth() {
     setState(() {
       _loading = true;
     });
-
     jverify.checkVerifyEnable().then((map) {
       bool result = map[f_result_key];
       if (result) {
@@ -258,7 +276,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.navReturnImgPath = "return_bg";//图片必须存在
 
         uiConfig.logoWidth = 100;
-        uiConfig.logoHeight = 100;
+        uiConfig.logoHeight = 80;
         //uiConfig.logoOffsetX = isiOS ? 0 : null;//(screenWidth/2 - uiConfig.logoWidth/2).toInt();
         uiConfig.logoOffsetY = 10;
         uiConfig.logoVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
@@ -277,6 +295,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.sloganVerticalLayoutItem = JVIOSLayoutItem.ItemNumber;
         uiConfig.sloganTextColor = Colors.black.value;
         uiConfig.sloganTextSize = 15;
+//        uiConfig.slogan
         //uiConfig.sloganHidden = 0;
 
         uiConfig.logBtnWidth = 220;
@@ -476,3 +495,5 @@ class CustomButton extends StatelessWidget {
     );
   }
 }
+
+
