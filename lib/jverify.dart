@@ -183,9 +183,9 @@ class Jverify {
   }
 
   ///设置前后两次获取验证码的时间间隔，默认 30000ms，有效范围(0,300000)
-  void setSmsIntervalTime(int intervalTime) {
-    print("$flutter_log" + "setSmsIntervalTime");
-    _channel.invokeMethod("setSmsIntervalTime", {"intervalTime": intervalTime});
+  void setGetCodeInternal(int intervalTime) {
+    print("$flutter_log" + "setGetCodeInternal");
+    _channel.invokeMethod("setGetCodeInternal", {"timeInterval": intervalTime});
   }
 
 /*
@@ -193,7 +193,8 @@ class Jverify {
    *
    * return Map
    *        key = "code", vlaue = 状态码，3000代表获取成功
-   *        key = "message", value = 成功即为验证码，失败为提示
+   *        key = "message", 提示信息
+   *        key = "result",uuid
    * */
   Future<Map<dynamic, dynamic>> getSMSCode(
       String phoneNum, String signId, String tempId) async {
@@ -533,19 +534,19 @@ class JVUIConfig {
   String privacyNavTitleTitle2; // 协议2 web页面导航栏标题
   String privacyNavReturnBtnImage;
 
-  ///only android
-  bool privacyStatusBarColorWithNav = false; //web状态栏是否与导航栏同色
-  bool privacyStatusBarDarkMode = false; //web状态栏是否暗色
-  bool privacyStatusBarTransparent = false; //web页状态栏是否透明
-  bool privacyStatusBarHidden = false; //web页状态栏是否隐藏
-  bool privacyVirtualButtonTransparent = false; //web页虚拟按键背景是否透明
+  ///隐私页
+  bool privacyStatusBarColorWithNav = false; //隐私页web状态栏是否与导航栏同色 only android
+  bool privacyStatusBarDarkMode = false; //隐私页web状态栏是否暗色 only android
+  bool privacyStatusBarTransparent = false; //隐私页web页状态栏是否透明 only android
+  bool privacyStatusBarHidden = false; //隐私页web页状态栏是否隐藏 only android
+  bool privacyVirtualButtonTransparent = false; //隐私页web页虚拟按键背景是否透明 only android
 
-  ///导航栏only android
-  bool statusBarColorWithNav = false; //状态栏是否跟导航栏同色
-  bool statusBarDarkMode = false; //状态栏是否为暗色
-  bool statusBarTransparent = false; //状态栏是否透明
-  bool statusBarHidden = false; //状态栏是否隐藏
-  bool virtualButtonTransparent = false; //虚拟按键背景是否透明
+  ///授权页
+  bool statusBarColorWithNav = false; //授权页状态栏是否跟导航栏同色 only android
+  bool statusBarDarkMode = false; //授权页状态栏是否为暗色 only android
+  bool statusBarTransparent = false; //授权页栏状态栏是否透明 only android
+  bool statusBarHidden = false; //授权页状态栏是否隐藏 only android
+  bool virtualButtonTransparent = false; //授权页虚拟按键背景是否透明 only android
 
   ///是否需要动画only android
   bool needStartAnim = false; //设置拉起授权页时是否需要显示默认动画

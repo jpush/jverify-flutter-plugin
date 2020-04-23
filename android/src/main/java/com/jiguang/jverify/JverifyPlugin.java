@@ -116,7 +116,7 @@ public class JverifyPlugin implements MethodCallHandler {
         } else if (call.method.equals("getSMSCode")) {
             getSMSCode(call, result);
         } else if (call.method.equals("setSmsIntervalTime")) {
-            setSmsIntervalTime(call, result);
+            setGetCodeInternal(call, result);
         } else {
             result.notImplemented();
         }
@@ -193,9 +193,9 @@ public class JverifyPlugin implements MethodCallHandler {
     /**
      * 设置前后两次获取验证码的时间间隔，默认 30000ms，有效范围(0,300000)
      */
-    private void setSmsIntervalTime(MethodCall call, Result result) {
+    private void setGetCodeInternal(MethodCall call, Result result) {
         Log.d(TAG, "Action - setSmsIntervalTime:");
-        Object intervalTime = getValueByKey(call, "intervalTime");
+        Object intervalTime = getValueByKey(call, "timeInterval");
         JVerificationInterface.setSmsIntervalTime((Long) intervalTime);
     }
 
@@ -227,6 +227,7 @@ public class JverifyPlugin implements MethodCallHandler {
                 Map<String, Object> map = new HashMap<>();
                 map.put(j_code_key, code);
                 map.put(j_msg_key, s);
+                map.put(j_result_key, s);
 
                 runMainThread(map, result, null);
             }
