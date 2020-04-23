@@ -24,7 +24,6 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
 
-
   /// 统一 key
   final String f_result_key = "result";
   /// 错误码
@@ -200,7 +199,32 @@ class _MyAppState extends State<MyApp> {
       }
     });
   }
+  /// 获取短信验证码
+  void getSMSCode(String phoneNum,{String signId,String tempId}){
+    setState(() {
+      _loading = true;
+    });
 
+    jverify.checkVerifyEnable().then((map) {
+      bool result = map[f_result_key];
+      if (result) {
+        jverify.getSMSCode(phoneNum,signId,tempId).then((map) {
+          print("获取短信验证码：${map.toString()}");
+          int code = map[f_code_key];
+          String message = map[f_msg_key];
+          setState(() {
+            _loading = false;
+            _result = "[$code] message = $message";
+          });
+        });
+      }else {
+        setState(() {
+          _loading = false;
+          _result = "[2016],msg = 当前网络环境不支持认证";
+        });
+      }
+    });
+  }
 
   /// 登录预取号
   void preLogin(){
@@ -247,7 +271,7 @@ class _MyAppState extends State<MyApp> {
         /// 自定义授权的 UI 界面，以下设置的图片必须添加到资源文件里，
         /// android项目将图片存放至drawable文件夹下，可使用图片选择器的文件名,例如：btn_login.xml,入参为"btn_login"。
         /// ios项目存放在 Assets.xcassets。
-        /// 
+        ///
         JVUIConfig uiConfig = JVUIConfig();
         //uiConfig.authBackgroundImage = ;
 
@@ -313,6 +337,15 @@ class _MyAppState extends State<MyApp> {
         //uiConfig.privacyWithBookTitleMark = true;
         //uiConfig.privacyTextCenterGravity = false;
 
+
+        uiConfig.statusBarColorWithNav = true;
+        uiConfig.virtualButtonTransparent = true;
+
+        uiConfig.privacyStatusBarColorWithNav = true;
+        uiConfig.privacyVirtualButtonTransparent = true;
+
+        uiConfig.needStartAnim = true;
+        uiConfig.needCloseAnim = true;
 
         uiConfig.privacyNavColor =  Colors.red.value;;
         uiConfig.privacyNavTitleTextColor = Colors.blue.value;

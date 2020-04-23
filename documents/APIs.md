@@ -7,7 +7,8 @@
 - [verifyNumber](#verifyNumber)
 - [loginAuth](#loginAuth)
 - [setCustomAuthViewAllWidgets](#setCustomAuthViewAllWidgets)
-
+- [setSmsIntervalTime](#setSmsIntervalTime)
+- [getSMSCode](#getSMSCode)
 #### setup
 
 添加初始化方法，调用 setup 方法初始化 Jverify SDK
@@ -363,6 +364,31 @@ widgetList.add(buttonWidget);
 
 ```
 
+#### setGetCodeInternal
+
+设置前后两次获取验证码的时间间隔，默认 30000ms，有效范围(0,300000)
+
+```dart
+Jverify jverify = new Jverify();
+jverify.setGetCodeInternal(30000);
+```
+
+#### getSMSCode
+
+获取当前在线的sim卡所在运营商及token。如果获取成功代表可以用来验证手机号。获取失败则建议做短信验证
+**说明：** 开发者可以通过SDK获取token接口的回调信息来选择验证方式，若成功获取到token则可以继续使用极光认证进行号码验证；若获取token失败，需要换用短信验证码等方式继续完成验证。
+
+
+```dart
+Jverify jverify = new Jverify();
+jverify.getSMSCode().then((map){
+          int _code = map["code"]; // 返回码，3000代表获取成功，其他为失败，详见错误码描述
+          String _uuid = map["result"]; // 成功时为uuid，
+          String _message = map["message"]; // 失败时为失败信息
+          ...
+});
+```
+
 
 |参数名	|参数类型	|说明|
 |:----:|:-----:|:-----:|
@@ -432,6 +458,10 @@ ios项目存放在 Assets.xcassets。
 |2014	|internal error while requesting token	|请求token时发生内部错误|
 |2015	|rsa encode failed	|rsa加密失败|
 |2016	|network type not supported	|当前网络环境不支持认证|
+|3001	|SDK is not initial yet	|没有初始化
+|3002	|invalided phone number	|无效电话号码
+|3003	|request frequent in Minimum Time Interval  |两次请求超过最小设置的时间间隔
+|3004	|	|请求错误,具体查看错误信息
 |4001	|parameter invalid	|参数错误。请检查参数，比如是否手机号格式不对|
 |4009	|	|解密rsa失败|
 |4018	|	|没有足够的余额|
