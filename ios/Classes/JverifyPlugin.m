@@ -17,7 +17,8 @@ static NSString *const j_msg_key = @"message";
 static NSString *const j_opr_key = @"operator";
 /// 默认超时时间
 static long j_default_timeout = 5000;
-
+static BOOL needStartAnim = YES;
+static BOOL needCloseAnim = YES;
 @implementation JverifyPlugin
 
 NSObject<FlutterPluginRegistrar>* _jv_registrar;
@@ -315,7 +316,7 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     UIViewController *vc = [UIApplication sharedApplication].keyWindow.rootViewController;
     
     __weak typeof(self) weakself = self;
-    [JVERIFICATIONService getAuthorizationWithController:vc hide:[hide boolValue] animated:YES timeout:timeout completion:^(NSDictionary *res) {
+    [JVERIFICATIONService getAuthorizationWithController:vc hide:[hide boolValue] animated:needStartAnim timeout:timeout completion:^(NSDictionary *res) {
         JVLog(@"getAuthorizationWithController result = %@",res);
         
         NSString *content = @"";
@@ -356,7 +357,7 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
 #pragma mark - SDK关闭授权页面
 -(void)dismissLoginController:(FlutterMethodCall*) call result:(FlutterResult)result{
     JVLog(@"Action - dismissLoginController::");
-    [JVERIFICATIONService dismissLoginControllerAnimated:YES completion:^{
+    [JVERIFICATIONService dismissLoginControllerAnimated:needCloseAnim completion:^{
         
     }];
 }
@@ -371,7 +372,8 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
 }
 - (void)setCustomAuthorizationView:(FlutterMethodCall*) call result:(FlutterResult)result {
     JVLog(@"Action - setCustomAuthorizationView:%@",call.arguments);
-    
+    needStartAnim = [call.arguments[@"needStartAnim"] boolValue];
+    needCloseAnim = [call.arguments[@"needCloseAnim"] boolValue];
     BOOL isAutorotate = [call.arguments[@"isAutorotate"] boolValue];
     NSDictionary *portraitConfig = call.arguments[@"portraitConfig"];
     NSArray *widgets = call.arguments[@"widgets"];
@@ -424,7 +426,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     JVLog(@"Action - setCustomUIWithUIConfig::");
     
     uiconfig.preferredStatusBarStyle = 0;
-
+    uiconfig.dismissAnimationFlag = needCloseAnim;
      /************** 背景 ***************/
     NSString *authBackgroundImage = [config objectForKey:@"authBackgroundImage"];
     authBackgroundImage = authBackgroundImage?:nil;
