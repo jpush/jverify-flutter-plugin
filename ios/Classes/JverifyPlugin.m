@@ -17,7 +17,8 @@ static NSString *const j_msg_key = @"message";
 static NSString *const j_opr_key = @"operator";
 /// 默认超时时间
 static long j_default_timeout = 5000;
-
+static BOOL needStartAnim = YES;
+static BOOL needCloseAnim = YES;
 @implementation JverifyPlugin
 
 NSObject<FlutterPluginRegistrar>* _jv_registrar;
@@ -63,13 +64,43 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
         [self clearPreLoginCache:call result:result];
     }else if ([methodName isEqualToString:@"setCustomAuthorizationView"]) {
         [self setCustomAuthorizationView:call result:result];
+    }else if ([methodName isEqualToString:@"getSMSCode"]){
+        [self getSMSCode:call result:result];
+    }else if ([methodName isEqualToString:@"setGetCodeInternal"]){
+        [self setGetCodeInternal:call result:result];
     }
     else {
         result(FlutterMethodNotImplemented);
     }
 }
-
-
+#pragma mark -SMS
+- (void)getSMSCode:(FlutterMethodCall*) call result:(FlutterResult)resultDict{
+    NSDictionary *arguments = call.arguments;
+    JVLog(@"Action - getSMSCode:%@",arguments);
+    NSString *phoneNumber = arguments[@"phoneNumber"];
+    NSString *singId = arguments[@"signId"];
+    NSString *tempId = arguments[@"tempId"];
+    [JVERIFICATIONService getSMSCode:phoneNumber templateID:tempId signID:singId completionHandler:^(NSDictionary * _Nonnull result) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+           NSNumber *code = [result objectForKey:@"code"];
+           NSString *msg = [result objectForKey:@"msg"];
+           NSString *uuid =  [result objectForKey:@"uuid"];
+            if ([code intValue] == 3000) {
+                NSDictionary*dict = @{@"code":code,@"message":msg,@"result":uuid};
+                resultDict(dict);
+            }else{
+                NSDictionary*dict = @{@"code":code,@"message":msg};
+                resultDict(dict);
+            }
+        });
+    }];
+}
+- (void)setGetCodeInternal:(FlutterMethodCall*) call result:(FlutterResult)resultDict{
+    JVLog(@"Action - setGetCodeInternal::");
+    NSDictionary *arguments = call.arguments;
+    NSNumber *time = arguments[@"timeInterval"];
+    [JVERIFICATIONService setGetCodeInternal:[time intValue]];
+}
 #pragma mark - 设置日志 debug 模式
 -(void)setDebugMode:(FlutterMethodCall*) call result:(FlutterResult)result{
     JVLog(@"Action - setDebugMode::");
@@ -285,7 +316,7 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     UIViewController *vc = [UIApplication sharedApplication].keyWindow.rootViewController;
     
     __weak typeof(self) weakself = self;
-    [JVERIFICATIONService getAuthorizationWithController:vc hide:[hide boolValue] animated:YES timeout:timeout completion:^(NSDictionary *res) {
+    [JVERIFICATIONService getAuthorizationWithController:vc hide:[hide boolValue] animated:needStartAnim timeout:timeout completion:^(NSDictionary *res) {
         JVLog(@"getAuthorizationWithController result = %@",res);
         
         NSString *content = @"";
@@ -326,7 +357,7 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
 #pragma mark - SDK关闭授权页面
 -(void)dismissLoginController:(FlutterMethodCall*) call result:(FlutterResult)result{
     JVLog(@"Action - dismissLoginController::");
-    [JVERIFICATIONService dismissLoginControllerAnimated:YES completion:^{
+    [JVERIFICATIONService dismissLoginControllerAnimated:needCloseAnim completion:^{
         
     }];
 }
@@ -341,7 +372,8 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
 }
 - (void)setCustomAuthorizationView:(FlutterMethodCall*) call result:(FlutterResult)result {
     JVLog(@"Action - setCustomAuthorizationView:%@",call.arguments);
-    
+    needStartAnim = [call.arguments[@"needStartAnim"] boolValue];
+    needCloseAnim = [call.arguments[@"needCloseAnim"] boolValue];
     BOOL isAutorotate = [call.arguments[@"isAutorotate"] boolValue];
     NSDictionary *portraitConfig = call.arguments[@"portraitConfig"];
     NSArray *widgets = call.arguments[@"widgets"];
@@ -392,9 +424,11 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
 //自定义授权页面原有的 UI 控件
 - (void)setCustomUIWithUIConfig:(JVUIConfig *)uiconfig configArguments:(NSDictionary *)config {
     JVLog(@"Action - setCustomUIWithUIConfig::");
-    
-    uiconfig.preferredStatusBarStyle = 0;
-
+    NSString *authStatusBarStyle = [config objectForKey:@"authStatusBarStyle"];
+    NSString *privacyStatusBarStyle = [config objectForKey:@"privacyStatusBarStyle"];
+    uiconfig.preferredStatusBarStyle = [self getStatusBarStyle:authStatusBarStyle];
+    uiconfig.agreementPreferredStatusBarStyle = [self getStatusBarStyle:privacyStatusBarStyle];
+    uiconfig.dismissAnimationFlag = needCloseAnim;
      /************** 背景 ***************/
     NSString *authBackgroundImage = [config objectForKey:@"authBackgroundImage"];
     authBackgroundImage = authBackgroundImage?:nil;
@@ -498,13 +532,19 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     JVLayoutItem sloganLayoutItem = [self getLayotItem:[self getValue:config key:@"sloganVerticalLayoutItem"]];
     NSNumber *sloganOffsetX = [self getNumberValue:config key:@"sloganOffsetX"];
     NSNumber *sloganOffsetY = [self getNumberValue:config key:@"sloganOffsetY"];
+    NSNumber *sloganWidth = [self getNumberValue:config key:@"sloganWidth"];
+    NSNumber *sloganHeight = [self getNumberValue:config key:@"sloganHeight"];
+
     if (sloganLayoutItem == JVLayoutItemNone) {
         uiconfig.sloganOffsetY = [sloganOffsetY floatValue];
     }else{
         JVLayoutConstraint *slogan_cons_top = JVLayoutTop([sloganOffsetY floatValue], sloganLayoutItem,NSLayoutAttributeBottom);
         JVLayoutConstraint *slogan_cons_centerx = JVLayoutCenterX([sloganOffsetX floatValue]);
-        
-        uiconfig.sloganConstraints = @[slogan_cons_top,slogan_cons_centerx];
+        CGFloat sloganH = sloganHeight?[sloganHeight floatValue]:20;
+        CGFloat sloganW = sloganWidth?[sloganWidth floatValue]:200;
+        JVLayoutConstraint *slogan_cons_width = JVLayoutWidth(sloganW);
+        JVLayoutConstraint *slogan_cons_height = JVLayoutHeight(sloganH);
+        uiconfig.sloganConstraints = @[slogan_cons_top,slogan_cons_centerx,slogan_cons_width,slogan_cons_height];
         uiconfig.sloganHorizontalConstraints = uiconfig.sloganConstraints;
     }
     
@@ -967,6 +1007,21 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
 //    }
 //    return nil;
 //}
+
+- (UIStatusBarStyle)getStatusBarStyle:(NSString*)itemStr{
+    if ([itemStr isEqualToString:@"StatusBarStyleDefault"]){
+        return UIStatusBarStyleDefault;
+    }else if ([itemStr isEqualToString:@"StatusBarStyleLightContent"]){
+        return UIStatusBarStyleLightContent;
+    }else if ([itemStr isEqualToString:@"StatusBarStyleDarkContent"]){
+        if (@available(iOS 13.0, *)) {
+            return UIStatusBarStyleDarkContent;
+        }
+    }
+    return UIStatusBarStyleDefault;
+}
+
+
 - (JVLayoutItem)getLayotItem:(NSString *)itemString {
     JVLayoutItem item = JVLayoutItemNone;
     if (itemString) {
