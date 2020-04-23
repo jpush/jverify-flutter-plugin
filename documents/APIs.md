@@ -4,11 +4,11 @@
 - [setDebugMode](#setDebugMode)
 - [checkVerifyEnable](#checkVerifyEnable)
 - [getToken](#getToken)
-- [verifyNumber](#verifyNumber)
 - [loginAuth](#loginAuth)
 - [setCustomAuthViewAllWidgets](#setCustomAuthViewAllWidgets)
-- [setSmsIntervalTime](#setSmsIntervalTime)
+- [setGetCodeInternal](#setGetCodeInternal)
 - [getSMSCode](#getSMSCode)
+
 #### setup
 
 添加初始化方法，调用 setup 方法初始化 Jverify SDK
@@ -440,22 +440,18 @@ jverify.getSMSCode(phone,{signId:signId,tempId:tempId}).then((map){
 |uncheckedImgPath	|String	|设置复选框未选中时图片|
 |sloganTextColor	|int	|设置移动slogan文字颜色|
 |sloganOffsetY	|int	|设置slogan相对于标题栏下边缘y偏移|
-
 |statusBarColorWithNav	|boolean	|设置授权页状态栏与导航栏同色(android)|
 |statusBarDarkMode	|boolean	|设置授权页状态栏暗色模式(android)|
 |statusBarTransparent	|boolean	|设置授权页状态栏是否透明(android)|
 |statusBarHidden	|boolean	|设置授权页状态栏是否隐藏(android)|
 |virtualButtonTransparent	|boolean	|设置授权页虚拟按键栏背景是否透明(android)|
-
 |privacyStatusBarColorWithNav	|boolean	|设置隐私页状态栏与导航栏同色(android)|
 |privacyStatusBarDarkMode	|boolean	|设置隐私页状态栏暗色模式(android)|
 |privacyStatusBarTransparent	|boolean	|设置隐私页状态栏是否透明(android)|
 |privacyStatusBarHidden	|boolean	|设置隐私页状态栏是否隐藏(android)|
 |privacyVirtualButtonTransparent	|boolean	|设置隐私页虚拟按键栏背景是否透明(android)|
-
 |needStartAnim	|boolean	|设置拉起授权页时是否需要显示默认动画|
 |needCloseAnim	|boolean	|设置关闭授权页时是否需要显示默认动画|
-
 |StatusBarStyleDefault	|enum	|Automatically chooses light or dark content based on the user interface style|
 |StatusBarStyleLightContent	|enum	|Light content, for use on dark backgrounds iOS 7 以上|
 |StatusBarStyleDarkContent	|enum	|Dark content, for use on light backgrounds  iOS 13 以上|
