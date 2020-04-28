@@ -540,8 +540,8 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     }else{
         JVLayoutConstraint *slogan_cons_top = JVLayoutTop([sloganOffsetY floatValue], sloganLayoutItem,NSLayoutAttributeBottom);
         JVLayoutConstraint *slogan_cons_centerx = JVLayoutCenterX([sloganOffsetX floatValue]);
-        CGFloat sloganH = sloganHeight?[sloganHeight floatValue]:20;
-        CGFloat sloganW = sloganWidth?[sloganWidth floatValue]:200;
+        CGFloat sloganH = [sloganHeight floatValue]>0?:20;
+        CGFloat sloganW = [sloganWidth floatValue]>0?:200;
         JVLayoutConstraint *slogan_cons_width = JVLayoutWidth(sloganW);
         JVLayoutConstraint *slogan_cons_height = JVLayoutHeight(sloganH);
         uiconfig.sloganConstraints = @[slogan_cons_top,slogan_cons_centerx,slogan_cons_width,slogan_cons_height];

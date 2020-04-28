@@ -488,6 +488,9 @@ class JVUIConfig {
   JVIOSLayoutItem sloganVerticalLayoutItem;
   int sloganTextColor;
   int sloganTextSize;
+  int sloganWidth;
+  int sloganHeight;
+
   bool sloganHidden = false;
 
   /// 登录按钮
@@ -613,6 +616,8 @@ class JVUIConfig {
       "sloganOffsetX": sloganOffsetX ??= null,
       "sloganVerticalLayoutItem": getStringFromEnum(sloganVerticalLayoutItem),
       "sloganTextSize": sloganTextSize ??= null,
+      "sloganWidth": sloganWidth ??= null,
+      "sloganHeight": sloganHeight ??= null,
       "sloganHidden": sloganHidden,
       "privacyState": privacyState,
       "privacyCheckboxInCenter": privacyCheckboxInCenter,
