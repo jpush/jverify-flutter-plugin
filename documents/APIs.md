@@ -371,6 +371,7 @@ uiConfig.needCloseAnim = true;
 uiConfig.privacyNavColor =  Colors.red.value;;
 uiConfig.privacyNavTitleTextColor = Colors.blue.value;
 uiConfig.privacyNavTitleTextSize = 16;
+uiConfig.privacyNavTitleTitle = "协议0 web页标题";//仅ios
 uiConfig.privacyNavTitleTitle1 = "协议1 web页标题";
 uiConfig.privacyNavTitleTitle2 = "协议2 web页标题";
 Jverify jverify = new Jverify();
