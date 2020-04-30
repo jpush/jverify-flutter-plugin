@@ -488,6 +488,9 @@ class JVUIConfig {
   JVIOSLayoutItem sloganVerticalLayoutItem;
   int sloganTextColor;
   int sloganTextSize;
+  int sloganWidth;
+  int sloganHeight;
+
   bool sloganHidden = false;
 
   /// 登录按钮
@@ -530,10 +533,11 @@ class JVUIConfig {
   int privacyNavColor; // 导航栏颜色
   int privacyNavTitleTextColor; // 标题颜色
   int privacyNavTitleTextSize; // 标题大小
+  String privacyNavTitleTitle; //协议0 web页面导航栏标题 only ios
   String privacyNavTitleTitle1; // 协议1 web页面导航栏标题
   String privacyNavTitleTitle2; // 协议2 web页面导航栏标题
   String privacyNavReturnBtnImage;
-  JVIOSBarStyle  privacyStatusBarStyle; //隐私协议web页 状态栏样式设置 only iOS
+  JVIOSBarStyle privacyStatusBarStyle; //隐私协议web页 状态栏样式设置 only iOS
 
   ///隐私页
   bool privacyStatusBarColorWithNav = false; //隐私页web状态栏是否与导航栏同色 only android
@@ -549,7 +553,8 @@ class JVUIConfig {
   bool statusBarHidden = false; //授权页状态栏是否隐藏 only android
   bool virtualButtonTransparent = false; //授权页虚拟按键背景是否透明 only android
 
-  JVIOSBarStyle authStatusBarStyle = JVIOSBarStyle.StatusBarStyleDefault;//授权页状态栏样式设置 only iOS
+  JVIOSBarStyle authStatusBarStyle =
+      JVIOSBarStyle.StatusBarStyleDefault; //授权页状态栏样式设置 only iOS
 
   ///是否需要动画
   bool needStartAnim = false; //设置拉起授权页时是否需要显示默认动画
@@ -613,6 +618,8 @@ class JVUIConfig {
       "sloganOffsetX": sloganOffsetX ??= null,
       "sloganVerticalLayoutItem": getStringFromEnum(sloganVerticalLayoutItem),
       "sloganTextSize": sloganTextSize ??= null,
+      "sloganWidth": sloganWidth ??= null,
+      "sloganHeight": sloganHeight ??= null,
       "sloganHidden": sloganHidden,
       "privacyState": privacyState,
       "privacyCheckboxInCenter": privacyCheckboxInCenter,
@@ -638,11 +645,13 @@ class JVUIConfig {
       "statusBarTransparent": statusBarTransparent,
       "statusBarHidden": statusBarHidden,
       "virtualButtonTransparent": virtualButtonTransparent,
-      "authStatusBarStyle":getStringFromEnum(authStatusBarStyle),
-      "privacyStatusBarStyle":getStringFromEnum(privacyStatusBarStyle),
+      "authStatusBarStyle": getStringFromEnum(authStatusBarStyle),
+      "privacyStatusBarStyle": getStringFromEnum(privacyStatusBarStyle),
 
       "needStartAnim": needStartAnim,
       "needCloseAnim": needCloseAnim,
+
+      "privacyNavTitleTitle": privacyNavTitleTitle ??= null,
     }..removeWhere((key, value) => value == null);
   }
 }
@@ -829,7 +838,7 @@ enum JVIOSLayoutItem {
 *
 * */
 enum JVIOSBarStyle {
-  StatusBarStyleDefault,    // Automatically chooses light or dark content based on the user interface style
+  StatusBarStyleDefault, // Automatically chooses light or dark content based on the user interface style
   StatusBarStyleLightContent, // Light content, for use on dark backgrounds iOS 7 以上
   StatusBarStyleDarkContent // Dark content, for use on light backgrounds  iOS 13 以上
 }

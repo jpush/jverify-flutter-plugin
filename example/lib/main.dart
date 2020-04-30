@@ -217,8 +217,12 @@ class _MyAppState extends State<MyApp> {
       _loading = true;
     });
     String phoneNum = controllerPHone.text;
-    if(phoneNum == null){
-    //TODO: 提示
+    if(phoneNum == null||phoneNum.isEmpty){
+      setState(() {
+        _loading = false;
+        _result = "[3002],msg = 没有输入手机号码";
+      });
+      return;
     }
     jverify.checkVerifyEnable().then((map) {
       bool result = map[f_result_key];
@@ -235,7 +239,7 @@ class _MyAppState extends State<MyApp> {
       }else {
         setState(() {
           _loading = false;
-          _result = "[2016],msg = 当前网络环境不支持认证";
+          _result = "[3004],msg = 获取短信验证码异常";
         });
       }
     });
@@ -365,12 +369,35 @@ class _MyAppState extends State<MyApp> {
         uiConfig.privacyNavColor =  Colors.red.value;;
         uiConfig.privacyNavTitleTextColor = Colors.blue.value;
         uiConfig.privacyNavTitleTextSize = 16;
-        uiConfig.privacyNavTitleTitle1 = "协议1 web页标题";
-        uiConfig.privacyNavTitleTitle2 = "协议2 web页标题";
+
+        uiConfig.privacyNavTitleTitle  ="ios lai le";//only ios
+        uiConfig.privacyNavTitleTitle1 = "协议11 web页标题";
+        uiConfig.privacyNavTitleTitle2 = "协议22 web页标题";
         uiConfig.privacyNavReturnBtnImage = "return_bg";//图片必须存在;
 
         /// 添加自定义的 控件 到授权界面
         List<JVCustomWidget>widgetList = [];
+        /// 步骤 1：调用接口设置 UI
+        jverify.setCustomAuthorizationView(true, uiConfig, landscapeConfig: uiConfig);
+
+        /// 步骤 2：调用一键登录接口
+
+        /// 方式一：使用同步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
+        /// 先，添加 loginAuthSyncApi 接口回调的监听
+        jverify.addLoginAuthCallBackListener((event){
+          setState(() {
+            _loading = false;
+            _result = "监听获取返回数据：[${event.code}] message = ${event.message}";
+          });
+          print("通过添加监听，获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
+        });
+        /// 再，执行同步的一键登录接口
+        jverify.loginAuthSyncApi(autoDismiss: true);
+      } else {
+        setState(() {
+          _loading = false;
+          _result = "[2016],msg = 当前网络环境不支持认证";
+        });
 
         /*
         final String text_widgetId = "jv_add_custom_text";// 标识控件 id
@@ -427,23 +454,6 @@ class _MyAppState extends State<MyApp> {
         */
 
 
-        /// 步骤 1：调用接口设置 UI
-        jverify.setCustomAuthorizationView(true, uiConfig, landscapeConfig: uiConfig);
-
-        /// 步骤 2：调用一键登录接口
-
-        /// 方式一：使用同步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
-        /// 先，添加 loginAuthSyncApi 接口回调的监听
-        jverify.addLoginAuthCallBackListener((event){
-          setState(() {
-            _loading = false;
-            _result = "监听获取返回数据：[${event.code}] message = ${event.message}";
-          });
-          print("通过添加监听，获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
-        });
-        /// 再，执行同步的一键登录接口
-        jverify.loginAuthSyncApi(autoDismiss: true);
-
         /*
 
         /// 方式二：使用异步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
@@ -464,14 +474,12 @@ class _MyAppState extends State<MyApp> {
 
         */
 
-      } else {
-        setState(() {
-          _loading = false;
-          _result = "[2016],msg = 当前网络环境不支持认证";
-        });
       }
     });
   }
+
+
+
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {

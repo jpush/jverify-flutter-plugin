@@ -540,8 +540,8 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     }else{
         JVLayoutConstraint *slogan_cons_top = JVLayoutTop([sloganOffsetY floatValue], sloganLayoutItem,NSLayoutAttributeBottom);
         JVLayoutConstraint *slogan_cons_centerx = JVLayoutCenterX([sloganOffsetX floatValue]);
-        CGFloat sloganH = sloganHeight?[sloganHeight floatValue]:20;
-        CGFloat sloganW = sloganWidth?[sloganWidth floatValue]:200;
+        CGFloat sloganH = [sloganHeight floatValue]>0?:20;
+        CGFloat sloganW = [sloganWidth floatValue]>0?:200;
         JVLayoutConstraint *slogan_cons_width = JVLayoutWidth(sloganW);
         JVLayoutConstraint *slogan_cons_height = JVLayoutHeight(sloganH);
         uiconfig.sloganConstraints = @[slogan_cons_top,slogan_cons_centerx,slogan_cons_width,slogan_cons_height];
@@ -714,13 +714,13 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     
     /************** 协议 web 页面 ***************/
     NSNumber *privacyNavColor = [self getValue:config key:@"privacyNavColor"];
-    if (navColor) {
+    if (privacyNavColor) {
         uiconfig.agreementNavBackgroundColor  = UIColorFromRGB([privacyNavColor intValue]);
     }
     
-    NSString *privacyNavText = [self getValue:config key:@"privacyNavTitleTitle1"];
+    NSString *privacyNavText = [self getValue:config key:@"privacyNavTitleTitle"];
     if (!privacyNavText) {
-        privacyNavText =  @"服务条款";
+        privacyNavText =  @"运营商服务条款";
     }
 
     UIColor *privacyNavTitleTextColor = UIColorFromRGB(-1);
