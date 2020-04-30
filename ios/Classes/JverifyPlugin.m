@@ -714,13 +714,13 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     
     /************** 协议 web 页面 ***************/
     NSNumber *privacyNavColor = [self getValue:config key:@"privacyNavColor"];
-    if (navColor) {
+    if (privacyNavColor) {
         uiconfig.agreementNavBackgroundColor  = UIColorFromRGB([privacyNavColor intValue]);
     }
     
-    NSString *privacyNavText = [self getValue:config key:@"privacyNavTitleTitle1"];
+    NSString *privacyNavText = [self getValue:config key:@"privacyNavTitleTitle"];
     if (!privacyNavText) {
-        privacyNavText =  @"服务条款";
+        privacyNavText =  @"运营商服务条款";
     }
 
     UIColor *privacyNavTitleTextColor = UIColorFromRGB(-1);
