@@ -1,3 +1,7 @@
+
+## 0.6.6
++ 修复：修复已知问题
++ 同步 JVerification SDK ios 2.6.3 android 2.6.4 版本
 ## 0.6.5
 + 修复：ios隐私页面标题获取异常及navColor问题
 ## 0.6.4
