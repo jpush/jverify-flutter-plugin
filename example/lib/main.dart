@@ -333,6 +333,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.loginBtnPressedImage = "login_btn_press";//图片必须存在
         uiConfig.loginBtnUnableImage = "login_btn_unable";//图片必须存在
 
+        uiConfig.privacyHintToast = false;//only android 设置隐私条款不选中时点击登录按钮默认显示toast。
 
         uiConfig.privacyState = true;//设置默认勾选
         uiConfig.privacyCheckboxSize = 20;
@@ -376,9 +377,9 @@ class _MyAppState extends State<MyApp> {
         uiConfig.privacyNavReturnBtnImage = "return_bg";//图片必须存在;
 
         /// 添加自定义的 控件 到授权界面
-        List<JVCustomWidget>widgetList = [];
+        List<JVCustomWidget> widgetList = [];
         /// 步骤 1：调用接口设置 UI
-        jverify.setCustomAuthorizationView(true, uiConfig, landscapeConfig: uiConfig);
+        jverify.setCustomAuthorizationView(true, uiConfig, landscapeConfig: uiConfig,widgets: widgetList);
 
         /// 步骤 2：调用一键登录接口
 

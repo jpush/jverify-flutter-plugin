@@ -511,6 +511,7 @@ class JVUIConfig {
   String uncheckedImgPath;
   String checkedImgPath;
   int privacyCheckboxSize;
+  bool privacyHintToast = true;//only android 设置隐私条款不选中时点击登录按钮默认显示toast。
   bool privacyState = false; //设置隐私条款默认选中状态，默认不选中
   bool privacyCheckboxHidden = false; //设置隐私条款checkbox是否隐藏
   bool privacyCheckboxInCenter = false; //设置隐私条款checkbox是否相对协议文字纵向居中
@@ -601,7 +602,7 @@ class JVUIConfig {
       "uncheckedImgPath": uncheckedImgPath ??= null,
       "checkedImgPath": checkedImgPath ??= null,
       "privacyCheckboxSize": privacyCheckboxSize ??= null,
-      //"checkboxVerticalLayoutItem": getStringFromEnum(checkboxVerticalLayoutItem),
+      "privacyHintToast": privacyHintToast,
       "privacyOffsetY": privacyOffsetY ??= null,
       "privacyOffsetX": privacyOffsetX ??= null,
       "privacyVerticalLayoutItem": getStringFromEnum(privacyVerticalLayoutItem),
