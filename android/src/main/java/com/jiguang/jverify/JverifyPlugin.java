@@ -583,6 +583,8 @@ public class JverifyPlugin implements MethodCallHandler {
 
         Object popViewConfig = valueForKey(uiconfig, "popViewConfig");
 
+        Object privacyHintToast = valueForKey(uiconfig, "privacyHintToast");
+
         /************* 状态栏 ***************/
         if (statusBarColorWithNav != null) {
             builder.setStatusBarColorWithNav((Boolean) statusBarColorWithNav);
@@ -850,7 +852,7 @@ public class JverifyPlugin implements MethodCallHandler {
             }
         }
 
-        builder.enableHintToast(true, null);
+        builder.enableHintToast((Boolean)privacyHintToast, null);
         /************** 授权页弹窗模式 ***************/
         if (popViewConfig != null) {
             Map popViewConfigMap = (Map) popViewConfig;
