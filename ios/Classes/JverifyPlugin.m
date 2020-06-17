@@ -632,6 +632,18 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     }
 
     /************** privacy ***************/
+    BOOL privacyHintToast = [[self getValue:config key:@"privacyHintToast"] boolValue];
+    if(privacyHintToast){
+        uiconfig.customPrivacyAlertViewBlock = ^(UIViewController *vc) {
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"请点击同意协议" message:nil preferredStyle:UIAlertControllerStyleAlert];
+            [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil] ];
+            [vc presentViewController:alert animated:true completion:nil];
+            
+        };
+    }
+    
+    
+    
     BOOL isCenter = [[self getValue:config key:@"privacyTextCenterGravity"] boolValue];
     NSTextAlignment alignmet = isCenter?NSTextAlignmentCenter:NSTextAlignmentLeft;
     uiconfig.privacyTextAlignment = alignmet;

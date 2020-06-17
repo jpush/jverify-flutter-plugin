@@ -333,7 +333,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.loginBtnPressedImage = "login_btn_press";//图片必须存在
         uiConfig.loginBtnUnableImage = "login_btn_unable";//图片必须存在
 
-        uiConfig.privacyHintToast = false;//only android 设置隐私条款不选中时点击登录按钮默认显示toast。
+        uiConfig.privacyHintToast = true;//only android 设置隐私条款不选中时点击登录按钮默认显示toast。
 
         uiConfig.privacyState = true;//设置默认勾选
         uiConfig.privacyCheckboxSize = 20;
