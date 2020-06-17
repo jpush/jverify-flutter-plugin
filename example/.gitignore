@@ -71,3 +71,4 @@
 
 **/ios/**/Podfile.lock
 **/ios/**/Runner.xcworkspace/
+.flutter-plugins-dependencies
