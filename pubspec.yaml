@@ -4,10 +4,10 @@ version: 0.6.12
 homepage: https://www.jiguang.cn
 
 environment:
-  sdk: ">=2.7.0 <3.0.0"
-  flutter: ">=1.10.0"
+  sdk: ">=2.1.0 <3.0.0"
 
 dependencies:
+  platform: ^2.0.0
   flutter:
     sdk: flutter
 
