@@ -1,14 +1,13 @@
 name: jverify
 description: JIGUANG Official Jverifycation SDK flutter plugin project.
 version: 0.6.12
-author:  xudong.rao <xudong.rao@outlook.com>
 homepage: https://www.jiguang.cn
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ">=2.7.0 <3.0.0"
+  flutter: ">=1.10.0"
 
 dependencies:
-  platform: ^2.0.0
   flutter:
     sdk: flutter
 
@@ -28,8 +27,11 @@ flutter:
   # be modified. They are used by the tooling to maintain consistency when
   # adding or updating assets for this project.
   plugin:
-    androidPackage: com.jiguang.jverify
-    pluginClass: JverifyPlugin
+    android:
+      package: com.jiguang.jverify
+      pluginClass: JverifyPlugin
+    ios:
+      pluginClass: JverifyPlugin
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
