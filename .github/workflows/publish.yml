@@ -2,8 +2,9 @@ name: publish
 
 on:
   push:
-    tags:
-      - v*
+    branches: [ dev ]
+#    tags:
+#      - v*
 
 jobs:
   build:
