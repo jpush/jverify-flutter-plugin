@@ -2,9 +2,8 @@ name: publish
 
 on:
   push:
-    branches: [ dev ]
-#    tags:
-#      - v*
+    tags:
+      - v*
 
 jobs:
   build:
@@ -20,6 +19,6 @@ jobs:
           credential: ${{ secrets.CREDENTIAL_JSON }}
           flutter_package: false
           skip_test: true
-          dry_run: true
+          dry_run: false
 
 
