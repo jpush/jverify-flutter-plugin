@@ -5,6 +5,8 @@ homepage: https://www.jiguang.cn
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
+  flutter: ">=1.10.0"
+
 
 dependencies:
   platform: ^2.0.0
@@ -25,16 +27,16 @@ flutter:
   # The androidPackage and pluginClass identifiers should not ordinarily
   # be modified. They are used by the tooling to maintain consistency when
   # adding or updating assets for this project.
-  plugin:
-    androidPackage: com.jiguang.jverify
-    pluginClass: JverifyPlugin
 #  plugin:
-#    platforms:
-#      android:
-#        package: com.jiguang.jverify
-#        pluginClass: JverifyPlugin
-#      ios:
-#        pluginClass: JverifyPlugin
+#    androidPackage: com.jiguang.jverify
+#    pluginClass: JverifyPlugin
+  plugin:
+    platforms:
+      android:
+        package: com.jiguang.jverify
+        pluginClass: JverifyPlugin
+      ios:
+        pluginClass: JverifyPlugin
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:
