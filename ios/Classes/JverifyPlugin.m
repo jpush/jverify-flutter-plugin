@@ -872,7 +872,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     
     NSNumber *isClickEnable = [self getValue:widgetDic key:@"isClickEnable"];
     if ([isClickEnable boolValue]) {
-        NSString *tag = @(widgetId.hash).stringValue;
+        NSString *tag = @(left+top+width+height).stringValue;
         label.userInteractionEnabled = YES;
         
         UITapGestureRecognizer *singleTapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(clickTextWidgetAction:)];
@@ -944,7 +944,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
 
      NSString *widgetId = [self getValue:widgetDic key:@"widgetId"];
 
-    NSString *tag = @(widgetId.hash).stringValue;
+    NSString *tag = @(left+top+width+height).stringValue;
     button.tag = [tag integerValue];
     
 
