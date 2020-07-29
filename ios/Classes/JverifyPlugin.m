@@ -632,6 +632,18 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     }
 
     /************** privacy ***************/
+    BOOL privacyHintToast = [[self getValue:config key:@"privacyHintToast"] boolValue];
+    if(privacyHintToast){
+        uiconfig.customPrivacyAlertViewBlock = ^(UIViewController *vc) {
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"请点击同意协议" message:nil preferredStyle:UIAlertControllerStyleAlert];
+            [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil] ];
+            [vc presentViewController:alert animated:true completion:nil];
+            
+        };
+    }
+    
+    
+    
     BOOL isCenter = [[self getValue:config key:@"privacyTextCenterGravity"] boolValue];
     NSTextAlignment alignmet = isCenter?NSTextAlignmentCenter:NSTextAlignmentLeft;
     uiconfig.privacyTextAlignment = alignmet;
@@ -860,7 +872,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     
     NSNumber *isClickEnable = [self getValue:widgetDic key:@"isClickEnable"];
     if ([isClickEnable boolValue]) {
-        NSString *tag = @"1001";
+        NSString *tag = @(left+top+width+height).stringValue;
         label.userInteractionEnabled = YES;
         
         UITapGestureRecognizer *singleTapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(clickTextWidgetAction:)];
@@ -915,24 +927,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     if (font) {
         button.titleLabel.font = [UIFont systemFontOfSize:[font floatValue]];
     }
-    /*
-    NSNumber *isSingleLine = [self getValue:widgetDic key:@"isSingleLine"];
-    if (![isSingleLine boolValue]) {
-        label.numberOfLines = 0;
-        NSDictionary *attributes = @{NSFontAttributeName:[UIFont systemFontOfSize:20],};
-        CGSize textSize = [label.text boundingRectWithSize:CGSizeMake(width, height) options:NSStringDrawingTruncatesLastVisibleLine attributes:attributes context:nil].size;
-        height = textSize.height;
-    }
-    
-     NSNumber *lines = [self getValue:widgetDic key:@"lines"];
-     if (lines) {
-     label.numberOfLines = [lines integerValue];
-     }
-     NSNumber *maxLines = [self getValue:widgetDic key:@"maxLines"];
-     if (maxLines) {
-     }
-     */
-    
+
     
     NSNumber *isShowUnderline = [self getValue:widgetDic key:@"isShowUnderline"];
     if ([isShowUnderline boolValue]) {
@@ -946,10 +941,13 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     NSNumber *isClickEnable = [self getValue:widgetDic key:@"isClickEnable"];
     button.userInteractionEnabled = [isClickEnable boolValue];
     [button addTarget:self action:@selector(clickCustomWidgetAction:) forControlEvents:UIControlEventTouchUpInside];
-    NSString *tag = @"1002";
+
+     NSString *widgetId = [self getValue:widgetDic key:@"widgetId"];
+
+    NSString *tag = @(left+top+width+height).stringValue;
     button.tag = [tag integerValue];
     
-    NSString *widgetId = [self getValue:widgetDic key:@"widgetId"];
+
     [self.customWidgetIdDic setObject:widgetId forKey:tag];
     
     
