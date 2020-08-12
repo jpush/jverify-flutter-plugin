@@ -1,3 +1,5 @@
+## 0.6.18
++ 修复：修复ios needStartAnim needStartAnim 无效果的bug。
 ## 0.6.16
 + 修复：修复ios 添加多个点击事件，响应的都是同一个。
 ## 0.6.14
