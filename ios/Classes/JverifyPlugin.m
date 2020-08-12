@@ -17,8 +17,8 @@ static NSString *const j_msg_key = @"message";
 static NSString *const j_opr_key = @"operator";
 /// 默认超时时间
 static long j_default_timeout = 5000;
-static BOOL needStartAnim = YES;
-static BOOL needCloseAnim = YES;
+static BOOL needStartAnim = FALSE;
+static BOOL needCloseAnim = FALSE;
 @implementation JverifyPlugin
 
 NSObject<FlutterPluginRegistrar>* _jv_registrar;
@@ -372,8 +372,7 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
 }
 - (void)setCustomAuthorizationView:(FlutterMethodCall*) call result:(FlutterResult)result {
     JVLog(@"Action - setCustomAuthorizationView:%@",call.arguments);
-    needStartAnim = [call.arguments[@"needStartAnim"] boolValue];
-    needCloseAnim = [call.arguments[@"needCloseAnim"] boolValue];
+    
     BOOL isAutorotate = [call.arguments[@"isAutorotate"] boolValue];
     NSDictionary *portraitConfig = call.arguments[@"portraitConfig"];
     NSArray *widgets = call.arguments[@"widgets"];
@@ -435,6 +434,12 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     if (authBackgroundImage) {
         uiconfig.authPageBackgroundImage = [UIImage imageNamed:authBackgroundImage];
     }
+    
+    needStartAnim = [[self getValue:config key:@"needCloseAnim"] boolValue];
+    needCloseAnim = [[self getValue:config key:@"needCloseAnim"] boolValue];
+       
+    JVLog(@"Action - setCustomAuthorizationView:needStartAnim %d",needStartAnim);
+    JVLog(@"Action - setCustomAuthorizationView:needStartAnim %d",needCloseAnim);
     
      /************** 导航栏 ***************/
     NSNumber *navHidden = [self getValue:config key:@"navHidden"];
@@ -872,7 +877,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     
     NSNumber *isClickEnable = [self getValue:widgetDic key:@"isClickEnable"];
     if ([isClickEnable boolValue]) {
-        NSString *tag = @(widgetId.hash).stringValue;
+        NSString *tag = @(left+top+width+height).stringValue;
         label.userInteractionEnabled = YES;
         
         UITapGestureRecognizer *singleTapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(clickTextWidgetAction:)];
@@ -944,7 +949,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
 
      NSString *widgetId = [self getValue:widgetDic key:@"widgetId"];
 
-    NSString *tag = @(widgetId.hash).stringValue;
+    NSString *tag = @(left+top+width+height).stringValue;
     button.tag = [tag integerValue];
     
 
