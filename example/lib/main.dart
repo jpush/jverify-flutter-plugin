@@ -357,6 +357,7 @@ class _MyAppState extends State<MyApp> {
         //uiConfig.privacyTextCenterGravity = false;
         uiConfig.authStatusBarStyle =  JVIOSBarStyle.StatusBarStyleDarkContent;
         uiConfig.privacyStatusBarStyle = JVIOSBarStyle.StatusBarStyleDefault;
+        uiConfig.modelTransitionStyle = JVIOSUIModalTransitionStyle.CrossDissolve;
 
         uiConfig.statusBarColorWithNav = true;
         uiConfig.virtualButtonTransparent = true;

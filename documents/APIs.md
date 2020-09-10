@@ -358,6 +358,7 @@ uiConfig.privacyTextSize = 13;
 //uiConfig.privacyTextCenterGravity = false;
 uiConfig.authStatusBarStyle =  JVIOSBarStyle.StatusBarStyleDarkContent;
 uiConfig.privacyStatusBarStyle = JVIOSBarStyle.StatusBarStyleDefault;
+uiConfig.modelTransitionStyle = JVIOSUIModalTransitionStyle.CrossDissolve;
 
 uiConfig.statusBarColorWithNav = true;
 uiConfig.virtualButtonTransparent = true;
