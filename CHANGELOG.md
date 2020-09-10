@@ -1,3 +1,5 @@
+## 0.6.20
++ 新增：添加iOS 授权界面弹出方式 modelTransitionStyle。
 ## 0.6.18
 + 修复：修复ios needStartAnim needStartAnim 无效果的bug。
 ## 0.6.16
