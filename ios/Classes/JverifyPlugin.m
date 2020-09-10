@@ -428,6 +428,11 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     uiconfig.preferredStatusBarStyle = [self getStatusBarStyle:authStatusBarStyle];
     uiconfig.agreementPreferredStatusBarStyle = [self getStatusBarStyle:privacyStatusBarStyle];
     uiconfig.dismissAnimationFlag = needCloseAnim;
+    
+    /************** 弹出方式 ***************/
+    UIModalTransitionStyle transitionStyle = [self getTransitionStyle:[self getValue:config key:@"modelTransitionStyle"]];
+    uiconfig.modalTransitionStyle = transitionStyle;
+    
      /************** 背景 ***************/
     NSString *authBackgroundImage = [config objectForKey:@"authBackgroundImage"];
     authBackgroundImage = authBackgroundImage?:nil;
@@ -1010,6 +1015,17 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
 //    }
 //    return nil;
 //}
+
+- (UIModalTransitionStyle)getTransitionStyle:(NSString*)itemStr{
+    if ([itemStr isEqualToString:@"FlipHorizontal"]){
+        return UIModalTransitionStyleFlipHorizontal;
+    }else if ([itemStr isEqualToString:@"CrossDissolve"]){
+        return UIModalTransitionStyleCrossDissolve;
+    }else if ([itemStr isEqualToString:@"PartialCurl"]){
+        return UIModalTransitionStylePartialCurl;
+    }
+    return UIModalTransitionStyleCoverVertical;
+}
 
 - (UIStatusBarStyle)getStatusBarStyle:(NSString*)itemStr{
     if ([itemStr isEqualToString:@"StatusBarStyleDefault"]){
