@@ -1,3 +1,5 @@
+## 0.6.22
++ 新增：适配认证Android2.6.7 ios 2.6.6。
 ## 0.6.20
 + 新增：添加iOS 授权界面弹出方式 modelTransitionStyle。
 ## 0.6.18
