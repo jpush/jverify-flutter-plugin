@@ -463,6 +463,7 @@ class JVUIConfig {
   String navReturnImgPath;
   bool navHidden = false;
   bool navReturnBtnHidden = false;
+  bool navTransparent = false;
 
   /// logo
   int logoWidth;
@@ -576,6 +577,7 @@ class JVUIConfig {
       "navReturnImgPath": navReturnImgPath ??= null,
       "navHidden": navHidden,
       "navReturnBtnHidden": navReturnBtnHidden,
+      "navTransparent": navTransparent,
       "logoImgPath": logoImgPath ??= null,
       "logoWidth": logoWidth ??= null,
       "logoHeight": logoHeight ??= null,
