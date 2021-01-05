@@ -1,3 +1,4 @@
+
 group 'com.jiguang.jverify'
 version '1.0-SNAPSHOT'
 
@@ -39,6 +40,6 @@ android {
 
 dependencies {
     compileOnly files('libs/flutter.jar')
-    implementation 'cn.jiguang.sdk:jverification:2.6.4'
+    implementation 'cn.jiguang.sdk:jverification:2.6.7'
     implementation 'cn.jiguang.sdk:jcore:2.2.6'
 }

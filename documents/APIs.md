@@ -358,6 +358,7 @@ uiConfig.privacyTextSize = 13;
 //uiConfig.privacyTextCenterGravity = false;
 uiConfig.authStatusBarStyle =  JVIOSBarStyle.StatusBarStyleDarkContent;
 uiConfig.privacyStatusBarStyle = JVIOSBarStyle.StatusBarStyleDefault;
+uiConfig.modelTransitionStyle = JVIOSUIModalTransitionStyle.CrossDissolve;
 
 uiConfig.statusBarColorWithNav = true;
 uiConfig.virtualButtonTransparent = true;
@@ -499,10 +500,10 @@ jverify.getSMSCode(phone,{signId:signId,tempId:tempId}).then((map){
 |virtualButtonTransparent	|boolean	|设置授权页虚拟按键栏背景是否透明(android)|
 |privacyStatusBarColorWithNav	|boolean	|设置隐私页状态栏与导航栏同色(android)|
 |privacyStatusBarDarkMode	|boolean	|设置隐私页状态栏暗色模式(android)|
-|privacyHintToast	|boolean	|设置隐私条款不选中时点击登录按钮默认弹出toast。(android)|
 |privacyStatusBarTransparent	|boolean	|设置隐私页状态栏是否透明(android)|
 |privacyStatusBarHidden	|boolean	|设置隐私页状态栏是否隐藏(android)|
 |privacyVirtualButtonTransparent	|boolean	|设置隐私页虚拟按键栏背景是否透明(android)|
+|privacyHintToast	|boolean	|设置隐私条款不选中时点击登录按钮默认弹出toast|
 |needStartAnim	|boolean	|设置拉起授权页时是否需要显示默认动画|
 |needCloseAnim	|boolean	|设置关闭授权页时是否需要显示默认动画|
 |StatusBarStyleDefault	|enum	|Automatically chooses light or dark content based on the user interface style|
