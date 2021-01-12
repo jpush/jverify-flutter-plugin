@@ -7,5 +7,5 @@
 build/
 .idea
 .metadata
-
 pubspec.lock
+.last_build_id
