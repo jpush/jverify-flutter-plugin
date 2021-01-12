@@ -506,6 +506,7 @@ public class JverifyPlugin implements MethodCallHandler {
         Object navReturnImgPath = valueForKey(uiconfig, "navReturnImgPath");
         Object navHidden = valueForKey(uiconfig, "navHidden");
         Object navReturnBtnHidden = valueForKey(uiconfig, "navReturnBtnHidden");
+        Object navTransparent = valueForKey(uiconfig, "navTransparent");
 
         Object logoImgPath = valueForKey(uiconfig, "logoImgPath");
         Object logoWidth = valueForKey(uiconfig, "logoWidth");
@@ -583,6 +584,8 @@ public class JverifyPlugin implements MethodCallHandler {
 
         Object popViewConfig = valueForKey(uiconfig, "popViewConfig");
 
+        Object privacyHintToast = valueForKey(uiconfig, "privacyHintToast");
+
         /************* 状态栏 ***************/
         if (statusBarColorWithNav != null) {
             builder.setStatusBarColorWithNav((Boolean) statusBarColorWithNav);
@@ -646,6 +649,9 @@ public class JverifyPlugin implements MethodCallHandler {
         }
         if (navReturnBtnHidden != null) {
             builder.setNavReturnBtnHidden((Boolean) navReturnBtnHidden);
+        }
+        if (navTransparent != null) {
+            builder.setNavTransparent((Boolean) navTransparent);
         }
         if (navColor != null) {
             builder.setNavColor(exchangeObject(navColor));
@@ -850,7 +856,7 @@ public class JverifyPlugin implements MethodCallHandler {
             }
         }
 
-        builder.enableHintToast(true, null);
+        builder.enableHintToast((Boolean)privacyHintToast, null);
         /************** 授权页弹窗模式 ***************/
         if (popViewConfig != null) {
             Map popViewConfigMap = (Map) popViewConfig;

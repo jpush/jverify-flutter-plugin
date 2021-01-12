@@ -27,11 +27,23 @@ android {
     defaultConfig {
         minSdkVersion 17
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
-
     }
+
     lintOptions {
         disable 'InvalidPackage'
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            useProguard true
+            // library 混淆 -> 随 library 引用，自动添加到 apk 打包混淆
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'consumer-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+            useProguard false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'consumer-rules.pro'
+        }
     }
 
 
@@ -39,6 +51,6 @@ android {
 
 dependencies {
     compileOnly files('libs/flutter.jar')
-    implementation 'cn.jiguang.sdk:jverification:2.6.0'
+    implementation 'cn.jiguang.sdk:jverification:2.6.7'
     implementation 'cn.jiguang.sdk:jcore:2.2.6'
 }

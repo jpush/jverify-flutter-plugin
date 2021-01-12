@@ -463,6 +463,7 @@ class JVUIConfig {
   String navReturnImgPath;
   bool navHidden = false;
   bool navReturnBtnHidden = false;
+  bool navTransparent = false;
 
   /// logo
   int logoWidth;
@@ -511,6 +512,7 @@ class JVUIConfig {
   String uncheckedImgPath;
   String checkedImgPath;
   int privacyCheckboxSize;
+  bool privacyHintToast = true; //设置隐私条款不选中时点击登录按钮默认弹出toast。
   bool privacyState = false; //设置隐私条款默认选中状态，默认不选中
   bool privacyCheckboxHidden = false; //设置隐私条款checkbox是否隐藏
   bool privacyCheckboxInCenter = false; //设置隐私条款checkbox是否相对协议文字纵向居中
@@ -533,10 +535,11 @@ class JVUIConfig {
   int privacyNavColor; // 导航栏颜色
   int privacyNavTitleTextColor; // 标题颜色
   int privacyNavTitleTextSize; // 标题大小
+  String privacyNavTitleTitle; //协议0 web页面导航栏标题 only ios
   String privacyNavTitleTitle1; // 协议1 web页面导航栏标题
   String privacyNavTitleTitle2; // 协议2 web页面导航栏标题
   String privacyNavReturnBtnImage;
-  JVIOSBarStyle  privacyStatusBarStyle; //隐私协议web页 状态栏样式设置 only iOS
+  JVIOSBarStyle privacyStatusBarStyle; //隐私协议web页 状态栏样式设置 only iOS
 
   ///隐私页
   bool privacyStatusBarColorWithNav = false; //隐私页web状态栏是否与导航栏同色 only android
@@ -552,7 +555,8 @@ class JVUIConfig {
   bool statusBarHidden = false; //授权页状态栏是否隐藏 only android
   bool virtualButtonTransparent = false; //授权页虚拟按键背景是否透明 only android
 
-  JVIOSBarStyle authStatusBarStyle = JVIOSBarStyle.StatusBarStyleDefault;//授权页状态栏样式设置 only iOS
+  JVIOSBarStyle authStatusBarStyle =
+      JVIOSBarStyle.StatusBarStyleDefault; //授权页状态栏样式设置 only iOS
 
   ///是否需要动画
   bool needStartAnim = false; //设置拉起授权页时是否需要显示默认动画
@@ -560,6 +564,9 @@ class JVUIConfig {
 
   /// 授权页弹窗模式 配置，选填
   JVPopViewConfig popViewConfig;
+
+  JVIOSUIModalTransitionStyle modelTransitionStyle = //弹出方式 only ios
+      JVIOSUIModalTransitionStyle.CoverVertical;
 
   Map toJsonMap() {
     return {
@@ -570,6 +577,7 @@ class JVUIConfig {
       "navReturnImgPath": navReturnImgPath ??= null,
       "navHidden": navHidden,
       "navReturnBtnHidden": navReturnBtnHidden,
+      "navTransparent": navTransparent,
       "logoImgPath": logoImgPath ??= null,
       "logoWidth": logoWidth ??= null,
       "logoHeight": logoHeight ??= null,
@@ -599,7 +607,7 @@ class JVUIConfig {
       "uncheckedImgPath": uncheckedImgPath ??= null,
       "checkedImgPath": checkedImgPath ??= null,
       "privacyCheckboxSize": privacyCheckboxSize ??= null,
-      //"checkboxVerticalLayoutItem": getStringFromEnum(checkboxVerticalLayoutItem),
+      "privacyHintToast": privacyHintToast,
       "privacyOffsetY": privacyOffsetY ??= null,
       "privacyOffsetX": privacyOffsetX ??= null,
       "privacyVerticalLayoutItem": getStringFromEnum(privacyVerticalLayoutItem),
@@ -631,23 +639,22 @@ class JVUIConfig {
       "privacyNavTitleTitle2": privacyNavTitleTitle2 ??= null,
       "privacyNavReturnBtnImage": privacyNavReturnBtnImage ??= null,
       "popViewConfig": popViewConfig != null ? popViewConfig.toJsonMap() : null,
-
       "privacyStatusBarColorWithNav": privacyStatusBarColorWithNav,
       "privacyStatusBarDarkMode": privacyStatusBarDarkMode,
       "privacyStatusBarTransparent": privacyStatusBarTransparent,
       "privacyStatusBarHidden": privacyStatusBarHidden,
       "privacyVirtualButtonTransparent": privacyVirtualButtonTransparent,
-
       "statusBarColorWithNav": statusBarColorWithNav,
       "statusBarDarkMode": statusBarDarkMode,
       "statusBarTransparent": statusBarTransparent,
       "statusBarHidden": statusBarHidden,
       "virtualButtonTransparent": virtualButtonTransparent,
-      "authStatusBarStyle":getStringFromEnum(authStatusBarStyle),
-      "privacyStatusBarStyle":getStringFromEnum(privacyStatusBarStyle),
-
+      "authStatusBarStyle": getStringFromEnum(authStatusBarStyle),
+      "privacyStatusBarStyle": getStringFromEnum(privacyStatusBarStyle),
+      "modelTransitionStyle": getStringFromEnum(modelTransitionStyle),
       "needStartAnim": needStartAnim,
       "needCloseAnim": needCloseAnim,
+      "privacyNavTitleTitle": privacyNavTitleTitle ??= null,
     }..removeWhere((key, value) => value == null);
   }
 }
@@ -826,6 +833,20 @@ enum JVIOSLayoutItem {
   ItemPrivacy,
   ItemSuper
 }
+
+/*
+*
+* iOS授权界面弹出模式
+* 注意：窗口模式下不支持 PartialCurl
+*
+*
+* */
+enum JVIOSUIModalTransitionStyle {
+  CoverVertical,
+  FlipHorizontal,
+  CrossDissolve,
+  PartialCurl
+}
 /*
 *
 * iOS状态栏设置，需要设置info.plist文件中
@@ -834,7 +855,7 @@ enum JVIOSLayoutItem {
 *
 * */
 enum JVIOSBarStyle {
-  StatusBarStyleDefault,    // Automatically chooses light or dark content based on the user interface style
+  StatusBarStyleDefault, // Automatically chooses light or dark content based on the user interface style
   StatusBarStyleLightContent, // Light content, for use on dark backgrounds iOS 7 以上
   StatusBarStyleDarkContent // Dark content, for use on light backgrounds  iOS 13 以上
 }

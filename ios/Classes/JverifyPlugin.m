@@ -17,8 +17,8 @@ static NSString *const j_msg_key = @"message";
 static NSString *const j_opr_key = @"operator";
 /// 默认超时时间
 static long j_default_timeout = 5000;
-static BOOL needStartAnim = YES;
-static BOOL needCloseAnim = YES;
+static BOOL needStartAnim = FALSE;
+static BOOL needCloseAnim = FALSE;
 @implementation JverifyPlugin
 
 NSObject<FlutterPluginRegistrar>* _jv_registrar;
@@ -372,8 +372,7 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
 }
 - (void)setCustomAuthorizationView:(FlutterMethodCall*) call result:(FlutterResult)result {
     JVLog(@"Action - setCustomAuthorizationView:%@",call.arguments);
-    needStartAnim = [call.arguments[@"needStartAnim"] boolValue];
-    needCloseAnim = [call.arguments[@"needCloseAnim"] boolValue];
+    
     BOOL isAutorotate = [call.arguments[@"isAutorotate"] boolValue];
     NSDictionary *portraitConfig = call.arguments[@"portraitConfig"];
     NSArray *widgets = call.arguments[@"widgets"];
@@ -429,12 +428,23 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     uiconfig.preferredStatusBarStyle = [self getStatusBarStyle:authStatusBarStyle];
     uiconfig.agreementPreferredStatusBarStyle = [self getStatusBarStyle:privacyStatusBarStyle];
     uiconfig.dismissAnimationFlag = needCloseAnim;
+    
+    /************** 弹出方式 ***************/
+    UIModalTransitionStyle transitionStyle = [self getTransitionStyle:[self getValue:config key:@"modelTransitionStyle"]];
+    uiconfig.modalTransitionStyle = transitionStyle;
+    
      /************** 背景 ***************/
     NSString *authBackgroundImage = [config objectForKey:@"authBackgroundImage"];
     authBackgroundImage = authBackgroundImage?:nil;
     if (authBackgroundImage) {
         uiconfig.authPageBackgroundImage = [UIImage imageNamed:authBackgroundImage];
     }
+    
+    needStartAnim = [[self getValue:config key:@"needCloseAnim"] boolValue];
+    needCloseAnim = [[self getValue:config key:@"needCloseAnim"] boolValue];
+       
+    JVLog(@"Action - setCustomAuthorizationView:needStartAnim %d",needStartAnim);
+    JVLog(@"Action - setCustomAuthorizationView:needStartAnim %d",needCloseAnim);
     
      /************** 导航栏 ***************/
     NSNumber *navHidden = [self getValue:config key:@"navHidden"];
@@ -466,6 +476,10 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     NSString *imageName =[self getValue:config key:@"navReturnImgPath"];
     if(imageName){
         uiconfig.navReturnImg  = [UIImage imageNamed:imageName];
+    }
+    NSNumber *navTransparent = [self getValue:config key:@"navTransparent"];
+    if (navTransparent) {
+        uiconfig.navTransparent = [navTransparent boolValue];
     }
     uiconfig.navReturnHidden = NO;
     
@@ -632,6 +646,18 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     }
 
     /************** privacy ***************/
+    BOOL privacyHintToast = [[self getValue:config key:@"privacyHintToast"] boolValue];
+    if(privacyHintToast){
+        uiconfig.customPrivacyAlertViewBlock = ^(UIViewController *vc) {
+            UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"请点击同意协议" message:nil preferredStyle:UIAlertControllerStyleAlert];
+            [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil] ];
+            [vc presentViewController:alert animated:true completion:nil];
+            
+        };
+    }
+    
+    
+    
     BOOL isCenter = [[self getValue:config key:@"privacyTextCenterGravity"] boolValue];
     NSTextAlignment alignmet = isCenter?NSTextAlignmentCenter:NSTextAlignmentLeft;
     uiconfig.privacyTextAlignment = alignmet;
@@ -714,13 +740,13 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     
     /************** 协议 web 页面 ***************/
     NSNumber *privacyNavColor = [self getValue:config key:@"privacyNavColor"];
-    if (navColor) {
+    if (privacyNavColor) {
         uiconfig.agreementNavBackgroundColor  = UIColorFromRGB([privacyNavColor intValue]);
     }
     
-    NSString *privacyNavText = [self getValue:config key:@"privacyNavTitleTitle1"];
+    NSString *privacyNavText = [self getValue:config key:@"privacyNavTitleTitle"];
     if (!privacyNavText) {
-        privacyNavText =  @"服务条款";
+        privacyNavText =  @"运营商服务条款";
     }
 
     UIColor *privacyNavTitleTextColor = UIColorFromRGB(-1);
@@ -860,7 +886,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     
     NSNumber *isClickEnable = [self getValue:widgetDic key:@"isClickEnable"];
     if ([isClickEnable boolValue]) {
-        NSString *tag = @"1001";
+        NSString *tag = @(left+top+width+height).stringValue;
         label.userInteractionEnabled = YES;
         
         UITapGestureRecognizer *singleTapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(clickTextWidgetAction:)];
@@ -915,24 +941,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     if (font) {
         button.titleLabel.font = [UIFont systemFontOfSize:[font floatValue]];
     }
-    /*
-    NSNumber *isSingleLine = [self getValue:widgetDic key:@"isSingleLine"];
-    if (![isSingleLine boolValue]) {
-        label.numberOfLines = 0;
-        NSDictionary *attributes = @{NSFontAttributeName:[UIFont systemFontOfSize:20],};
-        CGSize textSize = [label.text boundingRectWithSize:CGSizeMake(width, height) options:NSStringDrawingTruncatesLastVisibleLine attributes:attributes context:nil].size;
-        height = textSize.height;
-    }
-    
-     NSNumber *lines = [self getValue:widgetDic key:@"lines"];
-     if (lines) {
-     label.numberOfLines = [lines integerValue];
-     }
-     NSNumber *maxLines = [self getValue:widgetDic key:@"maxLines"];
-     if (maxLines) {
-     }
-     */
-    
+
     
     NSNumber *isShowUnderline = [self getValue:widgetDic key:@"isShowUnderline"];
     if ([isShowUnderline boolValue]) {
@@ -946,10 +955,13 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     NSNumber *isClickEnable = [self getValue:widgetDic key:@"isClickEnable"];
     button.userInteractionEnabled = [isClickEnable boolValue];
     [button addTarget:self action:@selector(clickCustomWidgetAction:) forControlEvents:UIControlEventTouchUpInside];
-    NSString *tag = @"1002";
+
+     NSString *widgetId = [self getValue:widgetDic key:@"widgetId"];
+
+    NSString *tag = @(left+top+width+height).stringValue;
     button.tag = [tag integerValue];
     
-    NSString *widgetId = [self getValue:widgetDic key:@"widgetId"];
+
     [self.customWidgetIdDic setObject:widgetId forKey:tag];
     
     
@@ -1007,6 +1019,17 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
 //    }
 //    return nil;
 //}
+
+- (UIModalTransitionStyle)getTransitionStyle:(NSString*)itemStr{
+    if ([itemStr isEqualToString:@"FlipHorizontal"]){
+        return UIModalTransitionStyleFlipHorizontal;
+    }else if ([itemStr isEqualToString:@"CrossDissolve"]){
+        return UIModalTransitionStyleCrossDissolve;
+    }else if ([itemStr isEqualToString:@"PartialCurl"]){
+        return UIModalTransitionStylePartialCurl;
+    }
+    return UIModalTransitionStyleCoverVertical;
+}
 
 - (UIStatusBarStyle)getStatusBarStyle:(NSString*)itemStr{
     if ([itemStr isEqualToString:@"StatusBarStyleDefault"]){
