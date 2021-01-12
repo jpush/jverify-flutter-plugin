@@ -477,6 +477,10 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     if(imageName){
         uiconfig.navReturnImg  = [UIImage imageNamed:imageName];
     }
+    NSNumber *navTransparent = [self getValue:config key:@"navTransparent"];
+    if (navTransparent) {
+        uiconfig.navTransparent = [navTransparent boolValue];
+    }
     uiconfig.navReturnHidden = NO;
     
     /************** logo ***************/

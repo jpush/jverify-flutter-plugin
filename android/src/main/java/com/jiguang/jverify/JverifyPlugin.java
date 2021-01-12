@@ -506,6 +506,7 @@ public class JverifyPlugin implements MethodCallHandler {
         Object navReturnImgPath = valueForKey(uiconfig, "navReturnImgPath");
         Object navHidden = valueForKey(uiconfig, "navHidden");
         Object navReturnBtnHidden = valueForKey(uiconfig, "navReturnBtnHidden");
+        Object navTransparent = valueForKey(uiconfig, "navTransparent");
 
         Object logoImgPath = valueForKey(uiconfig, "logoImgPath");
         Object logoWidth = valueForKey(uiconfig, "logoWidth");
@@ -648,6 +649,9 @@ public class JverifyPlugin implements MethodCallHandler {
         }
         if (navReturnBtnHidden != null) {
             builder.setNavReturnBtnHidden((Boolean) navReturnBtnHidden);
+        }
+        if (navTransparent != null) {
+            builder.setNavTransparent((Boolean) navTransparent);
         }
         if (navColor != null) {
             builder.setNavColor(exchangeObject(navColor));
