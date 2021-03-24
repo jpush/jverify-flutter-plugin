@@ -33,6 +33,7 @@ import cn.jiguang.verifysdk.api.LoginSettings;
 import cn.jiguang.verifysdk.api.PreLoginListener;
 import cn.jiguang.verifysdk.api.RequestCallback;
 import cn.jiguang.verifysdk.api.VerifyListener;
+import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
@@ -43,7 +44,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 /**
  * JverifyPlugin
  */
-public class JverifyPlugin implements MethodCallHandler {
+public class JverifyPlugin implements FlutterPlugin,MethodCallHandler {
 
     // 定义日志 TAG
     private static final String TAG = "| JVER | Android | -";
@@ -66,22 +67,23 @@ public class JverifyPlugin implements MethodCallHandler {
     private Context context;
     private MethodChannel channel;
 
-    /**
-     * Plugin registration.
-     */
-    public static void registerWith(Registrar registrar) {
-        final MethodChannel channel = new MethodChannel(registrar.messenger(), "jverify");
-        channel.setMethodCallHandler(new JverifyPlugin(registrar, channel));
-    }
 
-    private JverifyPlugin(Registrar registrar, MethodChannel channel) {
-        this.context = registrar.context();
-        this.channel = channel;
+    @Override
+    public void onAttachedToEngine( FlutterPluginBinding flutterPluginBinding) {
+        channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "jverify");
+        channel.setMethodCallHandler(this);
+        context = flutterPluginBinding.getApplicationContext();
     }
 
 
     @Override
-    public void onMethodCall(MethodCall call, Result result) {
+    public void onDetachedFromEngine( FlutterPluginBinding binding) {
+        channel.setMethodCallHandler(null);
+    }
+
+
+    @Override
+    public void onMethodCall( MethodCall call,  Result result) {
         Log.d(TAG, "onMethodCall:" + call.method);
 
         Log.d(TAG, "processMethod:" + call.method);
@@ -125,7 +127,7 @@ public class JverifyPlugin implements MethodCallHandler {
 
     // 主线程再返回数据
     private void runMainThread(final Map<String, Object> map, final Result result, final String method) {
-        android.os.Handler handler = new Handler(Looper.getMainLooper());
+        Handler handler = new Handler(Looper.getMainLooper());
         handler.post(new Runnable() {
             @Override
             public void run() {

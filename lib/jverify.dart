@@ -1,9 +1,8 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
-import 'package:platform/platform.dart';
 
 /// 监听添加的自定义控件的点击事件
 typedef JVClickWidgetEventListener = void Function(String widgetId);
@@ -47,31 +46,27 @@ class JVEventHandlers {
 }
 
 class Jverify {
-  final String flutter_log = "| JVER | Flutter | ";
+  static const String flutter_log = "| JVER | Flutter | ";
 
   /// 错误码
-  final String j_flutter_code_key = "code";
+  static const String j_flutter_code_key = "code";
 
   /// 回调的提示信息
-  final String j_flutter_msg_key = "message";
+  static const String j_flutter_msg_key = "message";
 
   /// 重复请求
-  final int j_flutter_error_code_repeat = -1;
+  static const int j_flutter_error_code_repeat = -1;
 
   factory Jverify() => _instance;
   final JVEventHandlers _eventHanders = new JVEventHandlers();
 
-  final Platform _platform;
   final MethodChannel _channel;
-  final List<String> requestQueue = new List();
+  final List<String> requestQueue = [];
 
   @visibleForTesting
-  Jverify.private(MethodChannel channel, Platform platform)
-      : _channel = channel,
-        _platform = platform;
+  Jverify.private(MethodChannel channel) : _channel = channel;
 
-  static final _instance = new Jverify.private(
-      const MethodChannel("jverify"), const LocalPlatform());
+  static final _instance = new Jverify.private(const MethodChannel("jverify"));
 
   /// 自定义控件的点击事件
   addClikWidgetEventListener(
@@ -405,7 +400,7 @@ class Jverify {
     }
 
     if (widgets != null) {
-      var widgetList = List();
+      var widgetList = [];
       for (JVCustomWidget widget in widgets) {
         var para2 = widget.toJsonMap();
         para2.removeWhere((key, value) => value == null);
@@ -428,7 +423,7 @@ class Jverify {
     para["uiconfig"] = para1;
 
     if (widgets != null) {
-      var widgetList = List();
+      var widgetList = [];
       for (JVCustomWidget widget in widgets) {
         var para2 = widget.toJsonMap();
         para2.removeWhere((key, value) => value == null);
@@ -699,7 +694,7 @@ class JVCustomWidget {
   String widgetId;
   JVCustomWidgetType type;
 
-  JVCustomWidget(@required this.widgetId, @required this.type) {
+  JVCustomWidget(this.widgetId, this.type) {
     this.widgetId = widgetId;
     this.type = type;
     if (type == JVCustomWidgetType.button) {
@@ -752,7 +747,6 @@ class JVCustomWidget {
       "btnPressedImageName": btnPressedImageName ??= null,
       "lines": lines,
       "isSingleLine": isSingleLine,
-      "isShowUnderline": isShowUnderline,
       "left": left,
       "top": top,
       "width": width,
