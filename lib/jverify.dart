@@ -7,24 +7,30 @@ import 'package:flutter/services.dart';
 /// 监听添加的自定义控件的点击事件
 typedef JVClickWidgetEventListener = void Function(String widgetId);
 
-/// 授权页事件回调 @since 2.4.0
+/// 授权页事件回调
+///
+/// @since 2.4.0
 typedef JVAuthPageEventListener = void Function(JVAuthPageEvent event);
 
 /// 一键登录接口的回调监听
 ///
-/// @param event
-///          code     ：返回码，6000 代表loginToken获取成功，6001 代表loginToken获取失败，其他返回码详见描述
-///          message  ：返回码的解释信息，若获取成功，内容信息代表loginToken。
-///          operator ：成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为 null
+/// [event] 回调事件
+///
+/// 返回 Map：
+///   code     ：返回码，6000 代表 loginToken 获取成功，6001 代表 loginToken 获取失败，其他返回码详见描述
+///   message  ：返回码的解释信息，若获取成功，内容信息代表 loginToken。
+///   operator ：成功时为对应运营商，CM 代表中国移动，CU 代表中国联通，CT 代表中国电信。失败时可能为 null。
 ///
 /// @discussion 调用 loginAuth 接口后，可以通过添加此监听事件来监听接口的返回结果
 typedef JVLoginAuthCallBackListener = void Function(JVListenerEvent event);
 
 /// SDK 初始接口回调监听
 ///
-/// @param event
-///          code     ：返回码，8000代表初始化成功，其他为失败，详见错误码描述
-///          message  ：返回码的解释信息，若获取成功，内容信息代表loginToken。
+/// [event] 回调事件
+///
+/// 返回 Map：
+///   code     ：返回码，8000 代表初始化成功，其他为失败，详见错误码描述
+///   message  ：返回码的解释信息，若获取成功，内容信息代表loginToken。
 ///
 /// @discussion 调用 setup 接口后，可以通过添加此监听事件来监听接口的返回结果
 typedef JVSDKSetupCallBackListener = void Function(JVSDKSetupEvent event);
@@ -55,7 +61,7 @@ class Jverify {
   static const int j_flutter_error_code_repeat = -1;
 
   factory Jverify() => _instance;
-  final JVEventHandlers _eventHanders = JVEventHandlers();
+  final JVEventHandlers _eventHandlers = JVEventHandlers();
 
   final MethodChannel _channel;
   final List<String> requestQueue = [];
@@ -73,19 +79,21 @@ class Jverify {
     _eventHandlers.clickEventsMap[eventId] = callback;
   }
 
-  /// 授权页的点击事件， @since v2.4.0
+  /// 授权页的点击事件
+  ///
+  /// @since v2.4.0
   addAuthPageEventListener(JVAuthPageEventListener callback) {
-    _eventHanders.authPageEvents.add(callback);
+    _eventHandlers.authPageEvents.add(callback);
   }
 
   /// loginAuth 接口回调的监听
   addLoginAuthCallBackListener(JVLoginAuthCallBackListener callback) {
-    _eventHanders.loginAuthCallBackEvents.add(callback);
+    _eventHandlers.loginAuthCallBackEvents.add(callback);
   }
 
   /// SDK 初始化回调监听
   addSDKSetupCallBackListener(JVSDKSetupCallBackListener callback) {
-    _eventHanders.sdkSetupCallBackListener = callback;
+    _eventHandlers.sdkSetupCallBackListener = callback;
   }
 
   Future<void> _handlerMethod(MethodCall call) async {
@@ -94,17 +102,17 @@ class Jverify {
       case 'onReceiveClickWidgetEvent':
         {
           String widgetId = call.arguments.cast<dynamic, dynamic>()['widgetId'];
-          bool isContains = _eventHanders.clickEventsMap.containsKey(widgetId);
+          bool isContains = _eventHandlers.clickEventsMap.containsKey(widgetId);
           if (isContains) {
             JVClickWidgetEventListener cb =
-                _eventHanders.clickEventsMap[widgetId]!;
+                _eventHandlers.clickEventsMap[widgetId]!;
             cb(widgetId);
           }
         }
         break;
       case 'onReceiveAuthPageEvent':
         {
-          for (JVAuthPageEventListener cb in _eventHanders.authPageEvents) {
+          for (JVAuthPageEventListener cb in _eventHandlers.authPageEvents) {
             Map json = call.arguments.cast<dynamic, dynamic>();
             JVAuthPageEvent ev = JVAuthPageEvent.fromJson(json);
             cb(ev);
@@ -114,20 +122,20 @@ class Jverify {
       case 'onReceiveLoginAuthCallBackEvent':
         {
           for (JVLoginAuthCallBackListener cb
-              in _eventHanders.loginAuthCallBackEvents) {
+              in _eventHandlers.loginAuthCallBackEvents) {
             Map json = call.arguments.cast<dynamic, dynamic>();
             JVListenerEvent event = JVListenerEvent.fromJson(json);
             cb(event);
-            _eventHanders.loginAuthCallBackEvents.remove(cb);
+            _eventHandlers.loginAuthCallBackEvents.remove(cb);
           }
         }
         break;
       case 'onReceiveSDKSetupCallBackEvent':
         {
-          if (_eventHanders.sdkSetupCallBackListener != null) {
+          if (_eventHandlers.sdkSetupCallBackListener != null) {
             Map json = call.arguments.cast<dynamic, dynamic>();
             JVSDKSetupEvent event = JVSDKSetupEvent.fromJson(json);
-            _eventHanders.sdkSetupCallBackListener!(event);
+            _eventHandlers.sdkSetupCallBackListener!(event);
           }
         }
         break;
@@ -152,7 +160,8 @@ class Jverify {
     }
   }
 
-  /// 初始化, timeout单位毫秒，合法范围是(0,30000]，推荐设置为5000-10000,默认值为10000
+  /// 初始化, [timeout] 单位毫秒，合法范围是(0,30000]，
+  /// 推荐设置为 5000-10000，默认值为10000
   void setup({
     required String appKey,
     String? channel,
@@ -177,20 +186,18 @@ class Jverify {
     _channel.invokeMethod('setDebugMode', {'debug': debug});
   }
 
-  ///设置前后两次获取验证码的时间间隔，默认 30000ms，有效范围(0,300000)
+  /// 设置前后两次获取验证码的时间间隔，默认 30000ms，有效范围(0,300000)
   void setGetCodeInternal(int intervalTime) {
     print('$flutter_log' + 'setGetCodeInternal');
     _channel.invokeMethod('setGetCodeInternal', {'timeInterval': intervalTime});
   }
 
-/*
-   * SDK 获取短信验证码
-   *
-   * return Map
-   *        key = 'code', vlaue = 状态码，3000代表获取成功
-   *        key = 'message', 提示信息
-   *        key = 'result',uuid
-   * */
+  /// SDK 获取短信验证码
+  ///
+  /// 返回 Map：
+  ///   key = 'code', value = 状态码，3000代表获取成功
+  ///   key = 'message', 提示信息
+  ///   key = 'result', uuid
   Future<Map<dynamic, dynamic>> getSMSCode({
     required String phoneNum,
     String? signId,
@@ -198,51 +205,39 @@ class Jverify {
   }) async {
     print('$flutter_log' + 'getSMSCode');
 
-    var args = <String, String>{};
-    args['phoneNumber'] = phoneNum;
-
-    if (signId != null) {
-      args['signId'] = signId;
-    }
-
-    if (tempId != null) {
-      args['tempId'] = tempId;
-    }
-
+    var args = <String, String>{
+      'phoneNumber': phoneNum,
+      if (signId != null) 'signId': signId,
+      if (tempId != null) 'tempId': tempId,
+    };
     return await _channel.invokeMethod('getSMSCode', args);
   }
 
-  /*
-   * 获取 SDK 初始化是否成功标识
-   *
-   * return Map
-   *          key = 'result'
-   *          vlue = bool,是否成功
-   * */
+  /// 获取 SDK 初始化是否成功标识
+  ///
+  /// 返回 Map：
+  ///   key = 'result'
+  ///   value = bool,是否成功
   Future<Map<dynamic, dynamic>> isInitSuccess() async {
     print('$flutter_log' + 'isInitSuccess');
     return await _channel.invokeMethod('isInitSuccess');
   }
 
-  /*
-   * SDK判断网络环境是否支持
-   *
-   * return Map
-   *          key = 'result'
-   *          vlue = bool,是否支持
-   * */
+  /// SDK 判断网络环境是否支持
+  ///
+  /// 返回 Map：
+  ///   key = 'result'
+  ///   value = bool, 是否支持
   Future<Map<dynamic, dynamic>> checkVerifyEnable() async {
     print('$flutter_log' + 'checkVerifyEnable');
     return await _channel.invokeMethod('checkVerifyEnable');
   }
 
-  /*
-   * SDK 获取号码认证token
-   *
-   * return Map
-   *        key = 'code', vlaue = 状态码，2000代表获取成功
-   *        key = 'message', value = 成功即为 token，失败为提示
-   * */
+  /// SDK 获取号码认证 token
+  ///
+  /// 返回 Map：
+  ///   key = 'code', value = 状态码，2000 代表获取成功
+  ///   key = 'message', value = 成功即为 token，失败为提示
   Future<Map<dynamic, dynamic>> getToken({String? timeOut}) async {
     print('$flutter_log' + 'getToken');
 
@@ -259,27 +254,11 @@ class Jverify {
     }
   }
 
-  /*
-  * SDK 发起号码认证
-  *
-  * 2.4.3 版本开始，此接口已移除
-  * */
-  Future<Map<dynamic, dynamic>> verifyNumber(
-    String phone, {
-    String? token,
-  }) async {
-    print('$flutter_log' + 'verifyNumber');
-
-    return {'error': 'This interface is deprecated'};
-  }
-
-  /*
-   * SDK 一键登录预取号,timeOut 有效取值范围[3000,10000]
-   *
-   * return Map
-   *        key = 'code', vlaue = 状态码，7000代表获取成功
-   *        key = 'message', value = 结果信息描述
-   * */
+  /// SDK 一键登录预取号, [timeOut] 有效取值范围 [3000,10000]
+  ///
+  /// 返回 Map：
+  ///   key = 'code', value = 状态码，7000 代表获取成功
+  ///   key = 'message', value = 结果信息描述
   Future<Map<dynamic, dynamic>> preLogin({int timeOut = 10000}) async {
     var para = Map();
     if (timeOut >= 3000 && timeOut <= 10000) {
@@ -298,33 +277,30 @@ class Jverify {
     }
   }
 
-  /*
-  * SDK 清除预取号缓存
-  *
-  * @discussion 清除 sdk 当前预取号结果缓存
-  *
-  * @since v2.4.3
-  * */
+  /// SDK 清除预取号缓存
+  ///
+  /// @discussion 清除 sdk 当前预取号结果缓存
+  ///
+  /// @since v2.4.3
   void clearPreLoginCache() {
     print('$flutter_log' + 'clearPreLoginCache');
     _channel.invokeMethod('clearPreLoginCache');
   }
 
-  /*
-  * SDK请求授权一键登录（异步接口）
-  *
-  * @param autoDismiss  设置登录完成后是否自动关闭授权页
-  * @param timeout      设置超时时间，单位毫秒。 合法范围（0，30000],范围以外默认设置为10000
-  *
-  * @return 通过接口异步返回的 map :
-  *                           key = 'code', value = 6000 代表loginToken获取成功
-  *                           key = message, value = 返回码的解释信息，若获取成功，内容信息代表loginToken
-  *
-  * @discussion since SDK v2.4.0，授权页面点击事件监听：通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件
-  *
-  * */
-  Future<Map<dynamic, dynamic>> loginAuth(bool autoDismiss,
-      {int timeout = 10000}) async {
+  /// SDK请求授权一键登录（异步接口）
+  ///
+  /// [autoDismiss]  设置登录完成后是否自动关闭授权页
+  /// [timeout]      设置超时时间，单位毫秒。 合法范围（0，30000],范围以外默认设置为 10000
+  ///
+  /// 异步返回 Map :
+  ///   key = 'code', value = 6000 代表 loginToken 获取成功
+  ///   key = message, value = 返回码的解释信息，若获取成功，内容信息代表 loginToken
+  ///
+  /// @discussion since SDK v2.4.0，授权页面点击事件监听：通过添加 [JVAuthPageEventListener] 监听，来监听授权页点击事件
+  Future<Map<dynamic, dynamic>> loginAuth(
+    bool autoDismiss, {
+    int timeout = 10000,
+  }) async {
     print('$flutter_log' + 'loginAuth');
 
     String method = 'loginAuth';
@@ -339,17 +315,14 @@ class Jverify {
     }
   }
 
-  /*
-  * SDK请求授权一键登录（同步接口）
-  *
-  * @param autoDismiss  设置登录完成后是否自动关闭授权页
-  * @param timeout      设置超时时间，单位毫秒。 合法范围（0，30000],范围以外默认设置为10000
-  *
-  * 接口回调返回数据监听：通过添加 JVLoginAuthCallBackListener 监听，来监听接口的返回结果
-  *
-  * 授权页面点击事件监听：通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件
-  *
-  * */
+  /// SDK请求授权一键登录（同步接口）
+  ///
+  /// [autoDismiss]  设置登录完成后是否自动关闭授权页
+  /// [timeout]      设置超时时间，单位毫秒。 合法范围（0，30000]，范围以外默认设置为 10000
+  ///
+  /// 接口回调返回数据监听：通过添加 [JVLoginAuthCallBackListener] 监听，来监听接口的返回结果
+  ///
+  /// 授权页面点击事件监听：通过添加 [JVAuthPageEventListener] 监听，来监听授权页点击事件
   void loginAuthSyncApi({required bool autoDismiss, int timeout = 10000}) {
     print('$flutter_log' + 'loginAuthSyncApi');
 
@@ -364,22 +337,18 @@ class Jverify {
     }
   }
 
-  /*
-  * 关闭授权页面
-  * */
+  /// 关闭授权页面
   void dismissLoginAuthView() {
     print(flutter_log + 'dismissLoginAuthView');
     _channel.invokeMethod('dismissLoginAuthView');
   }
 
-  /*
-  * 设置授权页面
-  *
-  * @para isAutorotate      是否支持横竖屏，true:支持横竖屏，false：只支持竖屏
-  * @para portraitConfig    竖屏的 UI 配置
-  * @para landscapeConfig   Android 横屏的 UI 配置，只有当 isAutorotate=true 时必须传，并且该配置只生效在 Android，iOS 使用 portraitConfig 的约束适配横屏
-  * @para widgets           自定义添加的控件
-  * */
+  /// 设置授权页面
+  ///
+  /// [isAutorotate]    是否支持横竖屏，true:支持横竖屏，false：只支持竖屏
+  /// [portraitConfig]  竖屏的 UI 配置
+  /// [landscapeConfig] Android 横屏的 UI 配置，只有当 isAutorotate=true 时必须传，并且该配置只生效在 Android，iOS 使用 portraitConfig 的约束适配横屏
+  /// [widgets]         自定义添加的控件
   void setCustomAuthorizationView(
     bool isAutorotate,
     JVUIConfig portraitConfig, {
@@ -420,7 +389,8 @@ class Jverify {
     _channel.invokeMethod('setCustomAuthorizationView', para);
   }
 
-  /// （不建议使用，建议使用 setAuthorizationView 接口）自定义授权页面，界面原始控件、新增自定义控件
+  /// （不建议使用，建议使用 [setCustomAuthorizationView] 接口）
+  /// 自定义授权页面，界面原始控件、新增自定义控件
   void setCustomAuthViewAllWidgets(
     JVUIConfig uiConfig, {
     List<JVCustomWidget>? widgets,
@@ -446,16 +416,14 @@ class Jverify {
   }
 }
 
-/*
-* 自定义 UI 界面配置类
-*
-* Y 轴
-*     iOS       以导航栏底部为 0 作为起点
-*     Android   以导航栏底部为 0 作为起点
-* X 轴
-*     iOS       以屏幕中心为 0 作为起点，往屏幕左侧则减，往右侧则加，如果不传或者传 null，则默认屏幕居中
-*     Android   以屏幕左侧为 0 作为起点，往右侧则加，如果不传或者传 null，则默认屏幕居中
-* */
+/// 自定义 UI 界面配置类
+///
+/// Y 轴
+///   iOS      以导航栏底部为 0 作为起点
+///   Android  以导航栏底部为 0 作为起点
+/// X 轴
+///   iOS      以屏幕中心为 0 作为起点，往屏幕左侧则减，往右侧则加，如果不传或者传 null，则默认屏幕居中
+///   Android  以屏幕左侧为 0 作为起点，往右侧则加，如果不传或者传 null，则默认屏幕居中
 class JVUIConfig {
   /// 授权页背景图片
   String? authBackgroundImage;
@@ -508,18 +476,18 @@ class JVUIConfig {
   int? logBtnTextSize;
   int? logBtnTextColor;
   String? logBtnBackgroundPath;
-  String? loginBtnNormalImage; // only ios
-  String? loginBtnPressedImage; // only ios
-  String? loginBtnUnableImage; // only ios
+  String? loginBtnNormalImage; // 仅 iOS
+  String? loginBtnPressedImage; // 仅 iOS
+  String? loginBtnUnableImage; // 仅 iOS
 
   /// 隐私协议栏
   String? uncheckedImgPath;
   String? checkedImgPath;
   int? privacyCheckboxSize;
-  bool privacyHintToast = true; //设置隐私条款不选中时点击登录按钮默认弹出toast。
-  bool privacyState = false; //设置隐私条款默认选中状态，默认不选中
-  bool privacyCheckboxHidden = false; //设置隐私条款checkbox是否隐藏
-  bool privacyCheckboxInCenter = false; //设置隐私条款checkbox是否相对协议文字纵向居中
+  bool privacyHintToast = true; // 设置隐私条款不选中时点击登录按钮默认弹出toast。
+  bool privacyState = false; // 设置隐私条款默认选中状态，默认不选中
+  bool privacyCheckboxHidden = false; // 设置隐私条款checkbox是否隐藏
+  bool privacyCheckboxInCenter = false; // 设置隐私条款checkbox是否相对协议文字纵向居中
 
   int? privacyOffsetY; // 隐私条款相对于授权页面底部下边缘 y 偏移
   int? privacyOffsetX; // 隐私条款相对于屏幕左边 x 轴偏移
@@ -532,35 +500,35 @@ class JVUIConfig {
   int? clauseColor;
   List<String>? privacyText;
   int? privacyTextSize;
-  bool privacyWithBookTitleMark = true; //设置隐私条款运营商协议名是否加书名号
-  bool privacyTextCenterGravity = false; //隐私条款文字是否居中对齐（默认左对齐）
+  bool privacyWithBookTitleMark = true; // 设置隐私条款运营商协议名是否加书名号
+  bool privacyTextCenterGravity = false; // 隐私条款文字是否居中对齐（默认左对齐）
 
   /// 隐私协议 web 页 UI 配置
   int? privacyNavColor; // 导航栏颜色
   int? privacyNavTitleTextColor; // 标题颜色
   int? privacyNavTitleTextSize; // 标题大小
-  String? privacyNavTitleTitle; //协议0 web页面导航栏标题 only ios
+  String? privacyNavTitleTitle; // 协议0 web页面导航栏标题（仅 iOS）
   String? privacyNavTitleTitle1; // 协议1 web页面导航栏标题
   String? privacyNavTitleTitle2; // 协议2 web页面导航栏标题
   String? privacyNavReturnBtnImage;
-  JVIOSBarStyle? privacyStatusBarStyle; //隐私协议web页 状态栏样式设置 only iOS
+  JVIOSBarStyle? privacyStatusBarStyle; //隐私协议web页 状态栏样式设置（仅 iOS）
 
-  ///隐私页
-  bool privacyStatusBarColorWithNav = false; //隐私页web状态栏是否与导航栏同色 only android
-  bool privacyStatusBarDarkMode = false; //隐私页web状态栏是否暗色 only android
-  bool privacyStatusBarTransparent = false; //隐私页web页状态栏是否透明 only android
-  bool privacyStatusBarHidden = false; //隐私页web页状态栏是否隐藏 only android
-  bool privacyVirtualButtonTransparent = false; //隐私页web页虚拟按键背景是否透明 only android
+  /// 隐私页
+  bool privacyStatusBarColorWithNav = false; // 隐私页web状态栏是否与导航栏同色（仅 Android）
+  bool privacyStatusBarDarkMode = false; // 隐私页web状态栏是否暗色（仅 Android）
+  bool privacyStatusBarTransparent = false; // 隐私页web页状态栏是否透明（仅 Android）
+  bool privacyStatusBarHidden = false; // 隐私页web页状态栏是否隐藏 only（仅 Android）
+  bool privacyVirtualButtonTransparent = false; // 隐私页web页虚拟按键背景是否透明（仅 Android）
 
-  ///授权页
-  bool statusBarColorWithNav = false; //授权页状态栏是否跟导航栏同色 only android
-  bool statusBarDarkMode = false; //授权页状态栏是否为暗色 only android
-  bool statusBarTransparent = false; //授权页栏状态栏是否透明 only android
-  bool statusBarHidden = false; //授权页状态栏是否隐藏 only android
-  bool virtualButtonTransparent = false; //授权页虚拟按键背景是否透明 only android
+  /// 授权页
+  bool statusBarColorWithNav = false; //授权页状态栏是否跟导航栏同色（仅 Android）
+  bool statusBarDarkMode = false; //授权页状态栏是否为暗色（仅 Android）
+  bool statusBarTransparent = false; //授权页栏状态栏是否透明（仅 Android）
+  bool statusBarHidden = false; //授权页状态栏是否隐藏（仅 Android）
+  bool virtualButtonTransparent = false; //授权页虚拟按键背景是否透明（仅 Android）
 
-  JVIOSBarStyle authStatusBarStyle =
-      JVIOSBarStyle.StatusBarStyleDefault; //授权页状态栏样式设置 only iOS
+  /// 授权页状态栏样式设置（仅 iOS）
+  JVIOSBarStyle authStatusBarStyle = JVIOSBarStyle.StatusBarStyleDefault;
 
   ///是否需要动画
   bool needStartAnim = false; //设置拉起授权页时是否需要显示默认动画
@@ -569,7 +537,8 @@ class JVUIConfig {
   /// 授权页弹窗模式 配置，选填
   JVPopViewConfig? popViewConfig;
 
-  JVIOSUIModalTransitionStyle modelTransitionStyle = //弹出方式 only ios
+  /// 弹出方式（仅 iOS）
+  JVIOSUIModalTransitionStyle modelTransitionStyle =
       JVIOSUIModalTransitionStyle.CoverVertical;
 
   Map toJsonMap() {
@@ -642,7 +611,8 @@ class JVUIConfig {
       'privacyNavTitleTitle1': privacyNavTitleTitle1,
       'privacyNavTitleTitle2': privacyNavTitleTitle2,
       'privacyNavReturnBtnImage': privacyNavReturnBtnImage,
-      'popViewConfig': popViewConfig != null ? popViewConfig!.toJsonMap() : null,
+      'popViewConfig':
+          popViewConfig != null ? popViewConfig!.toJsonMap() : null,
       'privacyStatusBarColorWithNav': privacyStatusBarColorWithNav,
       'privacyStatusBarDarkMode': privacyStatusBarDarkMode,
       'privacyStatusBarTransparent': privacyStatusBarTransparent,
@@ -663,23 +633,30 @@ class JVUIConfig {
   }
 }
 
-/*
- * 授权页弹窗模式配置
- *
- * 注意：Android 的相关配置可以从 AndroidManifest 中配置，具体做法参考https://docs.jiguang.cn/jverification/client/android_api/#sdk_11
- * */
+/// 授权页弹窗模式配置
+///
+/// 注意：Android 的相关配置可以从 AndroidManifest 中配置，
+/// 具体做法参考 https://docs.jiguang.cn/jverification/client/android_api/#sdk_11
 class JVPopViewConfig {
   JVPopViewConfig();
 
   int? width;
   int? height;
-  int offsetCenterX = 0; // 窗口相对屏幕中心的x轴偏移量
-  int offsetCenterY = 0; // 窗口相对屏幕中心的y轴偏移量
-  bool isBottom = false; // only Android，窗口是否居屏幕底部。设置后 offsetCenterY 将失效，
-  double popViewCornerRadius =
-      5.0; // only ios，弹窗圆角大小，Android 从 AndroidManifest 配置中读取
-  double backgroundAlpha =
-      0.3; // only ios，背景的透明度，Android 从 AndroidManifest 配置中读取
+
+  /// 窗口相对屏幕中心的 X 轴偏移量
+  int offsetCenterX = 0;
+
+  /// 窗口相对屏幕中心的y轴偏移量
+  int offsetCenterY = 0;
+
+  /// 窗口是否居屏幕底部。设置后 offsetCenterY 将失效（仅 Android）
+  bool isBottom = false;
+
+  /// 弹窗圆角大小，Android 从 AndroidManifest 配置中读取（仅 iOS）
+  double popViewCornerRadius = 5.0;
+
+  /// 背景的透明度，Android 从 AndroidManifest 配置中读取（仅 iOS）
+  double backgroundAlpha = 0.3;
 
   bool isPopViewTheme = true; // 是否支持弹窗模式
   Map toJsonMap() {
@@ -724,18 +701,18 @@ class JVCustomWidget {
 
   int lines = 1;
 
-  /// textView 行数，
+  /// TextView 行数
   bool isSingleLine = true;
 
-  /// textView 是否单行显示，默认：单行，iOS 端无效
-  /* 若 isSingleLine = false 时，iOS 端 lines 设置失效，会自适应内容高度，最大高度为设置的 height */
-
+  /// TextView 是否单行显示，默认：单行，iOS 端无效
+  ///
+  /// 若 isSingleLine = false 时，iOS 端 lines 设置失效，会自适应内容高度，最大高度为设置的 height
   bool isShowUnderline = false;
 
-  ///是否显示下划线，默认：不显示
+  /// 是否显示下划线，默认：不显示
   late bool isClickEnable;
 
-  ///是否可点击，默认：不可点击
+  /// 是否可点击，默认：不可点击
 
   Map toJsonMap() {
     return {
@@ -760,7 +737,7 @@ class JVCustomWidget {
   }
 }
 
-/// 添加自定义控件类型，目前只支持 textView
+/// 添加自定义控件类型，目前只支持 [textView]
 enum JVCustomWidgetType { textView, button }
 
 /// 文本对齐方式
@@ -768,25 +745,31 @@ enum JVTextAlignmentType { left, right, center }
 
 /// 监听返回类
 class JVListenerEvent {
-  JVListenerEvent() {
-    print('JVListenerEvent init');
-  }
-
-  int? code; //返回码，具体事件返回码请查看（https://docs.jiguang.cn/jverification/client/android_api/）
-  String? message; //事件描述、事件返回值等
-  String? operator; //成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为null
+  const JVListenerEvent({
+    required this.code,
+    required this.message,
+    this.operator,
+  });
 
   JVListenerEvent.fromJson(Map<dynamic, dynamic> json)
       : code = json['code'],
         message = json['message'],
         operator = json['operator'];
 
+  /// 返回码
+  ///
+  /// 具体事件返回码请查看 https://docs.jiguang.cn/jverification/client/android_api/
+  final int code;
+
+  /// 事件描述、事件返回值等
+  final String message;
+
+  /// 成功时为对应运营商，CM 代表中国移动，CU 代表中国联通，CT 代表中国电信。
+  /// 失败时可能为 null
+  final String? operator;
+
   Map toMap() {
-    return {
-      'code': code,
-      'message': message,
-      'operator': operator
-    };
+    return {'code': code, 'message': message, 'operator': operator};
   }
 }
 
@@ -797,10 +780,7 @@ class JVAuthPageEvent extends JVListenerEvent {
 
   @override
   Map toMap() {
-    return {
-      'code': code,
-      'message': message,
-    };
+    return {'code': code, 'message': message};
   }
 }
 
@@ -810,18 +790,16 @@ class JVSDKSetupEvent extends JVAuthPageEvent {
   JVSDKSetupEvent.fromJson(Map<dynamic, dynamic> json) : super.fromJson(json);
 }
 
-/*
-* iOS 布局参照 item (Android 只)
-*
-* ItemNone    不参照任何item。可用来直接设置 Y、width、height
-* ItemLogo    参照logo视图
-* ItemNumber  参照号码栏
-* ItemSlogan  参照标语栏
-* ItemLogin   参照登录按钮
-* ItemCheck   参照隐私选择框
-* ItemPrivacy 参照隐私栏
-* ItemSuper   参照父视图
-* */
+/// iOS 布局参照 item
+///
+/// [ItemNone]    不参照任何item。可用来直接设置 Y、width、height
+/// [ItemLogo]    参照logo视图
+/// [ItemNumber]  参照号码栏
+/// [ItemSlogan]  参照标语栏
+/// [ItemLogin]   参照登录按钮
+/// [ItemCheck]   参照隐私选择框
+/// [ItemPrivacy] 参照隐私栏
+/// [ItemSuper]   参照父视图
 enum JVIOSLayoutItem {
   ItemNone,
   ItemLogo,
@@ -833,30 +811,30 @@ enum JVIOSLayoutItem {
   ItemSuper
 }
 
-/*
-*
-* iOS授权界面弹出模式
-* 注意：窗口模式下不支持 PartialCurl
-*
-*
-* */
+/// iOS 授权界面弹出模式
+///
+/// 注意：窗口模式下不支持 [PartialCurl]
 enum JVIOSUIModalTransitionStyle {
   CoverVertical,
   FlipHorizontal,
   CrossDissolve,
   PartialCurl
 }
-/*
-*
-* iOS状态栏设置，需要设置info.plist文件中
-* View controller-based status barappearance值为YES
-* 授权页和隐私页状态栏才会生效
-*
-* */
+
+/// iOS 状态栏设置，需要设置 info.plist 文件中
+/// View controller-based status bar appearance 值为 YES
+/// 授权页和隐私页状态栏才会生效
 enum JVIOSBarStyle {
-  StatusBarStyleDefault, // Automatically chooses light or dark content based on the user interface style
-  StatusBarStyleLightContent, // Light content, for use on dark backgrounds iOS 7 以上
-  StatusBarStyleDarkContent // Dark content, for use on light backgrounds  iOS 13 以上
+  /// Automatically chooses light or dark content based on the user interface style
+  StatusBarStyleDefault,
+
+  /// Light content, for use on dark backgrounds
+  /// iOS 7 以上
+  StatusBarStyleLightContent,
+
+  /// Dark content, for use on light background
+  /// iOS 13 以上
+  StatusBarStyleDarkContent
 }
 
 String? getStringFromEnum<T>(T) {
