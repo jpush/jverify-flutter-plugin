@@ -66,9 +66,11 @@ class Jverify {
   static final _instance = Jverify.private(const MethodChannel('jverify'));
 
   /// 自定义控件的点击事件
-  addClikWidgetEventListener(
-      String eventId, JVClickWidgetEventListener callback) {
-    _eventHanders.clickEventsMap[eventId] = callback;
+  addClickWidgetEventListener(
+    String eventId,
+    JVClickWidgetEventListener callback,
+  ) {
+    _eventHandlers.clickEventsMap[eventId] = callback;
   }
 
   /// 授权页的点击事件， @since v2.4.0
