@@ -19,6 +19,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,7 +45,7 @@ import io.flutter.plugin.common.PluginRegistry.Registrar;
 /**
  * JverifyPlugin
  */
-public class JverifyPlugin implements FlutterPlugin,MethodCallHandler {
+public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
     // 定义日志 TAG
     private static final String TAG = "| JVER | Android | -";
@@ -69,7 +70,7 @@ public class JverifyPlugin implements FlutterPlugin,MethodCallHandler {
 
 
     @Override
-    public void onAttachedToEngine( FlutterPluginBinding flutterPluginBinding) {
+    public void onAttachedToEngine(FlutterPluginBinding flutterPluginBinding) {
         channel = new MethodChannel(flutterPluginBinding.getBinaryMessenger(), "jverify");
         channel.setMethodCallHandler(this);
         context = flutterPluginBinding.getApplicationContext();
@@ -77,13 +78,13 @@ public class JverifyPlugin implements FlutterPlugin,MethodCallHandler {
 
 
     @Override
-    public void onDetachedFromEngine( FlutterPluginBinding binding) {
+    public void onDetachedFromEngine(FlutterPluginBinding binding) {
         channel.setMethodCallHandler(null);
     }
 
 
     @Override
-    public void onMethodCall( MethodCall call,  Result result) {
+    public void onMethodCall(MethodCall call, Result result) {
         Log.d(TAG, "onMethodCall:" + call.method);
 
         Log.d(TAG, "processMethod:" + call.method);
@@ -148,6 +149,12 @@ public class JverifyPlugin implements FlutterPlugin,MethodCallHandler {
         Log.d(TAG, "Action - setup:");
 
         Object timeout = getValueByKey(call, "timeout");
+        boolean setControlWifiSwitch = (boolean) getValueByKey(call, "setControlWifiSwitch");
+        if (!setControlWifiSwitch) {
+            Log.d(TAG, "Action - setup: setControlWifiSwitch==" + false);
+            setControlWifiSwitch();
+        }
+
         JVerificationInterface.init(context, (Integer) timeout, new RequestCallback<String>() {
             @Override
             public void onResult(int code, String message) {
@@ -159,6 +166,18 @@ public class JverifyPlugin implements FlutterPlugin,MethodCallHandler {
             }
         });
     }
+
+    private void setControlWifiSwitch() {
+        try {
+            Class<JVerificationInterface> aClass = JVerificationInterface.class;
+            Method method = aClass.getDeclaredMethod("setControlWifiSwitch", boolean.class);
+            method.setAccessible(true);
+            method.invoke(aClass, false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     /**
      * SDK设置debug模式
@@ -858,7 +877,7 @@ public class JverifyPlugin implements FlutterPlugin,MethodCallHandler {
             }
         }
 
-        builder.enableHintToast((Boolean)privacyHintToast, null);
+        builder.enableHintToast((Boolean) privacyHintToast, null);
         /************** 授权页弹窗模式 ***************/
         if (popViewConfig != null) {
             Map popViewConfigMap = (Map) popViewConfig;
