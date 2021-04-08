@@ -378,6 +378,13 @@ class _MyAppState extends State<MyApp> {
         uiConfig.privacyNavTitleTitle2 = "协议22 web页标题";
         uiConfig.privacyNavReturnBtnImage = "return_bg"; //图片必须存在;
 
+        //弹框模式
+        // JVPopViewConfig popViewConfig = JVPopViewConfig();
+        // popViewConfig.width = (screenWidth - 100.0).toInt();
+        // popViewConfig.height = (screenHeight - 150.0).toInt();
+        //
+        // uiConfig.popViewConfig = popViewConfig;
+
         /// 添加自定义的 控件 到授权界面
         List<JVCustomWidget> widgetList = [];
 
