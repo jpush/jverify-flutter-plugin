@@ -1,6 +1,8 @@
 ## 3.0.0
 + 新增：支持空安全；
 + 优化：移除废弃方法。
+## 2.0.3
++ 新增：setup 方法新增 setControlWifiSwitch 参数，默认为true
 ## 2.0.1
 + 新增：适配Flutter 2.0，flutter sdk 2.0以下版本请使用0.6.23。
 ## 0.6.23

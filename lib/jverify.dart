@@ -160,23 +160,25 @@ class Jverify {
     }
   }
 
-  /// 初始化, [timeout] 单位毫秒，合法范围是(0,30000]，
-  /// 推荐设置为 5000-10000，默认值为10000
+  /// 初始化, [timeout] 单位毫秒，合法范围是 (0,30000]，
+  /// 推荐设置为 5000-10000，默认值为 10000
   void setup({
     required String appKey,
     String? channel,
     bool? useIDFA,
     int timeout = 10000,
+    bool setControlWifiSwitch = true,
   }) {
     print('$flutter_log' + 'setup');
 
     _channel.setMethodCallHandler(_handlerMethod);
 
-    _channel.invokeMethod('setup', {
-      'appKey': appKey,
-      'channel': channel,
-      'useIDFA': useIDFA,
-      'timeout': timeout
+    _channel.invokeMethod("setup", {
+      "appKey": appKey,
+      "channel": channel,
+      "useIDFA": useIDFA,
+      "timeout": timeout,
+      "setControlWifiSwitch": setControlWifiSwitch,
     });
   }
 
