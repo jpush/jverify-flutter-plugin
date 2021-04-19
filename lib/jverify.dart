@@ -172,15 +172,15 @@ class Jverify {
   }
 
   /// 设置 debug 模式
-  void setDebugMode(bool debug) {
+  Future<void> setDebugMode(bool debug) {
     print("$flutter_log" + "setDebugMode");
-    _channel.invokeMethod("setDebugMode", {"debug": debug});
+    return _channel.invokeMethod("setDebugMode", {"debug": debug});
   }
 
   ///设置前后两次获取验证码的时间间隔，默认 30000ms，有效范围(0,300000)
-  void setGetCodeInternal(int intervalTime) {
+  Future<void> setGetCodeInternal(int intervalTime) {
     print("$flutter_log" + "setGetCodeInternal");
-    _channel.invokeMethod("setGetCodeInternal", {"timeInterval": intervalTime});
+    return _channel.invokeMethod("setGetCodeInternal", {"timeInterval": intervalTime});
   }
 
 /*
@@ -302,9 +302,9 @@ class Jverify {
   *
   * @since v2.4.3
   * */
-  void clearPreLoginCache() {
+  Future<void> clearPreLoginCache() {
     print("$flutter_log" + "clearPreLoginCache");
-    _channel.invokeMethod("clearPreLoginCache");
+    return _channel.invokeMethod("clearPreLoginCache");
   }
 
   /*
@@ -347,14 +347,14 @@ class Jverify {
   * 授权页面点击事件监听：通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件
   *
   * */
-  void loginAuthSyncApi({@required bool autoDismiss, int timeout = 10000}) {
+  Future<void> loginAuthSyncApi({@required bool autoDismiss, int timeout = 10000}) async{
     print("$flutter_log" + "loginAuthSyncApi");
 
     String method = "loginAuthSyncApi";
     var repeatError = isRepeatRequest(method: method);
     if (repeatError == null) {
       var map = {"autoDismiss": autoDismiss, "timeout": timeout};
-      _channel.invokeMethod(method, map);
+      await _channel.invokeMethod(method, map);
       requestQueue.remove(method);
     } else {
       print("$flutter_log" + repeatError.toString());
@@ -364,9 +364,9 @@ class Jverify {
   /*
   * 关闭授权页面
   * */
-  void dismissLoginAuthView() {
+  Future<void> dismissLoginAuthView() {
     print(flutter_log + "dismissLoginAuthView");
-    _channel.invokeMethod("dismissLoginAuthView");
+    return _channel.invokeMethod("dismissLoginAuthView");
   }
 
   /*
@@ -377,8 +377,8 @@ class Jverify {
   * @para landscapeConfig   Android 横屏的 UI 配置，只有当 isAutorotate=true 时必须传，并且该配置只生效在 Android，iOS 使用 portraitConfig 的约束适配横屏
   * @para widgets           自定义添加的控件
   * */
-  void setCustomAuthorizationView(bool isAutorotate, JVUIConfig portraitConfig,
-      {JVUIConfig landscapeConfig, List<JVCustomWidget> widgets}) {
+  Future<void> setCustomAuthorizationView(bool isAutorotate, JVUIConfig portraitConfig,
+      {JVUIConfig landscapeConfig, List<JVCustomWidget> widgets}) async {
     if (isAutorotate == true) {
       if (portraitConfig == null || landscapeConfig == null) {
         print("missing Android landscape ui config");
@@ -410,11 +410,11 @@ class Jverify {
       para["widgets"] = widgetList;
     }
 
-    _channel.invokeMethod("setCustomAuthorizationView", para);
+    return _channel.invokeMethod("setCustomAuthorizationView", para);
   }
 
   /// （不建议使用，建议使用 setAuthorizationView 接口）自定义授权页面，界面原始控件、新增自定义控件
-  void setCustomAuthViewAllWidgets(JVUIConfig uiConfig,
+  Future<void> setCustomAuthViewAllWidgets(JVUIConfig uiConfig,
       {List<JVCustomWidget> widgets}) {
     var para = Map();
 
@@ -433,7 +433,7 @@ class Jverify {
       para["widgets"] = widgetList;
     }
 
-    _channel.invokeMethod("setCustomAuthViewAllWidgets", para);
+    return _channel.invokeMethod("setCustomAuthViewAllWidgets", para);
   }
 }
 
