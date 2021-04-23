@@ -69,8 +69,8 @@ class Jverify {
   static final _instance = new Jverify.private(const MethodChannel("jverify"));
 
   /// 自定义控件的点击事件
-  addClikWidgetEventListener(String eventId,
-      JVClickWidgetEventListener callback) {
+  addClikWidgetEventListener(
+      String eventId, JVClickWidgetEventListener callback) {
     _eventHanders.clickEventsMap[eventId] = callback;
   }
 
@@ -98,7 +98,7 @@ class Jverify {
           bool isContains = _eventHanders.clickEventsMap.containsKey(widgetId);
           if (isContains) {
             JVClickWidgetEventListener cb =
-            _eventHanders.clickEventsMap[widgetId];
+                _eventHanders.clickEventsMap[widgetId];
             cb(widgetId);
           }
         }
@@ -115,7 +115,7 @@ class Jverify {
       case 'onReceiveLoginAuthCallBackEvent':
         {
           for (JVLoginAuthCallBackListener cb
-          in _eventHanders.loginAuthCallBackEvents) {
+              in _eventHanders.loginAuthCallBackEvents) {
             Map json = call.arguments.cast<dynamic, dynamic>();
             JVListenerEvent event = JVListenerEvent.fromJson(json);
             cb(event);
@@ -154,10 +154,12 @@ class Jverify {
   }
 
   /// 初始化, timeout单位毫秒，合法范围是(0,30000]，推荐设置为5000-10000,默认值为10000
-  void setup({@required String appKey,
-    String channel,
-    bool useIDFA,
-    int timeout = 10000, bool setControlWifiSwitch = true}) {
+  void setup(
+      {@required String appKey,
+      String channel,
+      bool useIDFA,
+      int timeout = 10000,
+      bool setControlWifiSwitch = true}) {
     print("$flutter_log" + "setup");
 
     _channel.setMethodCallHandler(_handlerMethod);
@@ -167,7 +169,7 @@ class Jverify {
       "channel": channel,
       "useIDFA": useIDFA,
       "timeout": timeout,
-      "setControlWifiSwitch":setControlWifiSwitch
+      "setControlWifiSwitch": setControlWifiSwitch
     });
   }
 
@@ -450,6 +452,7 @@ class Jverify {
 class JVUIConfig {
   /// 授权页背景图片
   String authBackgroundImage;
+  String authBGGifPath; // 授权界面gif图片 only android
 
   /// 导航栏
   int navColor;
@@ -556,16 +559,19 @@ class JVUIConfig {
   ///是否需要动画
   bool needStartAnim = false; //设置拉起授权页时是否需要显示默认动画
   bool needCloseAnim = false; //设置关闭授权页时是否需要显示默认动画
+  String enterAnim; // 拉起授权页时进入动画 only android
+  String exitAnim; // 退出授权页时动画 only android
 
   /// 授权页弹窗模式 配置，选填
   JVPopViewConfig popViewConfig;
 
   JVIOSUIModalTransitionStyle modelTransitionStyle = //弹出方式 only ios
-  JVIOSUIModalTransitionStyle.CoverVertical;
+      JVIOSUIModalTransitionStyle.CoverVertical;
 
   Map toJsonMap() {
     return {
       "authBackgroundImage": authBackgroundImage ??= null,
+      "authBGGifPath": authBGGifPath ??= null,
       "navColor": navColor ??= null,
       "navText": navText ??= null,
       "navTextColor": navTextColor ??= null,
@@ -649,9 +655,10 @@ class JVUIConfig {
       "modelTransitionStyle": getStringFromEnum(modelTransitionStyle),
       "needStartAnim": needStartAnim,
       "needCloseAnim": needCloseAnim,
+      "enterAnim": enterAnim,
+      "exitAnim": exitAnim,
       "privacyNavTitleTitle": privacyNavTitleTitle ??= null,
-    }
-      ..removeWhere((key, value) => value == null);
+    }..removeWhere((key, value) => value == null);
   }
 }
 
@@ -667,9 +674,9 @@ class JVPopViewConfig {
   int offsetCenterY = 0; // 窗口相对屏幕中心的y轴偏移量
   bool isBottom = false; // only Android，窗口是否居屏幕底部。设置后 offsetCenterY 将失效，
   double popViewCornerRadius =
-  5.0; // only ios，弹窗圆角大小，Android 从 AndroidManifest 配置中读取
+      5.0; // only ios，弹窗圆角大小，Android 从 AndroidManifest 配置中读取
   double backgroundAlpha =
-  0.3; // only ios，背景的透明度，Android 从 AndroidManifest 配置中读取
+      0.3; // only ios，背景的透明度，Android 从 AndroidManifest 配置中读取
 
   bool isPopViewTheme; // 是否支持弹窗模式
   JVPopViewConfig() {
@@ -686,8 +693,7 @@ class JVPopViewConfig {
       "isBottom": isBottom ??= null,
       "popViewCornerRadius": popViewCornerRadius,
       "backgroundAlpha": backgroundAlpha,
-    }
-      ..removeWhere((key, value) => value == null);
+    }..removeWhere((key, value) => value == null);
   }
 }
 
@@ -753,8 +759,7 @@ class JVCustomWidget {
       "top": top,
       "width": width,
       "height": height,
-    }
-      ..removeWhere((key, value) => value == null);
+    }..removeWhere((key, value) => value == null);
   }
 }
 
@@ -862,8 +867,5 @@ String getStringFromEnum<T>(T) {
     return null;
   }
 
-  return T
-      .toString()
-      .split('.')
-      .last;
+  return T.toString().split('.').last;
 }
