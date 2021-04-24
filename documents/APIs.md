@@ -506,6 +506,10 @@ jverify.getSMSCode(phone,{signId:signId,tempId:tempId}).then((map){
 |privacyHintToast	|boolean	|设置隐私条款不选中时点击登录按钮默认弹出toast|
 |needStartAnim	|boolean	|设置拉起授权页时是否需要显示默认动画|
 |needCloseAnim	|boolean	|设置关闭授权页时是否需要显示默认动画|
+|enterAnim	|String	|拉起授权页时进入动画(android)|
+|exitAnim	|String	|退出授权页时动画(android)|
+|authBGGifPath	|String	|授权界面gif背景(android)|
+|authBackgroundImage	|String	|授权界面背景|
 |StatusBarStyleDefault	|enum	|Automatically chooses light or dark content based on the user interface style|
 |StatusBarStyleLightContent	|enum	|Light content, for use on dark backgrounds iOS 7 以上|
 |StatusBarStyleDarkContent	|enum	|Dark content, for use on light backgrounds  iOS 13 以上|

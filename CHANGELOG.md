@@ -1,6 +1,10 @@
 ## 3.0.0
 + 新增：支持空安全；
 + 优化：移除废弃方法。
+## 2.0.5
++ 新增：授权界面gif图片 authBGGifPath only android
++ 新增：授权界面动画 enterAnim  exitAnim  only android
++ 优化：升级认证版本 android 2.7.1，ios 2.7.0
 ## 2.0.3
 + 新增：setup 方法新增 setControlWifiSwitch 参数，默认为true
 ## 2.0.1

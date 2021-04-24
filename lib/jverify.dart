@@ -429,6 +429,7 @@ class Jverify {
 class JVUIConfig {
   /// 授权页背景图片
   String? authBackgroundImage;
+  String? authBGGifPath; // 授权界面 gif 图片，仅 Android
 
   /// 导航栏
   int? navColor;
@@ -535,6 +536,8 @@ class JVUIConfig {
   ///是否需要动画
   bool needStartAnim = false; //设置拉起授权页时是否需要显示默认动画
   bool needCloseAnim = false; //设置关闭授权页时是否需要显示默认动画
+  String? enterAnim; // 拉起授权页时进入动画 only android
+  String? exitAnim; // 退出授权页时动画 only android
 
   /// 授权页弹窗模式 配置，选填
   JVPopViewConfig? popViewConfig;
@@ -546,6 +549,7 @@ class JVUIConfig {
   Map toJsonMap() {
     return {
       'authBackgroundImage': authBackgroundImage,
+      'authBGGifPath': authBGGifPath,
       'navColor': navColor,
       'navText': navText,
       'navTextColor': navTextColor,

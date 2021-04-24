@@ -39,7 +39,6 @@ import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler;
 import io.flutter.plugin.common.MethodChannel.Result;
-import io.flutter.plugin.common.PluginRegistry.Registrar;
 
 
 /**
@@ -519,6 +518,10 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Log.d(TAG, "layoutOriginOuthView:");
 
 
+        Object enterAnim = valueForKey(uiconfig, "enterAnim");
+        Object exitAnim = valueForKey(uiconfig, "exitAnim");
+        Object authBGGifPath = valueForKey(uiconfig, "authBGGifPath");
+
         Object authBackgroundImage = valueForKey(uiconfig, "authBackgroundImage");
 
         Object navColor = valueForKey(uiconfig, "navColor");
@@ -657,6 +660,17 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             builder.setNeedCloseAnim((Boolean) needCloseAnim);
         }
 
+        int enterA;
+        int exitA;
+
+        if (enterAnim != null && exitAnim != null) {
+            enterA = ResourceUtil.getAnimId(context, (String) enterAnim);
+            exitA = ResourceUtil.getAnimId(context, (String) exitAnim);
+            if (enterA >= 0 && exitA >= 0) {
+                builder.overridePendingTransition(enterA, exitA);
+            }
+        }
+
         /************** 背景 ***************/
         if (authBackgroundImage != null) {
             int res_id = getResourceByReflect((String) authBackgroundImage);
@@ -664,6 +678,14 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 builder.setAuthBGImgPath((String) authBackgroundImage);
             }
         }
+
+        if (authBGGifPath != null) {
+            int res_id = getResourceByReflect((String) authBGGifPath);
+            if (res_id > 0) {
+                builder.setAuthBGGifPath((String) authBGGifPath);
+            }
+        }
+
         /************** nav ***************/
         if (navHidden != null) {
             builder.setNavHidden((Boolean) navHidden);
@@ -1234,4 +1256,5 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
         return r_id;
     }
+
 }

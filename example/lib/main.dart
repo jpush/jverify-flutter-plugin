@@ -289,7 +289,7 @@ class _MyAppState extends State<MyApp> {
         /// ios项目存放在 Assets.xcassets。
         ///
         JVUIConfig uiConfig = JVUIConfig();
-        //uiConfig.authBackgroundImage = ;
+        // uiConfig.authBGGifPath = "main_gif";
 
         //uiConfig.navHidden = true;
         uiConfig.navColor = Colors.red.value;
@@ -312,6 +312,8 @@ class _MyAppState extends State<MyApp> {
         uiConfig.numberVerticalLayoutItem = JVIOSLayoutItem.ItemLogo;
         uiConfig.numberColor = Colors.blue.value;
         uiConfig.numberSize = 18;
+
+
 
         uiConfig.sloganOffsetY = isiOS ? 20 : 160;
         uiConfig.sloganVerticalLayoutItem = JVIOSLayoutItem.ItemNumber;
@@ -368,6 +370,9 @@ class _MyAppState extends State<MyApp> {
 
         uiConfig.needStartAnim = true;
         uiConfig.needCloseAnim = true;
+        uiConfig.enterAnim = "activity_slide_enter_bottom";
+        uiConfig.exitAnim = "activity_slide_exit_bottom";
+
 
         uiConfig.privacyNavColor = Colors.red.value;
         uiConfig.privacyNavTitleTextColor = Colors.blue.value;
