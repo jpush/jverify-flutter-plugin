@@ -3,7 +3,7 @@ version '1.0-SNAPSHOT'
 
 buildscript {
     repositories {
-        maven { url 'https://maven.aliyun.com/repository/public/' }
+        mavenCentral()
         google()
     }
 
@@ -14,7 +14,7 @@ buildscript {
 
 rootProject.allprojects {
     repositories {
-        maven { url 'https://maven.aliyun.com/repository/public/' }
+        mavenCentral()
         google()
     }
 }
@@ -37,6 +37,6 @@ android {
 }
 
 dependencies {
-    implementation fileTree(include: '*.aar', dir: 'libs')
-    implementation 'cn.jiguang.sdk:jcore:2.2.6'
+    implementation 'cn.jiguang.sdk:jcore:2.7.8'
+    implementation 'cn.jiguang.sdk:jverification:2.7.1'
 }

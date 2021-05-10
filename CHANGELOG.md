@@ -1,6 +1,13 @@
 ## 3.0.0
 + 新增：支持空安全；
++ 优化：升级 AGP 及 Gradle 版本；
++ 优化：迁移至 AndroidX；
++ 优化：移除 jcenter；
 + 优化：移除废弃方法。
+### 破坏性改动
++ `addClikWidgetEventListener` -> `addClickWidgetEventListener`
+## 2.0.7
++ 修复：修复android gradle 升级4.0 以上版本编译问题
 ## 2.0.5
 + 新增：授权界面gif图片 authBGGifPath only android
 + 新增：授权界面动画 enterAnim  exitAnim  only android
