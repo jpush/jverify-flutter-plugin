@@ -1,6 +1,7 @@
 ## 3.0.0
 + 新增：支持空安全；
 + 优化：升级 AGP 及 Gradle 版本；
++ 优化：compileSdkVersion/targetSdkVersion 28 -> 30；
 + 优化：迁移至 AndroidX；
 + 优化：移除 jcenter；
 + 优化：移除废弃方法。
