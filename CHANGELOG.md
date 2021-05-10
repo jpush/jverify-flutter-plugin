@@ -1,3 +1,5 @@
+## 2.0.7
++ 修复：修复android gradle 升级4.0 以上版本编译问题
 ## 2.0.5
 + 新增：授权界面gif图片 authBGGifPath only android
 + 新增：授权界面动画 enterAnim  exitAnim  only android

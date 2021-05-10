@@ -3,6 +3,7 @@ version '1.0-SNAPSHOT'
 
 buildscript {
     repositories {
+        mavenCentral()
         google()
         jcenter()
     }
@@ -14,6 +15,7 @@ buildscript {
 
 rootProject.allprojects {
     repositories {
+        mavenCentral()
         google()
         jcenter()
     }
@@ -50,6 +52,7 @@ android {
 }
 
 dependencies {
-    implementation fileTree(include: '*.aar', dir: 'libs')
-    implementation 'cn.jiguang.sdk:jcore:2.2.6'
+//    implementation fileTree(include: '*.aar', dir: 'libs')
+    implementation 'cn.jiguang.sdk:jcore:2.7.8'
+    implementation 'cn.jiguang.sdk:jverification:2.7.1'
 }
