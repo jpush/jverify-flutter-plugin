@@ -1,28 +1,30 @@
 import 'package:flutter/material.dart';
 
 class LoadingDialog {
-  static BuildContext _context;
+  static late BuildContext _context;
+
   static void show(BuildContext context) {
     _context = context;
     Navigator.push(_context, DialogRouter(_LoadingDialog()));
   }
+
   static void hidden() {
-    if (_context != null) {
-      if (Navigator.canPop(_context)) {
-        Navigator.pop(_context);
-      }
-      _context = null;
+    if (Navigator.canPop(_context)) {
+      Navigator.pop(_context);
     }
   }
 }
+
 class DialogRouter extends PageRouteBuilder {
   final Widget page;
+
   DialogRouter(this.page)
       : super(
-    opaque: false,
-    pageBuilder: (context, animation, secondaryAnimation) => page,
-  );
+          opaque: false,
+          pageBuilder: (context, animation, secondaryAnimation) => page,
+        );
 }
+
 class _LoadingDialog extends Dialog {
   @override
   Widget build(BuildContext context) {
@@ -30,6 +32,7 @@ class _LoadingDialog extends Dialog {
       child: new Material(
         ///背景透明
         color: Colors.black54,
+
         ///保证控件居中效果
         child: new Center(
           ///弹框大小

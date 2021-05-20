@@ -39,10 +39,11 @@ class JVEventHandlers {
 
   factory JVEventHandlers() => _instance;
 
-  Map<String, JVClickWidgetEventListener> clickEventsMap = Map();
+  Map<String, JVClickWidgetEventListener> clickEventsMap =
+      Map<String, JVClickWidgetEventListener>();
   List<JVAuthPageEventListener> authPageEvents = [];
   List<JVLoginAuthCallBackListener> loginAuthCallBackEvents = [];
-  JVSDKSetupCallBackListener sdkSetupCallBackListener;
+  JVSDKSetupCallBackListener? sdkSetupCallBackListener;
 }
 
 class Jverify {
@@ -85,7 +86,7 @@ class Jverify {
   }
 
   /// SDK 初始化回调监听
-  addSDKSetupCallBackListener(JVSDKSetupCallBackListener callback) {
+  addSDKSetupCallBackListener(JVSDKSetupCallBackListener? callback) {
     _eventHanders.sdkSetupCallBackListener = callback;
   }
 
@@ -98,7 +99,7 @@ class Jverify {
           bool isContains = _eventHanders.clickEventsMap.containsKey(widgetId);
           if (isContains) {
             JVClickWidgetEventListener cb =
-                _eventHanders.clickEventsMap[widgetId];
+                _eventHanders.clickEventsMap[widgetId]!;
             cb(widgetId);
           }
         }
@@ -128,7 +129,7 @@ class Jverify {
           if (_eventHanders.sdkSetupCallBackListener != null) {
             Map json = call.arguments.cast<dynamic, dynamic>();
             JVSDKSetupEvent event = JVSDKSetupEvent.fromJson(json);
-            _eventHanders.sdkSetupCallBackListener(event);
+            _eventHanders.sdkSetupCallBackListener!(event);
           }
         }
         break;
@@ -138,7 +139,7 @@ class Jverify {
     return;
   }
 
-  Map<dynamic, dynamic> isRepeatRequest({@required String method}) {
+  Map<dynamic, dynamic>? isRepeatRequest({required String method}) {
     bool isContain = requestQueue.any((element) => (element == method));
     if (isContain) {
       Map map = {
@@ -155,9 +156,9 @@ class Jverify {
 
   /// 初始化, timeout单位毫秒，合法范围是(0,30000]，推荐设置为5000-10000,默认值为10000
   void setup(
-      {@required String appKey,
-      String channel,
-      bool useIDFA,
+      {@required String? appKey,
+      String? channel,
+      bool? useIDFA,
       int timeout = 10000,
       bool setControlWifiSwitch = true}) {
     print("$flutter_log" + "setup");
@@ -194,11 +195,13 @@ class Jverify {
    *        key = "result",uuid
    * */
   Future<Map<dynamic, dynamic>> getSMSCode(
-      {@required String phoneNum, String signId, String tempId}) async {
+      {@required String? phoneNum, String? signId, String? tempId}) async {
     print("$flutter_log" + "getSMSCode");
 
     var args = <String, String>{};
-    args["phoneNumber"] = phoneNum;
+    if (phoneNum != null) {
+      args["phoneNumber"] = phoneNum;
+    }
 
     if (signId != null) {
       args["signId"] = signId;
@@ -242,7 +245,7 @@ class Jverify {
    *        key = "code", vlaue = 状态码，2000代表获取成功
    *        key = "message", value = 成功即为 token，失败为提示
    * */
-  Future<Map<dynamic, dynamic>> getToken({String timeOut}) async {
+  Future<Map<dynamic, dynamic>> getToken({String? timeOut}) async {
     print("$flutter_log" + "getToken");
 
     String method = "getToken";
@@ -264,7 +267,7 @@ class Jverify {
   * 2.4.3 版本开始，此接口已移除
   * */
   Future<Map<dynamic, dynamic>> verifyNumber(String phone,
-      {String token}) async {
+      {String? token}) async {
     print("$flutter_log" + "verifyNumber");
 
     return {"error": "This interface is deprecated"};
@@ -349,7 +352,8 @@ class Jverify {
   * 授权页面点击事件监听：通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件
   *
   * */
-  void loginAuthSyncApi({@required bool autoDismiss, int timeout = 10000}) {
+  void loginAuthSyncApi(
+      {@required bool autoDismiss = false, int timeout = 10000}) {
     print("$flutter_log" + "loginAuthSyncApi");
 
     String method = "loginAuthSyncApi";
@@ -380,7 +384,7 @@ class Jverify {
   * @para widgets           自定义添加的控件
   * */
   void setCustomAuthorizationView(bool isAutorotate, JVUIConfig portraitConfig,
-      {JVUIConfig landscapeConfig, List<JVCustomWidget> widgets}) {
+      {JVUIConfig? landscapeConfig, List<JVCustomWidget>? widgets}) {
     if (isAutorotate == true) {
       if (portraitConfig == null || landscapeConfig == null) {
         print("missing Android landscape ui config");
@@ -417,7 +421,7 @@ class Jverify {
 
   /// （不建议使用，建议使用 setAuthorizationView 接口）自定义授权页面，界面原始控件、新增自定义控件
   void setCustomAuthViewAllWidgets(JVUIConfig uiConfig,
-      {List<JVCustomWidget> widgets}) {
+      {List<JVCustomWidget>? widgets}) {
     var para = Map();
 
     var para1 = uiConfig.toJsonMap();
@@ -451,93 +455,93 @@ class Jverify {
 * */
 class JVUIConfig {
   /// 授权页背景图片
-  String authBackgroundImage;
-  String authBGGifPath; // 授权界面gif图片 only android
+  String? authBackgroundImage;
+  String? authBGGifPath; // 授权界面gif图片 only android
 
   /// 导航栏
-  int navColor;
-  String navText;
-  int navTextColor;
-  String navReturnImgPath;
+  int? navColor;
+  String? navText;
+  int? navTextColor;
+  String? navReturnImgPath;
   bool navHidden = false;
   bool navReturnBtnHidden = false;
   bool navTransparent = false;
 
   /// logo
-  int logoWidth;
-  int logoHeight;
-  int logoOffsetX;
-  int logoOffsetY;
-  JVIOSLayoutItem logoVerticalLayoutItem;
-  bool logoHidden;
-  String logoImgPath;
+  int? logoWidth;
+  int? logoHeight;
+  int? logoOffsetX;
+  int? logoOffsetY;
+  JVIOSLayoutItem? logoVerticalLayoutItem;
+  bool? logoHidden;
+  String? logoImgPath;
 
   /// 号码
-  int numberColor;
-  int numberSize;
-  int numFieldOffsetX;
-  int numFieldOffsetY;
-  int numberFieldWidth;
-  int numberFieldHeight;
-  JVIOSLayoutItem numberVerticalLayoutItem;
+  int? numberColor;
+  int? numberSize;
+  int? numFieldOffsetX;
+  int? numFieldOffsetY;
+  int? numberFieldWidth;
+  int? numberFieldHeight;
+  JVIOSLayoutItem? numberVerticalLayoutItem;
 
   /// slogan
-  int sloganOffsetX;
-  int sloganOffsetY;
-  JVIOSLayoutItem sloganVerticalLayoutItem;
-  int sloganTextColor;
-  int sloganTextSize;
-  int sloganWidth;
-  int sloganHeight;
+  int? sloganOffsetX;
+  int? sloganOffsetY;
+  JVIOSLayoutItem? sloganVerticalLayoutItem;
+  int? sloganTextColor;
+  int? sloganTextSize;
+  int? sloganWidth;
+  int? sloganHeight;
 
   bool sloganHidden = false;
 
   /// 登录按钮
-  int logBtnOffsetX;
-  int logBtnOffsetY;
-  int logBtnWidth;
-  int logBtnHeight;
-  JVIOSLayoutItem logBtnVerticalLayoutItem;
-  String logBtnText;
-  int logBtnTextSize;
-  int logBtnTextColor;
-  String logBtnBackgroundPath;
-  String loginBtnNormalImage; // only ios
-  String loginBtnPressedImage; // only ios
-  String loginBtnUnableImage; // only ios
+  int? logBtnOffsetX;
+  int? logBtnOffsetY;
+  int? logBtnWidth;
+  int? logBtnHeight;
+  JVIOSLayoutItem? logBtnVerticalLayoutItem;
+  String? logBtnText;
+  int? logBtnTextSize;
+  int? logBtnTextColor;
+  String? logBtnBackgroundPath;
+  String? loginBtnNormalImage; // only ios
+  String? loginBtnPressedImage; // only ios
+  String? loginBtnUnableImage; // only ios
 
   /// 隐私协议栏
-  String uncheckedImgPath;
-  String checkedImgPath;
-  int privacyCheckboxSize;
+  String? uncheckedImgPath;
+  String? checkedImgPath;
+  int? privacyCheckboxSize;
   bool privacyHintToast = true; //设置隐私条款不选中时点击登录按钮默认弹出toast。
   bool privacyState = false; //设置隐私条款默认选中状态，默认不选中
   bool privacyCheckboxHidden = false; //设置隐私条款checkbox是否隐藏
   bool privacyCheckboxInCenter = false; //设置隐私条款checkbox是否相对协议文字纵向居中
 
-  int privacyOffsetY; // 隐私条款相对于授权页面底部下边缘 y 偏移
-  int privacyOffsetX; // 隐私条款相对于屏幕左边 x 轴偏移
+  int? privacyOffsetY; // 隐私条款相对于授权页面底部下边缘 y 偏移
+  int? privacyOffsetX; // 隐私条款相对于屏幕左边 x 轴偏移
   JVIOSLayoutItem privacyVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
-  String clauseName; // 协议1 名字
-  String clauseUrl; // 协议1 URL
-  String clauseNameTwo; // 协议2 名字
-  String clauseUrlTwo; // 协议2 URL
-  int clauseBaseColor;
-  int clauseColor;
-  List<String> privacyText;
-  int privacyTextSize;
+  String? clauseName; // 协议1 名字
+  String? clauseUrl; // 协议1 URL
+  String? clauseNameTwo; // 协议2 名字
+  String? clauseUrlTwo; // 协议2 URL
+  int? clauseBaseColor;
+  int? clauseColor;
+  List<String>? privacyText;
+  int? privacyTextSize;
   bool privacyWithBookTitleMark = true; //设置隐私条款运营商协议名是否加书名号
   bool privacyTextCenterGravity = false; //隐私条款文字是否居中对齐（默认左对齐）
 
   /// 隐私协议 web 页 UI 配置
-  int privacyNavColor; // 导航栏颜色
-  int privacyNavTitleTextColor; // 标题颜色
-  int privacyNavTitleTextSize; // 标题大小
-  String privacyNavTitleTitle; //协议0 web页面导航栏标题 only ios
-  String privacyNavTitleTitle1; // 协议1 web页面导航栏标题
-  String privacyNavTitleTitle2; // 协议2 web页面导航栏标题
-  String privacyNavReturnBtnImage;
-  JVIOSBarStyle privacyStatusBarStyle; //隐私协议web页 状态栏样式设置 only iOS
+  int? privacyNavColor; // 导航栏颜色
+  int? privacyNavTitleTextColor; // 标题颜色
+  int? privacyNavTitleTextSize; // 标题大小
+  String? privacyNavTitleTitle; //协议0 web页面导航栏标题 only ios
+  String? privacyNavTitleTitle1; // 协议1 web页面导航栏标题
+  String? privacyNavTitleTitle2; // 协议2 web页面导航栏标题
+  String? privacyNavReturnBtnImage;
+  JVIOSBarStyle? privacyStatusBarStyle; //隐私协议web页 状态栏样式设置 only iOS
 
   ///隐私页
   bool privacyStatusBarColorWithNav = false; //隐私页web状态栏是否与导航栏同色 only android
@@ -559,11 +563,11 @@ class JVUIConfig {
   ///是否需要动画
   bool needStartAnim = false; //设置拉起授权页时是否需要显示默认动画
   bool needCloseAnim = false; //设置关闭授权页时是否需要显示默认动画
-  String enterAnim; // 拉起授权页时进入动画 only android
-  String exitAnim; // 退出授权页时动画 only android
+  String? enterAnim; // 拉起授权页时进入动画 only android
+  String? exitAnim; // 退出授权页时动画 only android
 
   /// 授权页弹窗模式 配置，选填
-  JVPopViewConfig popViewConfig;
+  JVPopViewConfig? popViewConfig;
 
   JVIOSUIModalTransitionStyle modelTransitionStyle = //弹出方式 only ios
       JVIOSUIModalTransitionStyle.CoverVertical;
@@ -639,7 +643,8 @@ class JVUIConfig {
       "privacyNavTitleTitle1": privacyNavTitleTitle1 ??= null,
       "privacyNavTitleTitle2": privacyNavTitleTitle2 ??= null,
       "privacyNavReturnBtnImage": privacyNavReturnBtnImage ??= null,
-      "popViewConfig": popViewConfig != null ? popViewConfig.toJsonMap() : null,
+      "popViewConfig":
+          popViewConfig != null ? popViewConfig?.toJsonMap() : null,
       "privacyStatusBarColorWithNav": privacyStatusBarColorWithNav,
       "privacyStatusBarDarkMode": privacyStatusBarDarkMode,
       "privacyStatusBarTransparent": privacyStatusBarTransparent,
@@ -668,8 +673,8 @@ class JVUIConfig {
  * 注意：Android 的相关配置可以从 AndroidManifest 中配置，具体做法参考https://docs.jiguang.cn/jverification/client/android_api/#sdk_11
  * */
 class JVPopViewConfig {
-  int width;
-  int height;
+  int? width;
+  int? height;
   int offsetCenterX = 0; // 窗口相对屏幕中心的x轴偏移量
   int offsetCenterY = 0; // 窗口相对屏幕中心的y轴偏移量
   bool isBottom = false; // only Android，窗口是否居屏幕底部。设置后 offsetCenterY 将失效，
@@ -678,7 +683,7 @@ class JVPopViewConfig {
   double backgroundAlpha =
       0.3; // only ios，背景的透明度，Android 从 AndroidManifest 配置中读取
 
-  bool isPopViewTheme; // 是否支持弹窗模式
+  bool? isPopViewTheme; // 是否支持弹窗模式
   JVPopViewConfig() {
     this.isPopViewTheme = true;
   }
@@ -686,11 +691,11 @@ class JVPopViewConfig {
   Map toJsonMap() {
     return {
       "isPopViewTheme": isPopViewTheme,
-      "width": width ??= null,
-      "height": height ??= null,
-      "offsetCenterX": offsetCenterX ??= null,
-      "offsetCenterY": offsetCenterY ??= null,
-      "isBottom": isBottom ??= null,
+      "width": width,
+      "height": height,
+      "offsetCenterX": offsetCenterX,
+      "offsetCenterY": offsetCenterY,
+      "isBottom": isBottom,
       "popViewCornerRadius": popViewCornerRadius,
       "backgroundAlpha": backgroundAlpha,
     }..removeWhere((key, value) => value == null);
@@ -699,8 +704,8 @@ class JVPopViewConfig {
 
 /// 自定义控件
 class JVCustomWidget {
-  String widgetId;
-  JVCustomWidgetType type;
+  String? widgetId;
+  JVCustomWidgetType? type;
 
   JVCustomWidget(this.widgetId, this.type) {
     this.widgetId = widgetId;
@@ -720,10 +725,10 @@ class JVCustomWidget {
   String title = "";
   double titleFont = 13.0;
   int titleColor = Colors.black.value;
-  int backgroundColor;
-  String btnNormalImageName;
-  String btnPressedImageName;
-  JVTextAlignmentType textAlignment;
+  int? backgroundColor;
+  String? btnNormalImageName;
+  String? btnPressedImageName;
+  JVTextAlignmentType? textAlignment;
 
   int lines = 1;
 
@@ -736,7 +741,7 @@ class JVCustomWidget {
   bool isShowUnderline = false;
 
   ///是否显示下划线，默认：不显示
-  bool isClickEnable;
+  bool isClickEnable = false;
 
   ///是否可点击，默认：不可点击
 
@@ -745,14 +750,14 @@ class JVCustomWidget {
       "widgetId": widgetId,
       "type": getStringFromEnum(type),
       "title": title,
-      "titleFont": titleFont ??= null,
+      "titleFont": titleFont,
       "textAlignment": getStringFromEnum(textAlignment),
-      "titleColor": titleColor ??= null,
-      "backgroundColor": backgroundColor ??= null,
+      "titleColor": titleColor,
+      "backgroundColor": backgroundColor,
       "isShowUnderline": isShowUnderline,
       "isClickEnable": isClickEnable,
-      "btnNormalImageName": btnNormalImageName ??= null,
-      "btnPressedImageName": btnPressedImageName ??= null,
+      "btnNormalImageName": btnNormalImageName,
+      "btnPressedImageName": btnPressedImageName,
       "lines": lines,
       "isSingleLine": isSingleLine,
       "left": left,
@@ -775,21 +780,13 @@ class JVListenerEvent {
   String message; //事件描述、事件返回值等
   String operator; //成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为null
 
-  JVListenerEvent() {
-    print("JVListenerEvent init");
-  }
-
   JVListenerEvent.fromJson(Map<dynamic, dynamic> json)
       : code = json['code'],
         message = json['message'],
         operator = json['operator'];
 
   Map toMap() {
-    return {
-      'code': code ??= null,
-      'message': message ??= null,
-      'operator': operator ??= null
-    };
+    return {'code': code, 'message': message, 'operator': operator};
   }
 }
 
@@ -801,8 +798,8 @@ class JVAuthPageEvent extends JVListenerEvent {
   @override
   Map toMap() {
     return {
-      'code': code ??= null,
-      'message': message ??= null,
+      'code': code,
+      'message': message,
     };
   }
 }
@@ -864,7 +861,7 @@ enum JVIOSBarStyle {
 
 String getStringFromEnum<T>(T) {
   if (T == null) {
-    return null;
+    return "";
   }
 
   return T.toString().split('.').last;

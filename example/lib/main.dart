@@ -33,7 +33,7 @@ class _MyAppState extends State<MyApp> {
   String _result = "token=";
   var controllerPHone = new TextEditingController();
   final Jverify jverify = new Jverify();
-  String _token;
+  String? _token;
 
   @override
   void initState() {
@@ -521,8 +521,8 @@ class _MyAppState extends State<MyApp> {
 
 /// 封装 按钮
 class CustomButton extends StatelessWidget {
-  final VoidCallback onPressed;
-  final String title;
+  final VoidCallback? onPressed;
+  final String? title;
 
   const CustomButton({@required this.onPressed, this.title});
 
