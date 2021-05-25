@@ -5,7 +5,8 @@
 .pub/
 
 build/
-.idea
+.idea/
 .metadata
 pubspec.lock
 .last_build_id
+example/ios/Flutter/flutter_export_environment.sh
