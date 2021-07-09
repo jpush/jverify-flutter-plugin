@@ -381,7 +381,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.privacyNavTitleTitle = "ios lai le"; //only ios
         uiConfig.privacyNavTitleTitle1 = "协议11 web页标题";
         uiConfig.privacyNavTitleTitle2 = "协议22 web页标题";
-        uiConfig.privacyNavReturnBtnImage = "return_bg"; //图片必须存在;
+        uiConfig.privacyNavReturnBtnImage = "back"; //图片必须存在;
 
         //弹框模式
         // JVPopViewConfig popViewConfig = JVPopViewConfig();

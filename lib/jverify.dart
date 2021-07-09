@@ -776,9 +776,9 @@ enum JVTextAlignmentType { left, right, center }
 
 /// 监听返回类
 class JVListenerEvent {
-  int code; //返回码，具体事件返回码请查看（https://docs.jiguang.cn/jverification/client/android_api/）
-  String message; //事件描述、事件返回值等
-  String operator; //成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为null
+  int?      code; //返回码，具体事件返回码请查看（https://docs.jiguang.cn/jverification/client/android_api/）
+  String? message; //事件描述、事件返回值等
+  String? operator; //成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为null
 
   JVListenerEvent.fromJson(Map<dynamic, dynamic> json)
       : code = json['code'],

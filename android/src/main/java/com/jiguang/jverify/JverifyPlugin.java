@@ -587,7 +587,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object privacyNavColor = valueForKey(uiconfig, "privacyNavColor");
         Object privacyNavTitleTextColor = valueForKey(uiconfig, "privacyNavTitleTextColor");
         Object privacyNavTitleTextSize = valueForKey(uiconfig, "privacyNavTitleTextSize");
-        Object privacyNavReturnBtnImage = valueForKey(uiconfig, "privacyNavReturnBtnImage");
+        Object privacyNavReturnBtnPath = valueForKey(uiconfig, "privacyNavReturnBtnImage");
         Object privacyNavTitleTitle1 = valueForKey(uiconfig, "privacyNavTitleTitle1");
         Object privacyNavTitleTitle2 = valueForKey(uiconfig, "privacyNavTitleTitle2");
 
@@ -890,12 +890,10 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             builder.setAppPrivacyNavTitle2((String) privacyNavTitleTitle2);
         }
 
-        if (privacyNavReturnBtnImage != null) {
-            int res_id = getResourceByReflect((String) privacyNavReturnBtnImage);
+        if (privacyNavReturnBtnPath != null) {
+            int res_id = getResourceByReflect((String) privacyNavReturnBtnPath);
             if (res_id > 0) {
-                ImageView view = new ImageView(context);
-                view.setImageResource(res_id);
-                builder.setPrivacyNavReturnBtn(view);
+                builder.setPrivacyNavReturnBtnPath((String) privacyNavReturnBtnPath);
             }
         }
 
