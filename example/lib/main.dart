@@ -353,7 +353,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.clauseNameTwo = "协议二";
         uiConfig.clauseUrlTwo = "http://www.hao123.com";
         uiConfig.clauseColor = Colors.red.value;
-        uiConfig.privacyText = ["1极", "2光", "3认", "4证"];
+        uiConfig.privacyText = ["1极","4证"];
         uiConfig.privacyTextSize = 13;
         uiConfig.privacyItem = [JVPrivacy("自定义协议1","http://www.baidu.com",beforeName: "==",afterName: "++"),JVPrivacy("自定义协议2","http://www.baidu.com")];
         //uiConfig.privacyWithBookTitleMark = true;
@@ -380,8 +380,6 @@ class _MyAppState extends State<MyApp> {
         uiConfig.privacyNavTitleTextSize = 16;
 
         uiConfig.privacyNavTitleTitle = "ios lai le"; //only ios
-        uiConfig.privacyNavTitleTitle1 = "协议11 web页标题";
-        uiConfig.privacyNavTitleTitle2 = "协议22 web页标题";
         uiConfig.privacyNavReturnBtnImage = "back"; //图片必须存在;
 
         //弹框模式
