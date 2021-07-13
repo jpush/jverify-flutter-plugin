@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -530,6 +531,7 @@ class JVUIConfig {
   int? clauseColor;
   List<String>? privacyText;
   int? privacyTextSize;
+  List<JVPrivacy>? privacyItem;
   bool privacyWithBookTitleMark = true; //设置隐私条款运营商协议名是否加书名号
   bool privacyTextCenterGravity = false; //隐私条款文字是否居中对齐（默认左对齐）
 
@@ -574,6 +576,7 @@ class JVUIConfig {
 
   Map toJsonMap() {
     return {
+      "privacyItem": privacyItem != null ? json.encode(privacyItem) : null,
       "authBackgroundImage": authBackgroundImage ??= null,
       "authBGGifPath": authBGGifPath ??= null,
       "navColor": navColor ??= null,
@@ -776,7 +779,8 @@ enum JVTextAlignmentType { left, right, center }
 
 /// 监听返回类
 class JVListenerEvent {
-  int?      code; //返回码，具体事件返回码请查看（https://docs.jiguang.cn/jverification/client/android_api/）
+  int?
+      code; //返回码，具体事件返回码请查看（https://docs.jiguang.cn/jverification/client/android_api/）
   String? message; //事件描述、事件返回值等
   String? operator; //成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为null
 
@@ -865,4 +869,31 @@ String getStringFromEnum<T>(T) {
   }
 
   return T.toString().split('.').last;
+}
+
+class JVPrivacy {
+  String? name;
+  String? url;
+  String? beforeName;
+  String? afterName;
+
+  JVPrivacy(this.name, this.url, {this.beforeName, this.afterName});
+
+  Map toMap() {
+    return {
+      'name': name,
+      'url': url,
+      'beforeName': beforeName,
+      'afterName': afterName,
+    };
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    map["name"] = this.name;
+    map["url"] = this.url;
+    map["beforeName"] = this.beforeName;
+    map["afterName"] = this.afterName;
+    return map..removeWhere((key, value) => value == null);
+  }
 }

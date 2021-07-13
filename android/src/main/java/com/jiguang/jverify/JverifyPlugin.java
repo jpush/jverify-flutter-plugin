@@ -18,6 +18,10 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -32,6 +36,7 @@ import cn.jiguang.verifysdk.api.JVerifyUIClickCallback;
 import cn.jiguang.verifysdk.api.JVerifyUIConfig;
 import cn.jiguang.verifysdk.api.LoginSettings;
 import cn.jiguang.verifysdk.api.PreLoginListener;
+import cn.jiguang.verifysdk.api.PrivacyBean;
 import cn.jiguang.verifysdk.api.RequestCallback;
 import cn.jiguang.verifysdk.api.VerifyListener;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
@@ -562,12 +567,12 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object privacyTopOffsetY = valueForKey(uiconfig, "privacyTopOffsetY");
         Object privacyOffsetY = valueForKey(uiconfig, "privacyOffsetY");
         Object privacyOffsetX = valueForKey(uiconfig, "privacyOffsetX");
-        Object CLAUSE_NAME = valueForKey(uiconfig, "clauseName");
-        Object CLAUSE_URL = valueForKey(uiconfig, "clauseUrl");
+//        Object CLAUSE_NAME = valueForKey(uiconfig, "clauseName");
+//        Object CLAUSE_URL = valueForKey(uiconfig, "clauseUrl");
         Object CLAUSE_BASE_COLOR = valueForKey(uiconfig, "clauseBaseColor");
         Object CLAUSE_COLOR = valueForKey(uiconfig, "clauseColor");
-        Object CLAUSE_NAME_TWO = valueForKey(uiconfig, "clauseNameTwo");
-        Object CLAUSE_URL_TWO = valueForKey(uiconfig, "clauseUrlTwo");
+//        Object CLAUSE_NAME_TWO = valueForKey(uiconfig, "clauseNameTwo");
+//        Object CLAUSE_URL_TWO = valueForKey(uiconfig, "clauseUrlTwo");
         Object privacyTextCenterGravity = valueForKey(uiconfig, "privacyTextCenterGravity");
         Object privacyText = valueForKey(uiconfig, "privacyText");
         Object privacyTextSize = valueForKey(uiconfig, "privacyTextSize");
@@ -609,6 +614,8 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object popViewConfig = valueForKey(uiconfig, "popViewConfig");
 
         Object privacyHintToast = valueForKey(uiconfig, "privacyHintToast");
+
+        Object privacyItem = valueForKey(uiconfig, "privacyItem");
 
         /************* 状态栏 ***************/
         if (statusBarColorWithNav != null) {
@@ -840,7 +847,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (privacyText != null) {
             ArrayList<String> privacyTextList = (ArrayList) privacyText;
             privacyTextList.addAll(Arrays.asList("", "", "", ""));
-            builder.setPrivacyText(privacyTextList.get(0), privacyTextList.get(1), privacyTextList.get(2), privacyTextList.get(3));
+            builder.setPrivacyText(privacyTextList.get(0), privacyTextList.get(1));
         }
 
         builder.setPrivacyTextCenterGravity((Boolean) privacyTextCenterGravity);
@@ -848,11 +855,28 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         builder.setPrivacyCheckboxInCenter((Boolean) privacyCheckboxInCenter);
         builder.setPrivacyState((Boolean) privacyState);
 
-        if (CLAUSE_NAME != null && CLAUSE_URL != null) {
-            builder.setAppPrivacyOne((String) CLAUSE_NAME, (String) CLAUSE_URL);
+        if (privacyItem != null) {
+            try {
+                JSONArray jsonArray = new JSONArray((String) privacyItem);
+                int length = jsonArray.length();
+                JSONObject jsonObject;
+                PrivacyBean privacyBean;
+                ArrayList<PrivacyBean> privacyBeans = new ArrayList<>(length);
+                for (int i = 0; i < length; i++) {
+                    jsonObject = jsonArray.optJSONObject(i);
+                    privacyBean = new PrivacyBean(jsonObject.optString("name"), jsonObject.optString("url"),
+                            jsonObject.optString("beforeName"), jsonObject.optString("afterName"));
+
+                    privacyBeans.add(privacyBean);
+                }
+
+                builder.setPrivacyNameAndUrlBeanList(privacyBeans);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
+
         int baseColor = -10066330;
-        ;
         int color = -16007674;
         if (CLAUSE_BASE_COLOR != null) {
             if (CLAUSE_BASE_COLOR instanceof Long) {
@@ -869,9 +893,6 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             }
         }
         builder.setAppPrivacyColor(baseColor, color);
-        if (CLAUSE_NAME_TWO != null && CLAUSE_URL_TWO != null) {
-            builder.setAppPrivacyTwo((String) CLAUSE_NAME_TWO, (String) CLAUSE_URL_TWO);
-        }
 
         /************** 隐私 web 页面 ***************/
         if (privacyNavColor != null) {
@@ -883,12 +904,12 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (privacyNavTitleTextColor != null) {
             builder.setPrivacyNavTitleTextColor(exchangeObject(privacyNavTitleTextColor));
         }
-        if (privacyNavTitleTitle1 != null) {
-            builder.setAppPrivacyNavTitle1((String) privacyNavTitleTitle1);
-        }
-        if (privacyNavTitleTitle2 != null) {
-            builder.setAppPrivacyNavTitle2((String) privacyNavTitleTitle2);
-        }
+//        if (privacyNavTitleTitle1 != null) {
+//            builder.setAppPrivacyNavTitle1((String) privacyNavTitleTitle1);
+//        }
+//        if (privacyNavTitleTitle2 != null) {
+//            builder.setAppPrivacyNavTitle2((String) privacyNavTitleTitle2);
+//        }
 
         if (privacyNavReturnBtnPath != null) {
             int res_id = getResourceByReflect((String) privacyNavReturnBtnPath);

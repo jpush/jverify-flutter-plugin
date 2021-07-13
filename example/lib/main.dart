@@ -355,6 +355,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.clauseColor = Colors.red.value;
         uiConfig.privacyText = ["1极", "2光", "3认", "4证"];
         uiConfig.privacyTextSize = 13;
+        uiConfig.privacyItem = [JVPrivacy("自定义协议1","http://www.baidu.com",beforeName: "==",afterName: "++"),JVPrivacy("自定义协议2","http://www.baidu.com")];
         //uiConfig.privacyWithBookTitleMark = true;
         //uiConfig.privacyTextCenterGravity = false;
         uiConfig.authStatusBarStyle = JVIOSBarStyle.StatusBarStyleDarkContent;
