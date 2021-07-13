@@ -16,7 +16,7 @@ A new flutter plugin project.
   s.public_header_files = 'Classes/**/*.h'
   s.dependency 'Flutter'
   s.dependency 'JCore', '2.6.2'
-  s.dependency 'JVerification', '2.7.1'
+  s.dependency 'JVerification', '2.7.4'
   s.ios.deployment_target = '8.0'
   s.static_framework = true
 end

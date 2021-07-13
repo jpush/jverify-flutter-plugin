@@ -646,17 +646,63 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     }
 
     /************** privacy ***************/
+
+    //自定义协议
+    NSMutableArray *appPrivacyss = [NSMutableArray array];
+    if([[config allKeys] containsObject:@"privacyText"] && [[config objectForKey:@"privacyText"] isKindOfClass:[NSArray class]])
+    {
+        if ([[config objectForKey:@"privacyText"] count]>=1) {
+            [appPrivacyss addObject:[[config objectForKey:@"privacyText"] objectAtIndex:0]];
+        }
+    }
+    if([[config allKeys] containsObject:@"privacyItem"] && [[config objectForKey:@"privacyItem"] isKindOfClass:[NSString class]]){
+        NSString *privacyJson = [config objectForKey:@"privacyItem"];
+        NSData *privacyData = [privacyJson  dataUsingEncoding:NSUTF8StringEncoding];
+        NSArray *privacys= [NSJSONSerialization JSONObjectWithData:privacyData options:NULL error:nil];
+        for (NSInteger i = 0; i<privacys.count; i++) {
+            NSMutableArray *item = [NSMutableArray array];
+
+            //加入协议之间的分隔符
+            [item addObject:@"、"];
+            //加入name
+            NSDictionary *obj = [privacys objectAtIndex:i];
+            if ([[obj allKeys] containsObject:@"name"] ) {
+                [item addObject:[obj objectForKey:@"name"]];
+            }
+            //加入url
+            if ([[obj allKeys] containsObject:@"url"] ) {
+                [item addObject:[obj objectForKey:@"url"]];
+            }
+            //加入协议详细页面的导航栏文字 可以是NSAttributedString类型 自定义  这里是直接拿name进行展示
+            if ([[obj allKeys] containsObject:@"name"] ) {
+                [item addObject:[obj objectForKey:@"name"]];
+            }
+            //添加一条协议appPrivacyss中
+            [appPrivacyss addObject:item];
+        }
+    }
+    //设置尾部
+    if([[config allKeys] containsObject:@"privacyText"] && [[config objectForKey:@"privacyText"] isKindOfClass:[NSArray class]])
+    {
+        if ([[config objectForKey:@"privacyText"] count]>=2) {
+            [appPrivacyss addObject:[[config objectForKey:@"privacyText"] objectAtIndex:1]];
+        }
+    }
+
+    //设置
+    if (appPrivacyss.count>1) {
+        uiconfig.appPrivacys = appPrivacyss;
+    }
+
     BOOL privacyHintToast = [[self getValue:config key:@"privacyHintToast"] boolValue];
     if(privacyHintToast){
         uiconfig.customPrivacyAlertViewBlock = ^(UIViewController *vc) {
             UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"请点击同意协议" message:nil preferredStyle:UIAlertControllerStyleAlert];
             [alert addAction:[UIAlertAction actionWithTitle:@"确定" style:UIAlertActionStyleDefault handler:nil] ];
             [vc presentViewController:alert animated:true completion:nil];
-            
+
         };
     }
-    
-    
     
     BOOL isCenter = [[self getValue:config key:@"privacyTextCenterGravity"] boolValue];
     NSTextAlignment alignmet = isCenter?NSTextAlignmentCenter:NSTextAlignmentLeft;

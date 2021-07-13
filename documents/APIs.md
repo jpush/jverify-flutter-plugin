@@ -482,10 +482,7 @@ jverify.getSMSCode(phone,{signId:signId,tempId:tempId}).then((map){
 |loginBtnPressedImage  |String   |设置授权登录按钮按下状态图片(ios)|
 |loginBtnUnableImage   |String   |设置授权登录按钮不可用状态图片(ios)|
 |logBtnOffsetY	|int	|设置登录按钮相对于标题栏下边缘y偏移|
-|clauseName	 |String	|设置开发者隐私条款1名称|
-|clauseUrl   |String	|设置开发者隐私条款1的URL|
-|clauseNameTwo	|String	|设置开发者隐私条款2名称|
-|clauseUrlTwo   |String	|设置开发者隐私条款2的URL|
+|privacyItem	 |List<JVPrivacy>	|设置开发者隐私条款|
 |clauseBaseColor	|int	|设置隐私条款名称颜色(基础文字颜色)|
 |clauseColor	|int	|设置隐私条款名称颜色(协议文字颜色)|
 |privacyOffsetY	|int	|设置隐私条款相对于授权页面底部下边缘y偏移|
