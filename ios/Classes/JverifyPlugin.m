@@ -861,6 +861,11 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
         uiconfig.navCustom = YES;
         uiconfig.windowCornerRadius = [popViewCornerRadius floatValue];
         uiconfig.windowBackgroundAlpha = [backgroundAlpha floatValue];
+        
+        // 弹窗模式背景图
+        if (authBackgroundImage) {
+            uiconfig.windowBackgroundImage = [UIImage imageNamed:authBackgroundImage];
+        }
 
         CGFloat windowW = [width floatValue];
         CGFloat windowH = [height floatValue];
