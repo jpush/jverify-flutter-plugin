@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jverify/jverify.dart';
 
@@ -209,7 +210,7 @@ class _MyAppState extends State<MyApp> {
       _showLoading(context);
     });
     String phoneNum = controllerPHone.text;
-    if (phoneNum == null || phoneNum.isEmpty) {
+    if (phoneNum.isEmpty) {
       setState(() {
         _hideLoading();
         _result = "[3002],msg = 没有输入手机号码";
@@ -313,8 +314,6 @@ class _MyAppState extends State<MyApp> {
         uiConfig.numberColor = Colors.blue.value;
         uiConfig.numberSize = 18;
 
-
-
         uiConfig.sloganOffsetY = isiOS ? 20 : 160;
         uiConfig.sloganVerticalLayoutItem = JVIOSLayoutItem.ItemNumber;
         uiConfig.sloganTextColor = Colors.black.value;
@@ -353,9 +352,13 @@ class _MyAppState extends State<MyApp> {
         uiConfig.clauseNameTwo = "协议二";
         uiConfig.clauseUrlTwo = "http://www.hao123.com";
         uiConfig.clauseColor = Colors.red.value;
-        uiConfig.privacyText = ["1极","4证"];
+        uiConfig.privacyText = ["1极", "4证"];
         uiConfig.privacyTextSize = 13;
-        uiConfig.privacyItem = [JVPrivacy("自定义协议1","http://www.baidu.com",beforeName: "==",afterName: "++"),JVPrivacy("自定义协议2","http://www.baidu.com")];
+        uiConfig.privacyItem = [
+          JVPrivacy("自定义协议1", "http://www.baidu.com",
+              beforeName: "==", afterName: "++", separator: "*"),
+          JVPrivacy("自定义协议2", "http://www.baidu.com", separator: "、")
+        ];
         //uiConfig.privacyWithBookTitleMark = true;
         //uiConfig.privacyTextCenterGravity = false;
         uiConfig.authStatusBarStyle = JVIOSBarStyle.StatusBarStyleDarkContent;
@@ -373,7 +376,6 @@ class _MyAppState extends State<MyApp> {
         uiConfig.needCloseAnim = true;
         uiConfig.enterAnim = "activity_slide_enter_bottom";
         uiConfig.exitAnim = "activity_slide_exit_bottom";
-
 
         uiConfig.privacyNavColor = Colors.red.value;
         uiConfig.privacyNavTitleTextColor = Colors.blue.value;
@@ -515,6 +517,12 @@ class _MyAppState extends State<MyApp> {
     jverify.addAuthPageEventListener((JVAuthPageEvent event) {
       print("receive auth page event :${event.toMap()}");
     });
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('f_result_key', f_result_key));
   }
 }
 

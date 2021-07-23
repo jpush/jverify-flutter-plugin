@@ -662,10 +662,13 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
         for (NSInteger i = 0; i<privacys.count; i++) {
             NSMutableArray *item = [NSMutableArray array];
 
-            //加入协议之间的分隔符
-            [item addObject:@"、"];
-            //加入name
             NSDictionary *obj = [privacys objectAtIndex:i];
+
+            //加入协议之间的分隔符
+            if ([[obj allKeys] containsObject:@"separator"] ) {
+                [item addObject:[obj objectForKey:@"separator"]];
+            }
+            //加入name
             if ([[obj allKeys] containsObject:@"name"] ) {
                 [item addObject:[obj objectForKey:@"name"]];
             }
@@ -675,7 +678,20 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
             }
             //加入协议详细页面的导航栏文字 可以是NSAttributedString类型 自定义  这里是直接拿name进行展示
             if ([[obj allKeys] containsObject:@"name"] ) {
-                [item addObject:[obj objectForKey:@"name"]];
+                UIColor *privacyNavTitleTextColor = UIColorFromRGB(-1);
+                if ([self getValue:config key:@"privacyNavTitleTextColor"]) {
+                    privacyNavTitleTextColor = UIColorFromRGB([[self getValue:config key:@"privacyNavTitleTextColor"] intValue]);
+                }
+                NSNumber *privacyNavTitleTextSize = [self getValue:config key:@"privacyNavTitleTextSize"];
+                if (!privacyNavTitleTextSize) {
+                    privacyNavTitleTextSize = @(16);
+                }
+                NSDictionary *privayNavTextAttr = @{NSForegroundColorAttributeName:privacyNavTitleTextColor,
+                                                    NSFontAttributeName:[UIFont systemFontOfSize:[privacyNavTitleTextSize floatValue]]};
+                NSAttributedString *privayAttr = [[NSAttributedString alloc]initWithString:[obj objectForKey:@"name"] attributes:privayNavTextAttr];
+                if(privayAttr){
+                [item addObject:privayAttr];
+                }
             }
             //添加一条协议appPrivacyss中
             [appPrivacyss addObject:item];
