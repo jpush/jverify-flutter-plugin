@@ -876,8 +876,10 @@ class JVPrivacy {
   String? url;
   String? beforeName;
   String? afterName;
+  String? separator;//ios分隔符专属
 
-  JVPrivacy(this.name, this.url, {this.beforeName, this.afterName});
+  JVPrivacy(this.name, this.url,
+      {this.beforeName, this.afterName, this.separator});
 
   Map toMap() {
     return {
@@ -885,6 +887,7 @@ class JVPrivacy {
       'url': url,
       'beforeName': beforeName,
       'afterName': afterName,
+      'separator': separator
     };
   }
 
@@ -894,6 +897,7 @@ class JVPrivacy {
     map["url"] = this.url;
     map["beforeName"] = this.beforeName;
     map["afterName"] = this.afterName;
+    map["separator"] = this.separator;
     return map..removeWhere((key, value) => value == null);
   }
 }
