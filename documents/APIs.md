@@ -137,20 +137,27 @@ jverify.getToken().then((map){
            //uiConfig.privacyCheckboxHidden = false;
    
            //uiConfig.privacyOffsetX = isiOS ? (20 + uiConfig.privacyCheckboxSize) : null;
-           uiConfig.privacyOffsetY = 15;// 距离底部距离
-           uiConfig.privacyVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
-           uiConfig.clauseName = "协议1";
-           uiConfig.clauseUrl = "http://www.baidu.com";
-           uiConfig.clauseBaseColor = Colors.black.value;
-           uiConfig.clauseNameTwo = "协议二";
-           uiConfig.clauseUrlTwo = "http://www.hao123.com";
-           uiConfig.clauseColor = Colors.red.value;
-           uiConfig.privacyText = ["1极","2光","3认","4证"];
-           uiConfig.privacyTextSize = 13;
-           //uiConfig.privacyWithBookTitleMark = true;
-           //uiConfig.privacyTextCenterGravity = false;
-           uiConfig.authStatusBarStyle =  JVIOSBarStyle.StatusBarStyleDarkContent;
-           uiConfig.privacyStatusBarStyle = JVIOSBarStyle.StatusBarStyleDefault;
+            uiConfig.privacyOffsetY = 15; // 距离底部距离
+            uiConfig.privacyVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
+            uiConfig.clauseName = "协议1";
+            uiConfig.clauseUrl = "http://www.baidu.com";
+            uiConfig.clauseBaseColor = Colors.black.value;
+            uiConfig.clauseNameTwo = "协议二";
+            uiConfig.clauseUrlTwo = "http://www.hao123.com";
+            uiConfig.clauseColor = Colors.red.value;
+            uiConfig.privacyText = ["1极", "4证"];
+            uiConfig.privacyTextSize = 13;
+            uiConfig.privacyItem = [
+                JVPrivacy("自定义协议1", "http://www.baidu.com",
+                         beforeName: "==", afterName: "++", separator: "*"),
+                     JVPrivacy("自定义协议2", "http://www.baidu.com", separator: "、")
+                ];
+            //uiConfig.privacyWithBookTitleMark = true;
+            //uiConfig.privacyTextCenterGravity = false;
+            uiConfig.authStatusBarStyle = JVIOSBarStyle.StatusBarStyleDarkContent;
+            uiConfig.privacyStatusBarStyle = JVIOSBarStyle.StatusBarStyleDefault;
+            uiConfig.modelTransitionStyle =
+            JVIOSUIModalTransitionStyle.CrossDissolve;
    
            uiConfig.statusBarColorWithNav = true;
            uiConfig.virtualButtonTransparent = true;
