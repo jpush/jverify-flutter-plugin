@@ -428,7 +428,15 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     uiconfig.preferredStatusBarStyle = [self getStatusBarStyle:authStatusBarStyle];
     uiconfig.agreementPreferredStatusBarStyle = [self getStatusBarStyle:privacyStatusBarStyle];
     uiconfig.dismissAnimationFlag = needCloseAnim;
-    
+    if ([[config allKeys] containsObject:@"authBGVideoPath"] && [[config allKeys] containsObject:@"authBGVideoImgPath"]) {
+        [uiconfig setVideoBackgroudResource:[config objectForKey:@"authBGVideoPath"] placeHolder:[config objectForKey:@"authBGVideoImgPath"]];
+    }
+    if ([[config allKeys] containsObject:@"authBGGifPath"]) {
+        NSString *gitPath = [[NSBundle mainBundle] pathForResource:[config objectForKey:@"authBGGifPath"] ofType:@"gif"];
+        if (gitPath) {
+            uiconfig.authPageGifImagePath = gitPath;
+        }
+    }
     /************** 弹出方式 ***************/
     UIModalTransitionStyle transitionStyle = [self getTransitionStyle:[self getValue:config key:@"modelTransitionStyle"]];
     uiconfig.modalTransitionStyle = transitionStyle;

@@ -291,6 +291,9 @@ class _MyAppState extends State<MyApp> {
         ///
         JVUIConfig uiConfig = JVUIConfig();
         // uiConfig.authBGGifPath = "main_gif";
+        // uiConfig.authBGVideoPath="main_vi";
+        uiConfig.authBGVideoPath="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
+        uiConfig.authBGVideoImgPath="main_v_bg";
 
         //uiConfig.navHidden = true;
         uiConfig.navColor = Colors.red.value;

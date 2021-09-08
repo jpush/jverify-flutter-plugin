@@ -528,6 +528,8 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object authBGGifPath = valueForKey(uiconfig, "authBGGifPath");
 
         Object authBackgroundImage = valueForKey(uiconfig, "authBackgroundImage");
+        Object authBGVideoPath = valueForKey(uiconfig, "authBGVideoPath");
+        Object authBGVideoImgPath = valueForKey(uiconfig, "authBGVideoImgPath");
 
         Object navColor = valueForKey(uiconfig, "navColor");
         Object navText = valueForKey(uiconfig, "navText");
@@ -691,6 +693,12 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             if (res_id > 0) {
                 builder.setAuthBGGifPath((String) authBGGifPath);
             }
+        }
+
+        if (authBGVideoPath != null) {
+            if (!((String)authBGVideoPath).startsWith("http"))
+                authBGVideoPath = "android.resource://"+context.getPackageName()+"/raw/"+authBGVideoPath;
+            builder.setAuthBGVideoPath((String) authBGVideoPath, (String) authBGVideoImgPath);
         }
 
         /************** nav ***************/
