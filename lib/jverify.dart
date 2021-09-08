@@ -458,6 +458,8 @@ class JVUIConfig {
   /// 授权页背景图片
   String? authBackgroundImage;
   String? authBGGifPath; // 授权界面gif图片 only android
+  String? authBGVideoPath; // 授权界面video
+  String? authBGVideoImgPath; // 授权界面video的第一频图片
 
   /// 导航栏
   int? navColor;
@@ -579,6 +581,8 @@ class JVUIConfig {
       "privacyItem": privacyItem != null ? json.encode(privacyItem) : null,
       "authBackgroundImage": authBackgroundImage ??= null,
       "authBGGifPath": authBGGifPath ??= null,
+      "authBGVideoPath": authBGVideoPath ??= null,
+      "authBGVideoImgPath": authBGVideoImgPath ??= null,
       "navColor": navColor ??= null,
       "navText": navText ??= null,
       "navTextColor": navTextColor ??= null,
