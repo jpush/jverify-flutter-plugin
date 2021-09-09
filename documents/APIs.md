@@ -135,7 +135,8 @@ jverify.getToken().then((map){
            uiConfig.uncheckedImgPath = "uncheck_image";//图片必须存在
            uiConfig.privacyCheckboxInCenter = true;
            //uiConfig.privacyCheckboxHidden = false;
-   
+           uiConfig.textVerAlignment = 1;
+
            //uiConfig.privacyOffsetX = isiOS ? (20 + uiConfig.privacyCheckboxSize) : null;
             uiConfig.privacyOffsetY = 15; // 距离底部距离
             uiConfig.privacyVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;

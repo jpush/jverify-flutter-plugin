@@ -1,3 +1,5 @@
+## 2.1.9
++ 优化： ios 认证plug.m代码
 ## 2.1.8
 + 升级：android 认证 2.7.4,ios 2.7.5 
 + 升级：android Jcore 2.9.0

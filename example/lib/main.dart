@@ -344,7 +344,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.checkedImgPath = "check_image"; //图片必须存在
         uiConfig.uncheckedImgPath = "uncheck_image"; //图片必须存在
         uiConfig.privacyCheckboxInCenter = true;
-        //uiConfig.privacyCheckboxHidden = false;
+        uiConfig.privacyCheckboxHidden = true;
 
         //uiConfig.privacyOffsetX = isiOS ? (20 + uiConfig.privacyCheckboxSize) : null;
         uiConfig.privacyOffsetY = 15; // 距离底部距离
@@ -360,8 +360,13 @@ class _MyAppState extends State<MyApp> {
         uiConfig.privacyItem = [
           JVPrivacy("自定义协议1", "http://www.baidu.com",
               beforeName: "==", afterName: "++", separator: "*"),
-          JVPrivacy("自定义协议2", "http://www.baidu.com", separator: "、")
+          JVPrivacy("自定义协议2", "http://www.baidu.com", separator: "、"),
+          JVPrivacy("自定义协议3", "http://www.baidu.com", separator: "、"),
+          JVPrivacy("自定义协议4", "http://www.baidu.com", separator: "、"),
+          JVPrivacy("自定义协议5", "http://www.baidu.com", separator: "、")
+
         ];
+        uiConfig.textVerAlignment = 1;
         //uiConfig.privacyWithBookTitleMark = true;
         //uiConfig.privacyTextCenterGravity = false;
         uiConfig.authStatusBarStyle = JVIOSBarStyle.StatusBarStyleDarkContent;

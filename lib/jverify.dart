@@ -536,6 +536,7 @@ class JVUIConfig {
   List<JVPrivacy>? privacyItem;
   bool privacyWithBookTitleMark = true; //设置隐私条款运营商协议名是否加书名号
   bool privacyTextCenterGravity = false; //隐私条款文字是否居中对齐（默认左对齐）
+  int? textVerAlignment  = 1;//设置条款文字是否垂直居中对齐(默认居中对齐) 0是top 1是m 2是b
 
   /// 隐私协议 web 页 UI 配置
   int? privacyNavColor; // 导航栏颜色
@@ -670,6 +671,7 @@ class JVUIConfig {
       "enterAnim": enterAnim,
       "exitAnim": exitAnim,
       "privacyNavTitleTitle": privacyNavTitleTitle ??= null,
+      "textVerAlignment":textVerAlignment,
     }..removeWhere((key, value) => value == null);
   }
 }
