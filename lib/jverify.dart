@@ -491,6 +491,7 @@ class JVUIConfig {
   /// slogan
   int? sloganOffsetX;
   int? sloganOffsetY;
+  int? sloganBottomOffsetY;
   JVIOSLayoutItem? sloganVerticalLayoutItem;
   int? sloganTextColor;
   int? sloganTextSize;
@@ -639,6 +640,7 @@ class JVUIConfig {
       "sloganOffsetY": sloganOffsetY ??= null,
       "sloganTextColor": sloganTextColor ??= null,
       "sloganOffsetX": sloganOffsetX ??= null,
+      "sloganBottomOffsetY": sloganBottomOffsetY ??= null,
       "sloganVerticalLayoutItem": getStringFromEnum(sloganVerticalLayoutItem),
       "sloganTextSize": sloganTextSize ??= null,
       "sloganWidth": sloganWidth ??= null,

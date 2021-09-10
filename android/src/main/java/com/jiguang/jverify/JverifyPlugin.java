@@ -778,6 +778,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (sloganOffsetX != null) {
             builder.setSloganOffsetX((Integer) sloganOffsetX);
         }
+        if (sloganBottomOffsetY != null) {
+            builder.setSloganBottomOffsetY((Integer) sloganBottomOffsetY);
+        }
         if (sloganTextSize != null) {
             builder.setSloganTextSize((Integer) sloganTextSize);
         }
