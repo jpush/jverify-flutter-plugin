@@ -482,6 +482,7 @@ class JVUIConfig {
   /// 号码
   int? numberColor;
   int? numberSize;
+  bool? numberTextBold;
   int? numFieldOffsetX;
   int? numFieldOffsetY;
   int? numberFieldWidth;
@@ -603,6 +604,7 @@ class JVUIConfig {
       "logoHidden": logoHidden ??= null,
       "numberColor": numberColor ??= null,
       "numberSize": numberSize ??= null,
+      "numberTextBold": numberTextBold ??= null,
       "numFieldOffsetY": numFieldOffsetY ??= null,
       "numFieldOffsetX": numFieldOffsetX ??= null,
       "numberFieldWidth": numberFieldWidth ??= null,

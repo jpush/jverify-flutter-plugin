@@ -548,6 +548,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
         Object numberColor = valueForKey(uiconfig, "numberColor");
         Object numberSize = valueForKey(uiconfig, "numberSize");
+        Object numberTextBold = valueForKey(uiconfig, "numberTextBold");
         Object numFieldOffsetY = valueForKey(uiconfig, "numFieldOffsetY");
         Object numFieldOffsetX = valueForKey(uiconfig, "numFieldOffsetX");
         Object numberFieldWidth = valueForKey(uiconfig, "numberFieldWidth");
@@ -769,6 +770,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
         if (numberSize != null) {
             builder.setNumberSize((Number) numberSize);
+        }
+        if (numberTextBold != null) {
+            builder.setNumberTextBold((Boolean) numberTextBold);
         }
 
 
