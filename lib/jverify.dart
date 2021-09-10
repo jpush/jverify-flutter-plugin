@@ -508,6 +508,7 @@ class JVUIConfig {
   String? logBtnText;
   int? logBtnTextSize;
   int? logBtnTextColor;
+  bool? logBtnTextBold;
   String? logBtnBackgroundPath;
   String? loginBtnNormalImage; // only ios
   String? loginBtnPressedImage; // only ios
@@ -612,6 +613,7 @@ class JVUIConfig {
       "logBtnVerticalLayoutItem": getStringFromEnum(logBtnVerticalLayoutItem),
       "logBtnTextSize": logBtnTextSize ??= null,
       "logBtnTextColor": logBtnTextColor ??= null,
+      "logBtnTextBold": logBtnTextBold ??= null,
       "logBtnBackgroundPath": logBtnBackgroundPath ??= null,
       "loginBtnNormalImage": loginBtnNormalImage ??= null,
       "loginBtnPressedImage": loginBtnPressedImage ??= null,

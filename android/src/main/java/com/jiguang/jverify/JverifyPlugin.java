@@ -561,6 +561,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object logBtnHeight = valueForKey(uiconfig, "logBtnHeight");
         Object logBtnTextSize = valueForKey(uiconfig, "logBtnTextSize");
         Object logBtnTextColor = valueForKey(uiconfig, "logBtnTextColor");
+        Object logBtnTextBold = valueForKey(uiconfig, "logBtnTextBold");
         Object logBtnBackgroundPath = valueForKey(uiconfig, "logBtnBackgroundPath");
 
         Object uncheckedImgPath = valueForKey(uiconfig, "uncheckedImgPath");
@@ -807,6 +808,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
         if (logBtnTextColor != null) {
             builder.setLogBtnTextColor(exchangeObject(logBtnTextColor));
+        }
+        if (logBtnTextBold != null) {
+            builder.setLogBtnTextBold((Boolean) logBtnTextBold);
         }
         if (logBtnBackgroundPath != null) {
             int res_id = getResourceByReflect((String) logBtnBackgroundPath);
