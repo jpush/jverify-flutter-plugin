@@ -502,6 +502,7 @@ class JVUIConfig {
   /// 登录按钮
   int? logBtnOffsetX;
   int? logBtnOffsetY;
+  int? logBtnBottomOffsetY;
   int? logBtnWidth;
   int? logBtnHeight;
   JVIOSLayoutItem? logBtnVerticalLayoutItem;
@@ -608,6 +609,7 @@ class JVUIConfig {
       "logBtnText": logBtnText ??= null,
       "logBtnOffsetY": logBtnOffsetY ??= null,
       "logBtnOffsetX": logBtnOffsetX ??= null,
+      "logBtnBottomOffsetY": logBtnBottomOffsetY ??= null,
       "logBtnWidth": logBtnWidth ??= null,
       "logBtnHeight": logBtnHeight ??= null,
       "logBtnVerticalLayoutItem": getStringFromEnum(logBtnVerticalLayoutItem),

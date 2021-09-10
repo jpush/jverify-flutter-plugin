@@ -557,6 +557,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object logBtnText = valueForKey(uiconfig, "logBtnText");
         Object logBtnOffsetY = valueForKey(uiconfig, "logBtnOffsetY");
         Object logBtnOffsetX = valueForKey(uiconfig, "logBtnOffsetX");
+        Object logBtnBottomOffsetY = valueForKey(uiconfig, "logBtnBottomOffsetY");
         Object logBtnWidth = valueForKey(uiconfig, "logBtnWidth");
         Object logBtnHeight = valueForKey(uiconfig, "logBtnHeight");
         Object logBtnTextSize = valueForKey(uiconfig, "logBtnTextSize");
@@ -793,6 +794,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
         if (logBtnOffsetX != null) {
             builder.setLogBtnOffsetX((Integer) logBtnOffsetX);
+        }
+        if (logBtnBottomOffsetY != null) {
+            builder.setLogBtnBottomOffsetY((Integer) logBtnBottomOffsetY);
         }
         if (logBtnWidth != null) {
             builder.setLogBtnWidth((Integer) logBtnWidth);
