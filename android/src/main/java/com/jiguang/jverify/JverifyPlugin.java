@@ -592,6 +592,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object sloganBottomOffsetY = valueForKey(uiconfig, "sloganBottomOffsetY");
         Object sloganTextSize = valueForKey(uiconfig, "sloganTextSize");
         Object sloganHidden = valueForKey(uiconfig, "sloganHidden");
+        Object sloganTextBold = valueForKey(uiconfig, "sloganTextBold");
 
         Object privacyNavColor = valueForKey(uiconfig, "privacyNavColor");
         Object privacyNavTitleTextColor = valueForKey(uiconfig, "privacyNavTitleTextColor");
@@ -789,6 +790,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
         if (sloganHidden != null) {
             builder.setSloganHidden((Boolean) sloganHidden);
+        }
+        if (sloganTextBold != null) {
+            builder.setSloganTextBold((Boolean) sloganTextBold);
         }
 
 

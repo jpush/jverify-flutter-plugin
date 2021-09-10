@@ -497,7 +497,7 @@ class JVUIConfig {
   int? sloganTextSize;
   int? sloganWidth;
   int? sloganHeight;
-
+  bool? sloganTextBold;
   bool sloganHidden = false;
 
   /// 登录按钮
@@ -646,6 +646,7 @@ class JVUIConfig {
       "sloganWidth": sloganWidth ??= null,
       "sloganHeight": sloganHeight ??= null,
       "sloganHidden": sloganHidden,
+      "sloganTextBold": sloganTextBold ??= null,
       "privacyState": privacyState,
       "privacyCheckboxInCenter": privacyCheckboxInCenter,
       "privacyTextCenterGravity": privacyTextCenterGravity,
