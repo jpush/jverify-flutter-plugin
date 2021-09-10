@@ -543,6 +543,7 @@ class JVUIConfig {
   int? privacyNavColor; // 导航栏颜色
   int? privacyNavTitleTextColor; // 标题颜色
   int? privacyNavTitleTextSize; // 标题大小
+  bool? privacyNavTitleTextBold; // 标题字体加粗
   String? privacyNavTitleTitle; //协议0 web页面导航栏标题 only ios
   String? privacyNavTitleTitle1; // 协议1 web页面导航栏标题
   String? privacyNavTitleTitle2; // 协议2 web页面导航栏标题
@@ -651,6 +652,7 @@ class JVUIConfig {
       "privacyNavColor": privacyNavColor ??= null,
       "privacyNavTitleTextColor": privacyNavTitleTextColor ??= null,
       "privacyNavTitleTextSize": privacyNavTitleTextSize ??= null,
+      "privacyNavTitleTextBold": privacyNavTitleTextBold ??= null,
       "privacyNavTitleTitle1": privacyNavTitleTitle1 ??= null,
       "privacyNavTitleTitle2": privacyNavTitleTitle2 ??= null,
       "privacyNavReturnBtnImage": privacyNavReturnBtnImage ??= null,
