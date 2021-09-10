@@ -540,6 +540,7 @@ class JVUIConfig {
   List<JVPrivacy>? privacyItem;
   bool privacyWithBookTitleMark = true; //设置隐私条款运营商协议名是否加书名号
   bool privacyTextCenterGravity = false; //隐私条款文字是否居中对齐（默认左对齐）
+  int? privacyTopOffsetY;
 
   /// 隐私协议 web 页 UI 配置
   int? privacyNavColor; // 导航栏颜色
@@ -630,6 +631,7 @@ class JVUIConfig {
       "privacyHintToast": privacyHintToast,
       "privacyOffsetY": privacyOffsetY ??= null,
       "privacyOffsetX": privacyOffsetX ??= null,
+      "privacyTopOffsetY": privacyTopOffsetY ??= null,
       "privacyVerticalLayoutItem": getStringFromEnum(privacyVerticalLayoutItem),
       "privacyText": privacyText ??= null,
       "privacyTextSize": privacyTextSize ??= null,
