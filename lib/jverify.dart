@@ -469,6 +469,7 @@ class JVUIConfig {
   bool navHidden = false;
   bool navReturnBtnHidden = false;
   bool navTransparent = false;
+  bool? navTextBold;
 
   /// logo
   int? logoWidth;
@@ -595,6 +596,7 @@ class JVUIConfig {
       "navColor": navColor ??= null,
       "navText": navText ??= null,
       "navTextColor": navTextColor ??= null,
+      "navTextBold": navTextBold ??= null,
       "navReturnImgPath": navReturnImgPath ??= null,
       "navHidden": navHidden,
       "navReturnBtnHidden": navReturnBtnHidden,

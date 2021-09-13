@@ -534,6 +534,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object navColor = valueForKey(uiconfig, "navColor");
         Object navText = valueForKey(uiconfig, "navText");
         Object navTextColor = valueForKey(uiconfig, "navTextColor");
+        Object navTextBold = valueForKey(uiconfig, "navTextBold");
         Object navReturnImgPath = valueForKey(uiconfig, "navReturnImgPath");
         Object navHidden = valueForKey(uiconfig, "navHidden");
         Object navReturnBtnHidden = valueForKey(uiconfig, "navReturnBtnHidden");
@@ -727,6 +728,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
         if (navTextColor != null) {
             builder.setNavTextColor(exchangeObject(navTextColor));
+        }
+        if (navTextBold != null) {
+            builder.setNavTextBold((Boolean) navTextBold);
         }
         if (navReturnImgPath != null) {
             builder.setNavReturnImgPath((String) navReturnImgPath);
