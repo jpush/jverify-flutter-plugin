@@ -542,6 +542,7 @@ class JVUIConfig {
   bool privacyTextCenterGravity = false; //隐私条款文字是否居中对齐（默认左对齐）
   int? privacyTopOffsetY;
   bool? privacyTextBold;
+  bool? privacyUnderlineText; //设置隐私条款文字字体是否加下划线
 
   /// 隐私协议 web 页 UI 配置
   int? privacyNavColor; // 导航栏颜色
@@ -637,6 +638,7 @@ class JVUIConfig {
       "privacyText": privacyText ??= null,
       "privacyTextSize": privacyTextSize ??= null,
       "privacyTextBold": privacyTextBold ??= null,
+      "privacyUnderlineText": privacyUnderlineText ??= null,
       "clauseName": clauseName ??= null,
       "clauseUrl": clauseUrl ??= null,
       "clauseBaseColor": clauseBaseColor ??= null,
