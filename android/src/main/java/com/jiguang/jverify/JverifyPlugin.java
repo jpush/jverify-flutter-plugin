@@ -581,6 +581,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object privacyTextCenterGravity = valueForKey(uiconfig, "privacyTextCenterGravity");
         Object privacyText = valueForKey(uiconfig, "privacyText");
         Object privacyTextSize = valueForKey(uiconfig, "privacyTextSize");
+        Object privacyTextBold = valueForKey(uiconfig, "privacyTextBold");
         Object privacyCheckboxHidden = valueForKey(uiconfig, "privacyCheckboxHidden");
         Object privacyCheckboxSize = valueForKey(uiconfig, "privacyCheckboxSize");
         Object privacyWithBookTitleMark = valueForKey(uiconfig, "privacyWithBookTitleMark");
@@ -876,6 +877,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             ArrayList<String> privacyTextList = (ArrayList) privacyText;
             privacyTextList.addAll(Arrays.asList("", "", "", ""));
             builder.setPrivacyText(privacyTextList.get(0), privacyTextList.get(1));
+        }
+        if (privacyTextBold != null) {
+            builder.setPrivacyTextBold((Boolean) privacyTextBold);
         }
 
         builder.setPrivacyTextCenterGravity((Boolean) privacyTextCenterGravity);
