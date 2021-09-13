@@ -545,6 +545,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object logoOffsetY = valueForKey(uiconfig, "logoOffsetY");
         Object logoOffsetX = valueForKey(uiconfig, "logoOffsetX");
         Object logoHidden = valueForKey(uiconfig, "logoHidden");
+        Object logoOffsetBottomY = valueForKey(uiconfig, "logoOffsetBottomY");
 
         Object numberColor = valueForKey(uiconfig, "numberColor");
         Object numberSize = valueForKey(uiconfig, "numberSize");
@@ -752,6 +753,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             if (res_id > 0) {
                 builder.setLogoImgPath((String) logoImgPath);
             }
+        }
+        if (logoOffsetBottomY != null) {
+            builder.setLogoOffsetBottomY((Integer) logoOffsetBottomY);
         }
 
         /************** number ***************/

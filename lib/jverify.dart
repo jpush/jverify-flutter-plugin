@@ -475,6 +475,7 @@ class JVUIConfig {
   int? logoHeight;
   int? logoOffsetX;
   int? logoOffsetY;
+  int? logoOffsetBottomY;
   JVIOSLayoutItem? logoVerticalLayoutItem;
   bool? logoHidden;
   String? logoImgPath;
@@ -603,6 +604,7 @@ class JVUIConfig {
       "logoHeight": logoHeight ??= null,
       "logoOffsetY": logoOffsetY ??= null,
       "logoOffsetX": logoOffsetX ??= null,
+      "logoOffsetBottomY": logoOffsetBottomY ??= null,
       "logoVerticalLayoutItem": getStringFromEnum(logoVerticalLayoutItem),
       "logoHidden": logoHidden ??= null,
       "numberColor": numberColor ??= null,
