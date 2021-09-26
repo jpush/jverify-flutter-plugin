@@ -490,6 +490,7 @@ class JVUIConfig {
   int? numberFieldWidth;
   int? numberFieldHeight;
   JVIOSLayoutItem? numberVerticalLayoutItem;
+  int? numberFieldOffsetBottomY;
 
   /// slogan
   int? sloganOffsetX;
@@ -614,6 +615,7 @@ class JVUIConfig {
       "numberTextBold": numberTextBold ??= null,
       "numFieldOffsetY": numFieldOffsetY ??= null,
       "numFieldOffsetX": numFieldOffsetX ??= null,
+      "numberFieldOffsetBottomY": numberFieldOffsetBottomY ??= null,
       "numberFieldWidth": numberFieldWidth ??= null,
       "numberFieldHeight": numberFieldHeight ??= null,
       "numberVerticalLayoutItem": getStringFromEnum(numberVerticalLayoutItem),

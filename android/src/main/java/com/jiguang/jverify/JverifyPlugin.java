@@ -553,6 +553,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object numberTextBold = valueForKey(uiconfig, "numberTextBold");
         Object numFieldOffsetY = valueForKey(uiconfig, "numFieldOffsetY");
         Object numFieldOffsetX = valueForKey(uiconfig, "numFieldOffsetX");
+        Object numberFieldOffsetBottomY = valueForKey(uiconfig, "numberFieldOffsetBottomY");
         Object numberFieldWidth = valueForKey(uiconfig, "numberFieldWidth");
         Object numberFieldHeight = valueForKey(uiconfig, "numberFieldHeight");
 
@@ -763,6 +764,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
 
         /************** number ***************/
+        if (numberFieldOffsetBottomY != null) {
+            builder.setNumberFieldOffsetBottomY((Integer) numberFieldOffsetBottomY);
+        }
         if (numFieldOffsetY != null) {
             builder.setNumFieldOffsetY((Integer) numFieldOffsetY);
         }
