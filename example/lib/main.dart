@@ -332,6 +332,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.logBtnText = "登录按钮";
         uiConfig.logBtnTextColor = Colors.brown.value;
         uiConfig.logBtnTextSize = 16;
+        uiConfig.logBtnTextBold = true;
         uiConfig.loginBtnNormalImage = "login_btn_normal"; //图片必须存在
         uiConfig.loginBtnPressedImage = "login_btn_press"; //图片必须存在
         uiConfig.loginBtnUnableImage = "login_btn_unable"; //图片必须存在
