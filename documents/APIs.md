@@ -8,6 +8,7 @@
 - [setCustomAuthViewAllWidgets](#setCustomAuthViewAllWidgets)
 - [setGetCodeInternal](#setGetCodeInternal)
 - [getSMSCode](#getSMSCode)
+- [clearPreLoginCache](#clearPreLoginCache)
 
 #### setup
 
