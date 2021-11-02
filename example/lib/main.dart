@@ -394,42 +394,15 @@ class _MyAppState extends State<MyApp> {
         uiConfig.privacyNavReturnBtnImage = "back"; //图片必须存在;
 
         //弹框模式
-        // JVPopViewConfig popViewConfig = JVPopViewConfig();
-        // popViewConfig.width = (screenWidth - 100.0).toInt();
-        // popViewConfig.height = (screenHeight - 150.0).toInt();
-        //
-        // uiConfig.popViewConfig = popViewConfig;
+//         JVPopViewConfig popViewConfig = JVPopViewConfig();
+//         popViewConfig.width = (screenWidth - 100.0).toInt();
+//         popViewConfig.height = (screenHeight - 150.0).toInt();
+//
+//         uiConfig.popViewConfig = popViewConfig;
 
         /// 添加自定义的 控件 到授权界面
         List<JVCustomWidget> widgetList = [];
 
-        /// 步骤 1：调用接口设置 UI
-        jverify.setCustomAuthorizationView(true, uiConfig,
-            landscapeConfig: uiConfig, widgets: widgetList);
-
-        /// 步骤 2：调用一键登录接口
-
-        /// 方式一：使用同步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
-        /// 先，添加 loginAuthSyncApi 接口回调的监听
-        jverify.addLoginAuthCallBackListener((event) {
-          setState(() {
-            _hideLoading();
-            _hideLoading();
-            _result = "监听获取返回数据：[${event.code}] message = ${event.message}";
-          });
-          print(
-              "通过添加监听，获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
-        });
-
-        /// 再，执行同步的一键登录接口
-        jverify.loginAuthSyncApi(autoDismiss: true);
-      } else {
-        setState(() {
-          _hideLoading();
-          _result = "[2016],msg = 当前网络环境不支持认证";
-        });
-
-        /*
         final String text_widgetId = "jv_add_custom_text";// 标识控件 id
         JVCustomWidget textWidget = JVCustomWidget(text_widgetId, JVCustomWidgetType.textView);
         textWidget.title = "新加 text view 控件";
@@ -472,7 +445,36 @@ class _MyAppState extends State<MyApp> {
           }
         });
         widgetList.add(buttonWidget);
-        */
+
+        /// 步骤 1：调用接口设置 UI
+        jverify.setCustomAuthorizationView(true, uiConfig,
+            landscapeConfig: uiConfig, widgets: widgetList);
+
+        /// 步骤 2：调用一键登录接口
+
+        /// 方式一：使用同步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
+        /// 先，添加 loginAuthSyncApi 接口回调的监听
+        jverify.addLoginAuthCallBackListener((event) {
+          setState(() {
+            _hideLoading();
+            _hideLoading();
+            _result = "监听获取返回数据：[${event.code}] message = ${event.message}";
+          });
+          print(
+              "通过添加监听，获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
+        });
+
+        /// 再，执行同步的一键登录接口
+        jverify.loginAuthSyncApi(autoDismiss: true);
+      } else {
+        setState(() {
+          _hideLoading();
+          _result = "[2016],msg = 当前网络环境不支持认证";
+        });
+
+
+
+
 
         /* 弹框模式
         JVPopViewConfig popViewConfig = JVPopViewConfig();

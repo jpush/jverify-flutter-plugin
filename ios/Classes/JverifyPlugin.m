@@ -638,7 +638,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
         uiconfig.privacyTextAlignment = NSTextAlignmentCenter;
         privacyOffsetX =  @(15);
         
-        }
+    }
     privacyLeftSpace = privacyCheckboxHidden ? [privacyOffsetX floatValue] : ([privacyOffsetX floatValue]+privacyCheckboxSize+5+5);//算上CheckBox的左右间隙;
     CGFloat privacyRightSpace = [privacyOffsetX floatValue] ;
     
@@ -720,7 +720,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
                                                     NSFontAttributeName:[UIFont systemFontOfSize:[privacyNavTitleTextSize floatValue]]};
                 NSAttributedString *privayAttr = [[NSAttributedString alloc]initWithString:[obj objectForKey:@"name"] attributes:privayNavTextAttr];
                 if(privayAttr){
-                [item addObject:privayAttr];
+                    [item addObject:privayAttr];
                 }
             }
             //添加一条协议appPrivacyss中
@@ -786,8 +786,13 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     
     JVLayoutItem privacyLayoutItem = [self getLayotItem:[self getValue:config key:@"privacyVerticalLayoutItem"]];
     
+    int widthScreen =  [UIScreen mainScreen].bounds.size.width;
+    NSDictionary *popViewConfig = [self getValue:config key:@"popViewConfig"];
+    if (popViewConfig) {
+        widthScreen = [[self getValue:popViewConfig key:@"width"] intValue];
+    }
     tempSting = [tempSting stringByAppendingString:@"《中国移动统一认证服务条款》"];
-    CGFloat lableWidht  = [UIScreen mainScreen].bounds.size.width - (privacyLeftSpace + privacyRightSpace);
+    CGFloat lableWidht  = widthScreen - (privacyLeftSpace + privacyRightSpace);
     CGSize lablesize = [tempSting boundingRectWithSize:CGSizeMake(lableWidht, CGFLOAT_MAX)
                                                options:NSStringDrawingUsesLineFragmentOrigin
                                             attributes:@{NSFontAttributeName:[UIFont systemFontOfSize:[privacyTextSize floatValue]]}
@@ -882,7 +887,6 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     uiconfig.loadingHorizontalConstraints = uiconfig.loadingConstraints;
     
     /************** 窗口模式样式设置 ***************/
-    NSDictionary *popViewConfig = [self getValue:config key:@"popViewConfig"];
     if (popViewConfig) {
         NSNumber *isPopViewTheme = [self getValue:popViewConfig key:@""];
         NSNumber *width = [self getValue:popViewConfig key:@"width"];
