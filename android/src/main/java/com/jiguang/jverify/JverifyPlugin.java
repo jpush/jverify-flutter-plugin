@@ -913,7 +913,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 for (int i = 0; i < length; i++) {
                     jsonObject = jsonArray.optJSONObject(i);
                     privacyBean = new PrivacyBean(jsonObject.optString("name"), jsonObject.optString("url"),
-                            jsonObject.optString("beforeName"), jsonObject.optString("afterName"));
+                            jsonObject.optString("separator"));
 
                     privacyBeans.add(privacyBean);
                 }
