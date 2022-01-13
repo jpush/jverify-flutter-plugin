@@ -383,7 +383,7 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     
     JVUIConfig *config = [[JVUIConfig alloc] init];
     config.autoLayout = YES;
-    
+    config.shouldAutorotate = isAutorotate;
     [self setCustomUIWithUIConfig:config configArguments:uiconfigPara];
     
     [JVERIFICATIONService customUIWithConfig:config customViews:^(UIView *customAreaView) {
