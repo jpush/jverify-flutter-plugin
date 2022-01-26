@@ -1163,6 +1163,8 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         int width = (int) para.get("width");
         int height = (int) para.get("height");
 
+        customView.setPadding(0, 0, 0, 0);
+
         RelativeLayout.LayoutParams mLayoutParams1 = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
         mLayoutParams1.leftMargin = dp2Pix(context, (float) left);
         mLayoutParams1.topMargin = dp2Pix(context, (float) top);
@@ -1171,7 +1173,6 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
         if (height > 0) {
             mLayoutParams1.height = dp2Pix(context, (float) height);
-            ;
         }
         customView.setLayoutParams(mLayoutParams1);
 
