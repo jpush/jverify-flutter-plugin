@@ -1255,11 +1255,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         final int normal_resId = getResourceByReflect(normalImageName);
         final int select_resId = getResourceByReflect(pressImageName);
 
-        Bitmap normal_bmp = BitmapFactory.decodeResource(res, normal_resId);
-        Drawable normal_drawable = new BitmapDrawable(res, normal_bmp);
+        Drawable normal_drawable = res.getDrawable(normal_resId);
 
-        Bitmap select_bmp = BitmapFactory.decodeResource(res, select_resId);
-        Drawable select_drawable = new BitmapDrawable(res, select_bmp);
+        Drawable select_drawable = res.getDrawable(select_resId);
 
         // 未选中
         drawable.addState(new int[]{-android.R.attr.state_pressed}, normal_drawable);
