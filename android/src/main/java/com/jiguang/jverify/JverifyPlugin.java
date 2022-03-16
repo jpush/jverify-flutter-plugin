@@ -18,6 +18,10 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -32,6 +36,7 @@ import cn.jiguang.verifysdk.api.JVerifyUIClickCallback;
 import cn.jiguang.verifysdk.api.JVerifyUIConfig;
 import cn.jiguang.verifysdk.api.LoginSettings;
 import cn.jiguang.verifysdk.api.PreLoginListener;
+import cn.jiguang.verifysdk.api.PrivacyBean;
 import cn.jiguang.verifysdk.api.RequestCallback;
 import cn.jiguang.verifysdk.api.VerifyListener;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
@@ -523,10 +528,13 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object authBGGifPath = valueForKey(uiconfig, "authBGGifPath");
 
         Object authBackgroundImage = valueForKey(uiconfig, "authBackgroundImage");
+        Object authBGVideoPath = valueForKey(uiconfig, "authBGVideoPath");
+        Object authBGVideoImgPath = valueForKey(uiconfig, "authBGVideoImgPath");
 
         Object navColor = valueForKey(uiconfig, "navColor");
         Object navText = valueForKey(uiconfig, "navText");
         Object navTextColor = valueForKey(uiconfig, "navTextColor");
+        Object navTextBold = valueForKey(uiconfig, "navTextBold");
         Object navReturnImgPath = valueForKey(uiconfig, "navReturnImgPath");
         Object navHidden = valueForKey(uiconfig, "navHidden");
         Object navReturnBtnHidden = valueForKey(uiconfig, "navReturnBtnHidden");
@@ -538,11 +546,14 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object logoOffsetY = valueForKey(uiconfig, "logoOffsetY");
         Object logoOffsetX = valueForKey(uiconfig, "logoOffsetX");
         Object logoHidden = valueForKey(uiconfig, "logoHidden");
+        Object logoOffsetBottomY = valueForKey(uiconfig, "logoOffsetBottomY");
 
         Object numberColor = valueForKey(uiconfig, "numberColor");
         Object numberSize = valueForKey(uiconfig, "numberSize");
+        Object numberTextBold = valueForKey(uiconfig, "numberTextBold");
         Object numFieldOffsetY = valueForKey(uiconfig, "numFieldOffsetY");
         Object numFieldOffsetX = valueForKey(uiconfig, "numFieldOffsetX");
+        Object numberFieldOffsetBottomY = valueForKey(uiconfig, "numberFieldOffsetBottomY");
         Object numberFieldWidth = valueForKey(uiconfig, "numberFieldWidth");
         Object numberFieldHeight = valueForKey(uiconfig, "numberFieldHeight");
 
@@ -550,10 +561,12 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object logBtnText = valueForKey(uiconfig, "logBtnText");
         Object logBtnOffsetY = valueForKey(uiconfig, "logBtnOffsetY");
         Object logBtnOffsetX = valueForKey(uiconfig, "logBtnOffsetX");
+        Object logBtnBottomOffsetY = valueForKey(uiconfig, "logBtnBottomOffsetY");
         Object logBtnWidth = valueForKey(uiconfig, "logBtnWidth");
         Object logBtnHeight = valueForKey(uiconfig, "logBtnHeight");
         Object logBtnTextSize = valueForKey(uiconfig, "logBtnTextSize");
         Object logBtnTextColor = valueForKey(uiconfig, "logBtnTextColor");
+        Object logBtnTextBold = valueForKey(uiconfig, "logBtnTextBold");
         Object logBtnBackgroundPath = valueForKey(uiconfig, "logBtnBackgroundPath");
 
         Object uncheckedImgPath = valueForKey(uiconfig, "uncheckedImgPath");
@@ -562,15 +575,16 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object privacyTopOffsetY = valueForKey(uiconfig, "privacyTopOffsetY");
         Object privacyOffsetY = valueForKey(uiconfig, "privacyOffsetY");
         Object privacyOffsetX = valueForKey(uiconfig, "privacyOffsetX");
-        Object CLAUSE_NAME = valueForKey(uiconfig, "clauseName");
-        Object CLAUSE_URL = valueForKey(uiconfig, "clauseUrl");
+//        Object CLAUSE_NAME = valueForKey(uiconfig, "clauseName");
+//        Object CLAUSE_URL = valueForKey(uiconfig, "clauseUrl");
         Object CLAUSE_BASE_COLOR = valueForKey(uiconfig, "clauseBaseColor");
         Object CLAUSE_COLOR = valueForKey(uiconfig, "clauseColor");
-        Object CLAUSE_NAME_TWO = valueForKey(uiconfig, "clauseNameTwo");
-        Object CLAUSE_URL_TWO = valueForKey(uiconfig, "clauseUrlTwo");
+//        Object CLAUSE_NAME_TWO = valueForKey(uiconfig, "clauseNameTwo");
+//        Object CLAUSE_URL_TWO = valueForKey(uiconfig, "clauseUrlTwo");
         Object privacyTextCenterGravity = valueForKey(uiconfig, "privacyTextCenterGravity");
         Object privacyText = valueForKey(uiconfig, "privacyText");
         Object privacyTextSize = valueForKey(uiconfig, "privacyTextSize");
+        Object privacyTextBold = valueForKey(uiconfig, "privacyTextBold");
         Object privacyCheckboxHidden = valueForKey(uiconfig, "privacyCheckboxHidden");
         Object privacyCheckboxSize = valueForKey(uiconfig, "privacyCheckboxSize");
         Object privacyWithBookTitleMark = valueForKey(uiconfig, "privacyWithBookTitleMark");
@@ -583,11 +597,14 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object sloganBottomOffsetY = valueForKey(uiconfig, "sloganBottomOffsetY");
         Object sloganTextSize = valueForKey(uiconfig, "sloganTextSize");
         Object sloganHidden = valueForKey(uiconfig, "sloganHidden");
+        Object sloganTextBold = valueForKey(uiconfig, "sloganTextBold");
+        Object privacyUnderlineText = valueForKey(uiconfig, "privacyUnderlineText");
 
         Object privacyNavColor = valueForKey(uiconfig, "privacyNavColor");
         Object privacyNavTitleTextColor = valueForKey(uiconfig, "privacyNavTitleTextColor");
         Object privacyNavTitleTextSize = valueForKey(uiconfig, "privacyNavTitleTextSize");
-        Object privacyNavReturnBtnImage = valueForKey(uiconfig, "privacyNavReturnBtnImage");
+        Object privacyNavTitleTextBold = valueForKey(uiconfig, "privacyNavTitleTextBold");
+        Object privacyNavReturnBtnPath = valueForKey(uiconfig, "privacyNavReturnBtnImage");
         Object privacyNavTitleTitle1 = valueForKey(uiconfig, "privacyNavTitleTitle1");
         Object privacyNavTitleTitle2 = valueForKey(uiconfig, "privacyNavTitleTitle2");
 
@@ -609,6 +626,8 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object popViewConfig = valueForKey(uiconfig, "popViewConfig");
 
         Object privacyHintToast = valueForKey(uiconfig, "privacyHintToast");
+
+        Object privacyItem = valueForKey(uiconfig, "privacyItem");
 
         /************* 状态栏 ***************/
         if (statusBarColorWithNav != null) {
@@ -686,6 +705,12 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             }
         }
 
+        if (authBGVideoPath != null) {
+            if (!((String)authBGVideoPath).startsWith("http"))
+                authBGVideoPath = "android.resource://"+context.getPackageName()+"/raw/"+authBGVideoPath;
+            builder.setAuthBGVideoPath((String) authBGVideoPath, (String) authBGVideoImgPath);
+        }
+
         /************** nav ***************/
         if (navHidden != null) {
             builder.setNavHidden((Boolean) navHidden);
@@ -704,6 +729,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
         if (navTextColor != null) {
             builder.setNavTextColor(exchangeObject(navTextColor));
+        }
+        if (navTextBold != null) {
+            builder.setNavTextBold((Boolean) navTextBold);
         }
         if (navReturnImgPath != null) {
             builder.setNavReturnImgPath((String) navReturnImgPath);
@@ -731,8 +759,14 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 builder.setLogoImgPath((String) logoImgPath);
             }
         }
+        if (logoOffsetBottomY != null) {
+            builder.setLogoOffsetBottomY((Integer) logoOffsetBottomY);
+        }
 
         /************** number ***************/
+        if (numberFieldOffsetBottomY != null) {
+            builder.setNumberFieldOffsetBottomY((Integer) numberFieldOffsetBottomY);
+        }
         if (numFieldOffsetY != null) {
             builder.setNumFieldOffsetY((Integer) numFieldOffsetY);
         }
@@ -751,6 +785,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (numberSize != null) {
             builder.setNumberSize((Number) numberSize);
         }
+        if (numberTextBold != null) {
+            builder.setNumberTextBold((Boolean) numberTextBold);
+        }
 
 
         /************** slogan ***************/
@@ -759,6 +796,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
         if (sloganOffsetX != null) {
             builder.setSloganOffsetX((Integer) sloganOffsetX);
+        }
+        if (sloganBottomOffsetY != null) {
+            builder.setSloganBottomOffsetY((Integer) sloganBottomOffsetY);
         }
         if (sloganTextSize != null) {
             builder.setSloganTextSize((Integer) sloganTextSize);
@@ -769,6 +809,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (sloganHidden != null) {
             builder.setSloganHidden((Boolean) sloganHidden);
         }
+        if (sloganTextBold != null) {
+            builder.setSloganTextBold((Boolean) sloganTextBold);
+        }
 
 
         /************** login btn ***************/
@@ -777,6 +820,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
         if (logBtnOffsetX != null) {
             builder.setLogBtnOffsetX((Integer) logBtnOffsetX);
+        }
+        if (logBtnBottomOffsetY != null) {
+            builder.setLogBtnBottomOffsetY((Integer) logBtnBottomOffsetY);
         }
         if (logBtnWidth != null) {
             builder.setLogBtnWidth((Integer) logBtnWidth);
@@ -792,6 +838,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
         if (logBtnTextColor != null) {
             builder.setLogBtnTextColor(exchangeObject(logBtnTextColor));
+        }
+        if (logBtnTextBold != null) {
+            builder.setLogBtnTextBold((Boolean) logBtnTextBold);
         }
         if (logBtnBackgroundPath != null) {
             int res_id = getResourceByReflect((String) logBtnBackgroundPath);
@@ -840,7 +889,13 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (privacyText != null) {
             ArrayList<String> privacyTextList = (ArrayList) privacyText;
             privacyTextList.addAll(Arrays.asList("", "", "", ""));
-            builder.setPrivacyText(privacyTextList.get(0), privacyTextList.get(1), privacyTextList.get(2), privacyTextList.get(3));
+            builder.setPrivacyText(privacyTextList.get(0), privacyTextList.get(1));
+        }
+        if (privacyTextBold != null) {
+            builder.setPrivacyTextBold((Boolean) privacyTextBold);
+        }
+        if (privacyUnderlineText != null) {
+            builder.setPrivacyUnderlineText((Boolean) privacyUnderlineText);
         }
 
         builder.setPrivacyTextCenterGravity((Boolean) privacyTextCenterGravity);
@@ -848,11 +903,28 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         builder.setPrivacyCheckboxInCenter((Boolean) privacyCheckboxInCenter);
         builder.setPrivacyState((Boolean) privacyState);
 
-        if (CLAUSE_NAME != null && CLAUSE_URL != null) {
-            builder.setAppPrivacyOne((String) CLAUSE_NAME, (String) CLAUSE_URL);
+        if (privacyItem != null) {
+            try {
+                JSONArray jsonArray = new JSONArray((String) privacyItem);
+                int length = jsonArray.length();
+                JSONObject jsonObject;
+                PrivacyBean privacyBean;
+                ArrayList<PrivacyBean> privacyBeans = new ArrayList<>(length);
+                for (int i = 0; i < length; i++) {
+                    jsonObject = jsonArray.optJSONObject(i);
+                    privacyBean = new PrivacyBean(jsonObject.optString("name"), jsonObject.optString("url"),
+                            jsonObject.optString("separator"));
+
+                    privacyBeans.add(privacyBean);
+                }
+
+                builder.setPrivacyNameAndUrlBeanList(privacyBeans);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
+
         int baseColor = -10066330;
-        ;
         int color = -16007674;
         if (CLAUSE_BASE_COLOR != null) {
             if (CLAUSE_BASE_COLOR instanceof Long) {
@@ -869,9 +941,6 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             }
         }
         builder.setAppPrivacyColor(baseColor, color);
-        if (CLAUSE_NAME_TWO != null && CLAUSE_URL_TWO != null) {
-            builder.setAppPrivacyTwo((String) CLAUSE_NAME_TWO, (String) CLAUSE_URL_TWO);
-        }
 
         /************** 隐私 web 页面 ***************/
         if (privacyNavColor != null) {
@@ -883,19 +952,21 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (privacyNavTitleTextColor != null) {
             builder.setPrivacyNavTitleTextColor(exchangeObject(privacyNavTitleTextColor));
         }
-        if (privacyNavTitleTitle1 != null) {
-            builder.setAppPrivacyNavTitle1((String) privacyNavTitleTitle1);
-        }
-        if (privacyNavTitleTitle2 != null) {
-            builder.setAppPrivacyNavTitle2((String) privacyNavTitleTitle2);
+//        if (privacyNavTitleTitle1 != null) {
+//            builder.setAppPrivacyNavTitle1((String) privacyNavTitleTitle1);
+//        }
+//        if (privacyNavTitleTitle2 != null) {
+//            builder.setAppPrivacyNavTitle2((String) privacyNavTitleTitle2);
+//        }
+
+        if (privacyNavTitleTextBold != null) {
+            builder.setPrivacyNavTitleTextBold((Boolean) privacyNavTitleTextBold);
         }
 
-        if (privacyNavReturnBtnImage != null) {
-            int res_id = getResourceByReflect((String) privacyNavReturnBtnImage);
+        if (privacyNavReturnBtnPath != null) {
+            int res_id = getResourceByReflect((String) privacyNavReturnBtnPath);
             if (res_id > 0) {
-                ImageView view = new ImageView(context);
-                view.setImageResource(res_id);
-                builder.setPrivacyNavReturnBtn(view);
+                builder.setPrivacyNavReturnBtnPath((String) privacyNavReturnBtnPath);
             }
         }
 

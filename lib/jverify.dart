@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -457,6 +458,8 @@ class JVUIConfig {
   /// 授权页背景图片
   String? authBackgroundImage;
   String? authBGGifPath; // 授权界面gif图片 only android
+  String? authBGVideoPath; // 授权界面video
+  String? authBGVideoImgPath; // 授权界面video的第一频图片
 
   /// 导航栏
   int? navColor;
@@ -466,12 +469,14 @@ class JVUIConfig {
   bool navHidden = false;
   bool navReturnBtnHidden = false;
   bool navTransparent = false;
+  bool? navTextBold;
 
   /// logo
   int? logoWidth;
   int? logoHeight;
   int? logoOffsetX;
   int? logoOffsetY;
+  int? logoOffsetBottomY;
   JVIOSLayoutItem? logoVerticalLayoutItem;
   bool? logoHidden;
   String? logoImgPath;
@@ -479,32 +484,37 @@ class JVUIConfig {
   /// 号码
   int? numberColor;
   int? numberSize;
+  bool? numberTextBold;
   int? numFieldOffsetX;
   int? numFieldOffsetY;
   int? numberFieldWidth;
   int? numberFieldHeight;
   JVIOSLayoutItem? numberVerticalLayoutItem;
+  int? numberFieldOffsetBottomY;
 
   /// slogan
   int? sloganOffsetX;
   int? sloganOffsetY;
+  int? sloganBottomOffsetY;
   JVIOSLayoutItem? sloganVerticalLayoutItem;
   int? sloganTextColor;
   int? sloganTextSize;
   int? sloganWidth;
   int? sloganHeight;
-
+  bool? sloganTextBold;
   bool sloganHidden = false;
 
   /// 登录按钮
   int? logBtnOffsetX;
   int? logBtnOffsetY;
+  int? logBtnBottomOffsetY;
   int? logBtnWidth;
   int? logBtnHeight;
   JVIOSLayoutItem? logBtnVerticalLayoutItem;
   String? logBtnText;
   int? logBtnTextSize;
   int? logBtnTextColor;
+  bool? logBtnTextBold;
   String? logBtnBackgroundPath;
   String? loginBtnNormalImage; // only ios
   String? loginBtnPressedImage; // only ios
@@ -530,13 +540,19 @@ class JVUIConfig {
   int? clauseColor;
   List<String>? privacyText;
   int? privacyTextSize;
+  List<JVPrivacy>? privacyItem;
   bool privacyWithBookTitleMark = true; //设置隐私条款运营商协议名是否加书名号
   bool privacyTextCenterGravity = false; //隐私条款文字是否居中对齐（默认左对齐）
+  int? textVerAlignment  = 1;//设置条款文字是否垂直居中对齐(默认居中对齐) 0是top 1是m 2是b
+  int? privacyTopOffsetY;
+  bool? privacyTextBold;
+  bool? privacyUnderlineText; //设置隐私条款文字字体是否加下划线
 
   /// 隐私协议 web 页 UI 配置
   int? privacyNavColor; // 导航栏颜色
   int? privacyNavTitleTextColor; // 标题颜色
   int? privacyNavTitleTextSize; // 标题大小
+  bool? privacyNavTitleTextBold; // 标题字体加粗
   String? privacyNavTitleTitle; //协议0 web页面导航栏标题 only ios
   String? privacyNavTitleTitle1; // 协议1 web页面导航栏标题
   String? privacyNavTitleTitle2; // 协议2 web页面导航栏标题
@@ -574,11 +590,15 @@ class JVUIConfig {
 
   Map toJsonMap() {
     return {
+      "privacyItem": privacyItem != null ? json.encode(privacyItem) : null,
       "authBackgroundImage": authBackgroundImage ??= null,
       "authBGGifPath": authBGGifPath ??= null,
+      "authBGVideoPath": authBGVideoPath ??= null,
+      "authBGVideoImgPath": authBGVideoImgPath ??= null,
       "navColor": navColor ??= null,
       "navText": navText ??= null,
       "navTextColor": navTextColor ??= null,
+      "navTextBold": navTextBold ??= null,
       "navReturnImgPath": navReturnImgPath ??= null,
       "navHidden": navHidden,
       "navReturnBtnHidden": navReturnBtnHidden,
@@ -588,23 +608,28 @@ class JVUIConfig {
       "logoHeight": logoHeight ??= null,
       "logoOffsetY": logoOffsetY ??= null,
       "logoOffsetX": logoOffsetX ??= null,
+      "logoOffsetBottomY": logoOffsetBottomY ??= null,
       "logoVerticalLayoutItem": getStringFromEnum(logoVerticalLayoutItem),
       "logoHidden": logoHidden ??= null,
       "numberColor": numberColor ??= null,
       "numberSize": numberSize ??= null,
+      "numberTextBold": numberTextBold ??= null,
       "numFieldOffsetY": numFieldOffsetY ??= null,
       "numFieldOffsetX": numFieldOffsetX ??= null,
+      "numberFieldOffsetBottomY": numberFieldOffsetBottomY ??= null,
       "numberFieldWidth": numberFieldWidth ??= null,
       "numberFieldHeight": numberFieldHeight ??= null,
       "numberVerticalLayoutItem": getStringFromEnum(numberVerticalLayoutItem),
       "logBtnText": logBtnText ??= null,
       "logBtnOffsetY": logBtnOffsetY ??= null,
       "logBtnOffsetX": logBtnOffsetX ??= null,
+      "logBtnBottomOffsetY": logBtnBottomOffsetY ??= null,
       "logBtnWidth": logBtnWidth ??= null,
       "logBtnHeight": logBtnHeight ??= null,
       "logBtnVerticalLayoutItem": getStringFromEnum(logBtnVerticalLayoutItem),
       "logBtnTextSize": logBtnTextSize ??= null,
       "logBtnTextColor": logBtnTextColor ??= null,
+      "logBtnTextBold": logBtnTextBold ??= null,
       "logBtnBackgroundPath": logBtnBackgroundPath ??= null,
       "loginBtnNormalImage": loginBtnNormalImage ??= null,
       "loginBtnPressedImage": loginBtnPressedImage ??= null,
@@ -615,9 +640,12 @@ class JVUIConfig {
       "privacyHintToast": privacyHintToast,
       "privacyOffsetY": privacyOffsetY ??= null,
       "privacyOffsetX": privacyOffsetX ??= null,
+      "privacyTopOffsetY": privacyTopOffsetY ??= null,
       "privacyVerticalLayoutItem": getStringFromEnum(privacyVerticalLayoutItem),
       "privacyText": privacyText ??= null,
       "privacyTextSize": privacyTextSize ??= null,
+      "privacyTextBold": privacyTextBold ??= null,
+      "privacyUnderlineText": privacyUnderlineText ??= null,
       "clauseName": clauseName ??= null,
       "clauseUrl": clauseUrl ??= null,
       "clauseBaseColor": clauseBaseColor ??= null,
@@ -627,11 +655,13 @@ class JVUIConfig {
       "sloganOffsetY": sloganOffsetY ??= null,
       "sloganTextColor": sloganTextColor ??= null,
       "sloganOffsetX": sloganOffsetX ??= null,
+      "sloganBottomOffsetY": sloganBottomOffsetY ??= null,
       "sloganVerticalLayoutItem": getStringFromEnum(sloganVerticalLayoutItem),
       "sloganTextSize": sloganTextSize ??= null,
       "sloganWidth": sloganWidth ??= null,
       "sloganHeight": sloganHeight ??= null,
       "sloganHidden": sloganHidden,
+      "sloganTextBold": sloganTextBold ??= null,
       "privacyState": privacyState,
       "privacyCheckboxInCenter": privacyCheckboxInCenter,
       "privacyTextCenterGravity": privacyTextCenterGravity,
@@ -640,6 +670,7 @@ class JVUIConfig {
       "privacyNavColor": privacyNavColor ??= null,
       "privacyNavTitleTextColor": privacyNavTitleTextColor ??= null,
       "privacyNavTitleTextSize": privacyNavTitleTextSize ??= null,
+      "privacyNavTitleTextBold": privacyNavTitleTextBold ??= null,
       "privacyNavTitleTitle1": privacyNavTitleTitle1 ??= null,
       "privacyNavTitleTitle2": privacyNavTitleTitle2 ??= null,
       "privacyNavReturnBtnImage": privacyNavReturnBtnImage ??= null,
@@ -663,6 +694,7 @@ class JVUIConfig {
       "enterAnim": enterAnim,
       "exitAnim": exitAnim,
       "privacyNavTitleTitle": privacyNavTitleTitle ??= null,
+      "textVerAlignment":textVerAlignment,
     }..removeWhere((key, value) => value == null);
   }
 }
@@ -776,9 +808,10 @@ enum JVTextAlignmentType { left, right, center }
 
 /// 监听返回类
 class JVListenerEvent {
-  int code; //返回码，具体事件返回码请查看（https://docs.jiguang.cn/jverification/client/android_api/）
-  String message; //事件描述、事件返回值等
-  String operator; //成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为null
+  int?
+      code; //返回码，具体事件返回码请查看（https://docs.jiguang.cn/jverification/client/android_api/）
+  String? message; //事件描述、事件返回值等
+  String? operator; //成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为null
 
   JVListenerEvent.fromJson(Map<dynamic, dynamic> json)
       : code = json['code'],
@@ -865,4 +898,35 @@ String getStringFromEnum<T>(T) {
   }
 
   return T.toString().split('.').last;
+}
+
+class JVPrivacy {
+  String? name;
+  String? url;
+  String? beforeName;
+  String? afterName;
+  String? separator;//ios分隔符专属
+
+  JVPrivacy(this.name, this.url,
+      {this.beforeName, this.afterName, this.separator});
+
+  Map toMap() {
+    return {
+      'name': name,
+      'url': url,
+      'beforeName': beforeName,
+      'afterName': afterName,
+      'separator': separator
+    };
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    map["name"] = this.name;
+    map["url"] = this.url;
+    map["beforeName"] = this.beforeName;
+    map["afterName"] = this.afterName;
+    map["separator"] = this.separator;
+    return map..removeWhere((key, value) => value == null);
+  }
 }

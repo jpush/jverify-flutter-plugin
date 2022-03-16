@@ -8,6 +8,7 @@
 - [setCustomAuthViewAllWidgets](#setCustomAuthViewAllWidgets)
 - [setGetCodeInternal](#setGetCodeInternal)
 - [getSMSCode](#getSMSCode)
+- [clearPreLoginCache](#clearPreLoginCache)
 
 #### setup
 
@@ -135,22 +136,30 @@ jverify.getToken().then((map){
            uiConfig.uncheckedImgPath = "uncheck_image";//图片必须存在
            uiConfig.privacyCheckboxInCenter = true;
            //uiConfig.privacyCheckboxHidden = false;
-   
+           uiConfig.textVerAlignment = 1;
+
            //uiConfig.privacyOffsetX = isiOS ? (20 + uiConfig.privacyCheckboxSize) : null;
-           uiConfig.privacyOffsetY = 15;// 距离底部距离
-           uiConfig.privacyVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
-           uiConfig.clauseName = "协议1";
-           uiConfig.clauseUrl = "http://www.baidu.com";
-           uiConfig.clauseBaseColor = Colors.black.value;
-           uiConfig.clauseNameTwo = "协议二";
-           uiConfig.clauseUrlTwo = "http://www.hao123.com";
-           uiConfig.clauseColor = Colors.red.value;
-           uiConfig.privacyText = ["1极","2光","3认","4证"];
-           uiConfig.privacyTextSize = 13;
-           //uiConfig.privacyWithBookTitleMark = true;
-           //uiConfig.privacyTextCenterGravity = false;
-           uiConfig.authStatusBarStyle =  JVIOSBarStyle.StatusBarStyleDarkContent;
-           uiConfig.privacyStatusBarStyle = JVIOSBarStyle.StatusBarStyleDefault;
+            uiConfig.privacyOffsetY = 15; // 距离底部距离
+            uiConfig.privacyVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
+            uiConfig.clauseName = "协议1";
+            uiConfig.clauseUrl = "http://www.baidu.com";
+            uiConfig.clauseBaseColor = Colors.black.value;
+            uiConfig.clauseNameTwo = "协议二";
+            uiConfig.clauseUrlTwo = "http://www.hao123.com";
+            uiConfig.clauseColor = Colors.red.value;
+            uiConfig.privacyText = ["1极", "4证"];
+            uiConfig.privacyTextSize = 13;
+            uiConfig.privacyItem = [
+                JVPrivacy("自定义协议1", "http://www.baidu.com",
+                         beforeName: "==", afterName: "++", separator: "*"),
+                     JVPrivacy("自定义协议2", "http://www.baidu.com", separator: "、")
+                ];
+            //uiConfig.privacyWithBookTitleMark = true;
+            //uiConfig.privacyTextCenterGravity = false;
+            uiConfig.authStatusBarStyle = JVIOSBarStyle.StatusBarStyleDarkContent;
+            uiConfig.privacyStatusBarStyle = JVIOSBarStyle.StatusBarStyleDefault;
+            uiConfig.modelTransitionStyle =
+            JVIOSUIModalTransitionStyle.CrossDissolve;
    
            uiConfig.statusBarColorWithNav = true;
            uiConfig.virtualButtonTransparent = true;
@@ -482,10 +491,7 @@ jverify.getSMSCode(phone,{signId:signId,tempId:tempId}).then((map){
 |loginBtnPressedImage  |String   |设置授权登录按钮按下状态图片(ios)|
 |loginBtnUnableImage   |String   |设置授权登录按钮不可用状态图片(ios)|
 |logBtnOffsetY	|int	|设置登录按钮相对于标题栏下边缘y偏移|
-|clauseName	 |String	|设置开发者隐私条款1名称|
-|clauseUrl   |String	|设置开发者隐私条款1的URL|
-|clauseNameTwo	|String	|设置开发者隐私条款2名称|
-|clauseUrlTwo   |String	|设置开发者隐私条款2的URL|
+|privacyItem	 |List<JVPrivacy>	|设置开发者隐私条款|
 |clauseBaseColor	|int	|设置隐私条款名称颜色(基础文字颜色)|
 |clauseColor	|int	|设置隐私条款名称颜色(协议文字颜色)|
 |privacyOffsetY	|int	|设置隐私条款相对于授权页面底部下边缘y偏移|

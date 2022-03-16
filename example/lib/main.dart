@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jverify/jverify.dart';
 
@@ -209,7 +210,7 @@ class _MyAppState extends State<MyApp> {
       _showLoading(context);
     });
     String phoneNum = controllerPHone.text;
-    if (phoneNum == null || phoneNum.isEmpty) {
+    if (phoneNum.isEmpty) {
       setState(() {
         _hideLoading();
         _result = "[3002],msg = 没有输入手机号码";
@@ -290,6 +291,9 @@ class _MyAppState extends State<MyApp> {
         ///
         JVUIConfig uiConfig = JVUIConfig();
         // uiConfig.authBGGifPath = "main_gif";
+        // uiConfig.authBGVideoPath="main_vi";
+        uiConfig.authBGVideoPath="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
+        uiConfig.authBGVideoImgPath="main_v_bg";
 
         //uiConfig.navHidden = true;
         uiConfig.navColor = Colors.red.value;
@@ -313,8 +317,6 @@ class _MyAppState extends State<MyApp> {
         uiConfig.numberColor = Colors.blue.value;
         uiConfig.numberSize = 18;
 
-
-
         uiConfig.sloganOffsetY = isiOS ? 20 : 160;
         uiConfig.sloganVerticalLayoutItem = JVIOSLayoutItem.ItemNumber;
         uiConfig.sloganTextColor = Colors.black.value;
@@ -330,6 +332,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.logBtnText = "登录按钮";
         uiConfig.logBtnTextColor = Colors.brown.value;
         uiConfig.logBtnTextSize = 16;
+        uiConfig.logBtnTextBold = true;
         uiConfig.loginBtnNormalImage = "login_btn_normal"; //图片必须存在
         uiConfig.loginBtnPressedImage = "login_btn_press"; //图片必须存在
         uiConfig.loginBtnUnableImage = "login_btn_unable"; //图片必须存在
@@ -342,7 +345,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.checkedImgPath = "check_image"; //图片必须存在
         uiConfig.uncheckedImgPath = "uncheck_image"; //图片必须存在
         uiConfig.privacyCheckboxInCenter = true;
-        //uiConfig.privacyCheckboxHidden = false;
+        uiConfig.privacyCheckboxHidden = true;
 
         //uiConfig.privacyOffsetX = isiOS ? (20 + uiConfig.privacyCheckboxSize) : null;
         uiConfig.privacyOffsetY = 15; // 距离底部距离
@@ -353,8 +356,18 @@ class _MyAppState extends State<MyApp> {
         uiConfig.clauseNameTwo = "协议二";
         uiConfig.clauseUrlTwo = "http://www.hao123.com";
         uiConfig.clauseColor = Colors.red.value;
-        uiConfig.privacyText = ["1极", "2光", "3认", "4证"];
+        uiConfig.privacyText = ["1极", "4证"];
         uiConfig.privacyTextSize = 13;
+        uiConfig.privacyItem = [
+          JVPrivacy("自定义协议1", "http://www.baidu.com",
+              beforeName: "==", afterName: "++", separator: "*"),
+          JVPrivacy("自定义协议2", "http://www.baidu.com", separator: "、"),
+          JVPrivacy("自定义协议3", "http://www.baidu.com", separator: "、"),
+          JVPrivacy("自定义协议4", "http://www.baidu.com", separator: "、"),
+          JVPrivacy("自定义协议5", "http://www.baidu.com", separator: "、")
+
+        ];
+        uiConfig.textVerAlignment = 1;
         //uiConfig.privacyWithBookTitleMark = true;
         //uiConfig.privacyTextCenterGravity = false;
         uiConfig.authStatusBarStyle = JVIOSBarStyle.StatusBarStyleDarkContent;
@@ -373,53 +386,23 @@ class _MyAppState extends State<MyApp> {
         uiConfig.enterAnim = "activity_slide_enter_bottom";
         uiConfig.exitAnim = "activity_slide_exit_bottom";
 
-
         uiConfig.privacyNavColor = Colors.red.value;
         uiConfig.privacyNavTitleTextColor = Colors.blue.value;
         uiConfig.privacyNavTitleTextSize = 16;
 
         uiConfig.privacyNavTitleTitle = "ios lai le"; //only ios
-        uiConfig.privacyNavTitleTitle1 = "协议11 web页标题";
-        uiConfig.privacyNavTitleTitle2 = "协议22 web页标题";
-        uiConfig.privacyNavReturnBtnImage = "return_bg"; //图片必须存在;
+        uiConfig.privacyNavReturnBtnImage = "back"; //图片必须存在;
 
         //弹框模式
-        // JVPopViewConfig popViewConfig = JVPopViewConfig();
-        // popViewConfig.width = (screenWidth - 100.0).toInt();
-        // popViewConfig.height = (screenHeight - 150.0).toInt();
-        //
-        // uiConfig.popViewConfig = popViewConfig;
+//         JVPopViewConfig popViewConfig = JVPopViewConfig();
+//         popViewConfig.width = (screenWidth - 100.0).toInt();
+//         popViewConfig.height = (screenHeight - 150.0).toInt();
+//
+//         uiConfig.popViewConfig = popViewConfig;
 
         /// 添加自定义的 控件 到授权界面
         List<JVCustomWidget> widgetList = [];
 
-        /// 步骤 1：调用接口设置 UI
-        jverify.setCustomAuthorizationView(true, uiConfig,
-            landscapeConfig: uiConfig, widgets: widgetList);
-
-        /// 步骤 2：调用一键登录接口
-
-        /// 方式一：使用同步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
-        /// 先，添加 loginAuthSyncApi 接口回调的监听
-        jverify.addLoginAuthCallBackListener((event) {
-          setState(() {
-            _hideLoading();
-            _hideLoading();
-            _result = "监听获取返回数据：[${event.code}] message = ${event.message}";
-          });
-          print(
-              "通过添加监听，获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
-        });
-
-        /// 再，执行同步的一键登录接口
-        jverify.loginAuthSyncApi(autoDismiss: true);
-      } else {
-        setState(() {
-          _hideLoading();
-          _result = "[2016],msg = 当前网络环境不支持认证";
-        });
-
-        /*
         final String text_widgetId = "jv_add_custom_text";// 标识控件 id
         JVCustomWidget textWidget = JVCustomWidget(text_widgetId, JVCustomWidgetType.textView);
         textWidget.title = "新加 text view 控件";
@@ -462,7 +445,36 @@ class _MyAppState extends State<MyApp> {
           }
         });
         widgetList.add(buttonWidget);
-        */
+
+        /// 步骤 1：调用接口设置 UI
+        jverify.setCustomAuthorizationView(true, uiConfig,
+            landscapeConfig: uiConfig, widgets: widgetList);
+
+        /// 步骤 2：调用一键登录接口
+
+        /// 方式一：使用同步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
+        /// 先，添加 loginAuthSyncApi 接口回调的监听
+        jverify.addLoginAuthCallBackListener((event) {
+          setState(() {
+            _hideLoading();
+            _hideLoading();
+            _result = "监听获取返回数据：[${event.code}] message = ${event.message}";
+          });
+          print(
+              "通过添加监听，获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
+        });
+
+        /// 再，执行同步的一键登录接口
+        jverify.loginAuthSyncApi(autoDismiss: true);
+      } else {
+        setState(() {
+          _hideLoading();
+          _result = "[2016],msg = 当前网络环境不支持认证";
+        });
+
+
+
+
 
         /* 弹框模式
         JVPopViewConfig popViewConfig = JVPopViewConfig();
@@ -516,6 +528,12 @@ class _MyAppState extends State<MyApp> {
     jverify.addAuthPageEventListener((JVAuthPageEvent event) {
       print("receive auth page event :${event.toMap()}");
     });
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('f_result_key', f_result_key));
   }
 }
 
