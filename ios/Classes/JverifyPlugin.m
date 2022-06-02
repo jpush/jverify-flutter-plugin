@@ -668,6 +668,9 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     }
     
     /************** privacy ***************/
+    //隐私弹窗
+    BOOL isAlertPrivacyVc = [[self getValue:config key:@"isAlertPrivacyVc"] boolValue];
+    uiconfig.isAlertPrivacyVC = isAlertPrivacyVc;
     
     //自定义协议
     NSString *tempSting = @"";
