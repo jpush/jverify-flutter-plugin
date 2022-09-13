@@ -448,7 +448,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
         uiconfig.authPageBackgroundImage = [UIImage imageNamed:authBackgroundImage];
     }
     
-    needStartAnim = [[self getValue:config key:@"needCloseAnim"] boolValue];
+    needStartAnim = [[self getValue:config key:@"needStartAnim"] boolValue];
     needCloseAnim = [[self getValue:config key:@"needCloseAnim"] boolValue];
     
     JVLog(@"Action - setCustomAuthorizationView:needStartAnim %d",needStartAnim);
