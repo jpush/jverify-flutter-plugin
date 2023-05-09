@@ -394,6 +394,16 @@ class _MyAppState extends State<MyApp> {
         uiConfig.privacyNavTitleTitle = "ios lai le"; //only ios
         uiConfig.privacyNavReturnBtnImage = "back"; //图片必须存在;
 
+        //协议二次弹窗内容设置 
+        uiConfig.agreementAlertViewTitleTexSize = 18;
+        uiConfig.agreementAlertViewTitleTextColor = Colors.red.value;
+        uiConfig.agreementAlertViewContentTextAlignment = JVTextAlignmentType.center;
+        uiConfig.agreementAlertViewContentTextFontSize = 16;
+        uiConfig.agreementAlertViewLoginBtnNormalImagePath = "login_btn_normal";
+        uiConfig.agreementAlertViewLoginBtnPressedImagePath = "login_btn_press";
+        uiConfig.agreementAlertViewLoginBtnUnableImagePath = "login_btn_unable";
+        uiConfig.agreementAlertViewLogBtnTextColor = Colors.black.value;
+
         //弹框模式
 //         JVPopViewConfig popViewConfig = JVPopViewConfig();
 //         popViewConfig.width = (screenWidth - 100.0).toInt();
@@ -516,7 +526,7 @@ class _MyAppState extends State<MyApp> {
 
     jverify.setDebugMode(true); // 打开调试模式
     jverify.setup(
-        appKey: "59705dfaf33d8f339047b670", //"你自己应用的 AppKey",
+        appKey: "4fcc3e237eec4c4fb804ad49", //"你自己应用的 AppKey",
         channel: "devloper-default"); // 初始化sdk,  appKey 和 channel 只对ios设置有效
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling

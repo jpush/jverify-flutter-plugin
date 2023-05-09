@@ -589,6 +589,30 @@ class JVUIConfig {
   JVIOSUIModalTransitionStyle modelTransitionStyle = //弹出方式 only ios
       JVIOSUIModalTransitionStyle.CoverVertical;
 
+  /// 协议二次弹窗-iOS
+
+  /**协议二次弹窗标题文本样式*/
+  int agreementAlertViewTitleTexSize = 14;
+
+ /**协议二次弹窗标题文本颜色*/
+ int? agreementAlertViewTitleTextColor;
+
+ /**协议二次弹窗内容文本对齐方式*/
+ JVTextAlignmentType agreementAlertViewContentTextAlignment = JVTextAlignmentType.center;
+
+ /**协议二次弹窗内容文本字体大小*/
+ int agreementAlertViewContentTextFontSize = 12;
+
+/**协议二次弹窗登录按钮背景图片
+ 激活状态的图片,失效状态的图片,高亮状态的图片
+ */
+  String? agreementAlertViewLoginBtnNormalImagePath;
+  String? agreementAlertViewLoginBtnPressedImagePath; 
+  String? agreementAlertViewLoginBtnUnableImagePath; 
+
+/**协议二次弹窗登录按钮文本颜色*/
+ int?  agreementAlertViewLogBtnTextColor;
+
   Map toJsonMap() {
     return {
       "privacyItem": privacyItem != null ? json.encode(privacyItem) : null,
@@ -697,6 +721,14 @@ class JVUIConfig {
       "exitAnim": exitAnim,
       "privacyNavTitleTitle": privacyNavTitleTitle ??= null,
       "textVerAlignment": textVerAlignment,
+      "agreementAlertViewTitleTexSize": agreementAlertViewTitleTexSize ,
+      "agreementAlertViewTitleTextColor": agreementAlertViewTitleTextColor ??= Colors.black.value,
+      "agreementAlertViewContentTextAlignment": getStringFromEnum(agreementAlertViewContentTextAlignment),
+      "agreementAlertViewContentTextFontSize": agreementAlertViewContentTextFontSize,
+      "agreementAlertViewLoginBtnNormalImagePath": agreementAlertViewLoginBtnNormalImagePath ??= null,
+      "agreementAlertViewLoginBtnPressedImagePath": agreementAlertViewLoginBtnPressedImagePath ??= null,
+      "agreementAlertViewLoginBtnUnableImagePath": agreementAlertViewLoginBtnUnableImagePath ??= null,
+      "agreementAlertViewLogBtnTextColor": agreementAlertViewLogBtnTextColor ??= Colors.black.value,
     }..removeWhere((key, value) => value == null);
   }
 }
