@@ -404,12 +404,27 @@ class _MyAppState extends State<MyApp> {
         uiConfig.agreementAlertViewLoginBtnUnableImagePath = "login_btn_unable";
         uiConfig.agreementAlertViewLogBtnTextColor = Colors.black.value;
 
+        //协议二次弹窗内容设置 -Android
+        JVPrivacyCheckDialogConfig privacyCheckDialogConfig = JVPrivacyCheckDialogConfig();
+        // privacyCheckDialogConfig.width = 250;
+        // privacyCheckDialogConfig.height = 100;
+        privacyCheckDialogConfig.offsetX = 0;
+        privacyCheckDialogConfig.offsetY = 0;
+        privacyCheckDialogConfig.titleTextSize = 22;
+        privacyCheckDialogConfig.gravity = "center";
+        privacyCheckDialogConfig.titleTextColor = Colors.black.value;
+        privacyCheckDialogConfig.contentTextGravity = "left";
+        privacyCheckDialogConfig.contentTextSize = 14;
+        privacyCheckDialogConfig.logBtnImgPath = "login_btn_normal";
+        privacyCheckDialogConfig.logBtnTextColor = Colors.black.value;
+        uiConfig.privacyCheckDialogConfig = privacyCheckDialogConfig;
+
         //弹框模式
-//         JVPopViewConfig popViewConfig = JVPopViewConfig();
-//         popViewConfig.width = (screenWidth - 100.0).toInt();
-//         popViewConfig.height = (screenHeight - 150.0).toInt();
-//
-//         uiConfig.popViewConfig = popViewConfig;
+        // JVPopViewConfig popViewConfig = JVPopViewConfig();
+        // popViewConfig.width = (screenWidth - 100.0).toInt();
+        // popViewConfig.height = (screenHeight - 150.0).toInt();
+
+        // uiConfig.popViewConfig = popViewConfig;
 
         /// 添加自定义的 控件 到授权界面
         List<JVCustomWidget> widgetList = [];

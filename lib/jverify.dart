@@ -586,10 +586,13 @@ class JVUIConfig {
   /// 授权页弹窗模式 配置，选填
   JVPopViewConfig? popViewConfig;
 
+  /// Android协议二次弹窗配置，选填
+  JVPrivacyCheckDialogConfig? privacyCheckDialogConfig;
+
   JVIOSUIModalTransitionStyle modelTransitionStyle = //弹出方式 only ios
       JVIOSUIModalTransitionStyle.CoverVertical;
 
-  /// 协议二次弹窗-iOS
+  /*** 协议二次弹窗-iOS */ 
 
   /**协议二次弹窗标题文本样式*/
   int agreementAlertViewTitleTexSize = 14;
@@ -721,6 +724,7 @@ class JVUIConfig {
       "exitAnim": exitAnim,
       "privacyNavTitleTitle": privacyNavTitleTitle ??= null,
       "textVerAlignment": textVerAlignment,
+      //ios-协议的二次弹窗
       "agreementAlertViewTitleTexSize": agreementAlertViewTitleTexSize ,
       "agreementAlertViewTitleTextColor": agreementAlertViewTitleTextColor ??= Colors.black.value,
       "agreementAlertViewContentTextAlignment": getStringFromEnum(agreementAlertViewContentTextAlignment),
@@ -729,6 +733,8 @@ class JVUIConfig {
       "agreementAlertViewLoginBtnPressedImagePath": agreementAlertViewLoginBtnPressedImagePath ??= null,
       "agreementAlertViewLoginBtnUnableImagePath": agreementAlertViewLoginBtnUnableImagePath ??= null,
       "agreementAlertViewLogBtnTextColor": agreementAlertViewLogBtnTextColor ??= Colors.black.value,
+         "privacyCheckDialogConfig":
+          privacyCheckDialogConfig != null ? privacyCheckDialogConfig?.toJsonMap() : null,
     }..removeWhere((key, value) => value == null);
   }
 }
@@ -766,6 +772,46 @@ class JVPopViewConfig {
       "backgroundAlpha": backgroundAlpha,
     }..removeWhere((key, value) => value == null);
   }
+}
+
+/*
+ * 未勾选协议时的二次弹窗提示页面配置
+ *
+ * */
+class JVPrivacyCheckDialogConfig {
+  int? width; //协议⼆次弹窗本身的宽
+  int? height; //协议⼆次弹窗本身的⾼
+  int? offsetX ; // 窗口相对屏幕中心的x轴偏移量
+  int? offsetY ; // 窗口相对屏幕中心的y轴偏移量
+  int?  titleTextSize ; // 弹窗标题字体大小
+  int?  titleTextColor ; // 弹窗标题字体颜色
+  String?  contentTextGravity ; //协议⼆次弹窗协议内容对⻬⽅式
+  int?  contentTextSize  ; //协议⼆次弹窗协议内容字体⼤⼩
+  String? logBtnImgPath ; //协议⼆次弹窗登录按钮的背景图⽚
+  int? logBtnTextColor ; //协议⼆次弹窗登录按钮的字体颜⾊
+  String? gravity ; //
+  bool? enablePrivacyCheckDialog;
+  JVPrivacyCheckDialogConfig() {
+    this.enablePrivacyCheckDialog = true;
+  }
+
+  Map toJsonMap() {
+    return {
+      "width": width,
+      "height": height,
+      "offsetX": offsetX,
+      "offsetY": offsetY,
+      "gravity": gravity,
+      "titleTextSize": titleTextSize,
+      "titleTextColor": titleTextColor,
+      "contentTextGravity": contentTextGravity,
+      "contentTextSize": contentTextSize,
+      "logBtnImgPath": logBtnImgPath,
+      "logBtnTextColor": logBtnTextColor,
+      "enablePrivacyCheckDialog":enablePrivacyCheckDialog,
+    }..removeWhere((key, value) => value == null);
+  }
+
 }
 
 /// 自定义控件

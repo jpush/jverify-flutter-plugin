@@ -40,5 +40,5 @@ android {
 dependencies {
 //    implementation fileTree(include: '*.aar', dir: 'libs')
     implementation 'cn.jiguang.sdk:jcore:3.3.0'
-    implementation 'cn.jiguang.sdk:jverification:2.9.7'
+    implementation 'cn.jiguang.sdk:jverification:3.0.1'
 }

@@ -986,6 +986,70 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
             }
         }
+
+        Object privacyCheckDialogConfig = valueForKey(uiconfig, "privacyCheckDialogConfig");
+
+        /************** 协议的二次弹窗配置 ***************/
+        if (privacyCheckDialogConfig != null) {
+            Map privacyCheckDialogConfigMap = (Map) privacyCheckDialogConfig;
+            Object enablePrivacyCheckDialog = valueForKey(privacyCheckDialogConfigMap, "enablePrivacyCheckDialog");
+            if ((Boolean) enablePrivacyCheckDialog) {
+                Object width = valueForKey(privacyCheckDialogConfigMap, "width");
+                Object height = valueForKey(privacyCheckDialogConfigMap, "height");
+                Object offsetX = valueForKey(privacyCheckDialogConfigMap, "offsetX");
+                Object offsetY = valueForKey(privacyCheckDialogConfigMap, "offsetY");
+                Object gravity = valueForKey(privacyCheckDialogConfigMap, "gravity");
+
+                if(width !=null){
+                    builder.setPrivacyCheckDialogWidth((int) width);
+                }
+                if(height !=null) {
+                    builder.setPrivacyCheckDialogHeight((int) height);
+                }
+                if(offsetX !=null) {
+                    builder.setPrivacyCheckDialogOffsetX((int) offsetX);
+                }
+                if(offsetX !=null) {
+                    builder.setPrivacyCheckDialogOffsetY((int) offsetY);
+                }
+                if(gravity !=null) {
+                    builder.setprivacyCheckDialogGravity(getAlignmentFromString((String) gravity));
+                }
+                Object titleTextSize = valueForKey(privacyCheckDialogConfigMap, "titleTextSize");
+
+                if(titleTextSize !=null) {
+                    builder.setPrivacyCheckDialogTitleTextSize(exchangeObject(titleTextSize));
+                }
+
+                Object titleTextColor = valueForKey(privacyCheckDialogConfigMap, "titleTextColor");
+                Object contentTextSize = valueForKey(privacyCheckDialogConfigMap, "contentTextSize");
+                Object logBtnImgPath = valueForKey(privacyCheckDialogConfigMap, "logBtnImgPath");
+                Object logBtnTextColor_dialog = valueForKey(privacyCheckDialogConfigMap, "logBtnTextColor");
+
+                builder.enablePrivacyCheckDialog(true);
+
+                if(titleTextColor != null){
+                    builder.setPrivacyCheckDialogTitleTextColor(exchangeObject(titleTextColor));
+                }
+                Object gravity_privacyCheckDialog = valueForKey(privacyCheckDialogConfigMap, "gravity");
+                if(gravity_privacyCheckDialog != null){
+                    builder.setPrivacyCheckDialogContentTextGravity(getAlignmentFromString((String) gravity_privacyCheckDialog));
+                }
+                if(contentTextSize != null){
+                    builder.setPrivacyCheckDialogContentTextSize(exchangeObject(contentTextSize));
+                }
+
+                if(logBtnImgPath != null){
+                    int res_id_logBtnImgPath = getResourceByReflect((String) logBtnImgPath);
+                    if (res_id_logBtnImgPath > 0) {
+                        builder.setPrivacyCheckDialogLogBtnImgPath((String) logBtnImgPath);
+                    }
+                }
+                if (logBtnTextColor_dialog != null){
+                    builder.setPrivacyCheckDialoglogBtnTextColor(exchangeObject(logBtnTextColor_dialog));
+                }
+            }
+        }
     }
 
     /** 添加自定义 widget 到 SDK 原有的授权界面里 */
