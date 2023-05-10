@@ -394,7 +394,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.privacyNavTitleTitle = "ios lai le"; //only ios
         uiConfig.privacyNavReturnBtnImage = "back"; //图片必须存在;
 
-        //协议二次弹窗内容设置 
+        //协议二次弹窗内容设置 -iOS
         uiConfig.agreementAlertViewTitleTexSize = 18;
         uiConfig.agreementAlertViewTitleTextColor = Colors.red.value;
         uiConfig.agreementAlertViewContentTextAlignment = JVTextAlignmentType.center;
