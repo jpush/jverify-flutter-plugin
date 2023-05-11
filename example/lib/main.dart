@@ -341,7 +341,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.privacyHintToast =
             true; //only android 设置隐私条款不选中时点击登录按钮默认显示toast。
 
-        uiConfig.privacyState = true; //设置默认勾选
+        uiConfig.privacyState = false; //设置默认勾选
         uiConfig.privacyCheckboxSize = 20;
         uiConfig.checkedImgPath = "check_image"; //图片必须存在
         uiConfig.uncheckedImgPath = "uncheck_image"; //图片必须存在
