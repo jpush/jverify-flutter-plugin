@@ -701,7 +701,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
             }
             //加入name
             if ([[obj allKeys] containsObject:@"name"] ) {
-                [item addObject:[obj objectForKey:@"name"]];
+                [item addObject:[NSString stringWithFormat:@"%@%@%@",(privacyWithBookTitleMark?@"《":@""),[obj objectForKey:@"name"],(privacyWithBookTitleMark?@"》":@"")]];
                 tempSting = [tempSting stringByAppendingFormat:@"%@%@%@",(privacyWithBookTitleMark?@"《":@""),[obj objectForKey:@"name"],(privacyWithBookTitleMark?@"》":@"")];
                 
             }
