@@ -1,3 +1,7 @@
+## 2.3.3
++ 优化： 修复Android的回调参数个数问题 修复setLogBtnBottomOffsetY不生效问题
+## 2.3.2
++ 优化： 升级原生SDK iOS：3.1.2 android:3.1.1
 ## 2.3.1
 + 优化： 优化iOS代码，解决UI问题
 ## 2.3.0

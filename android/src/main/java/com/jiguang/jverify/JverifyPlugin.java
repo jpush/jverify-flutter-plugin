@@ -334,7 +334,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
         JVerificationInterface.preLogin(context, timeOut, new PreLoginListener() {
             @Override
-            public void onResult(int code, String message) {
+            public void onResult(int code, String message,String a1,String a2) {
 
                 if (code == 7000) {//code: 返回码，7000代表获取成功，其他为失败，详见错误码描述
                     Log.d(TAG, "verify success, message =" + message);
@@ -822,6 +822,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             builder.setLogBtnOffsetX((Integer) logBtnOffsetX);
         }
         if (logBtnBottomOffsetY != null) {
+            builder.setLogoOffsetY(-1);
             builder.setLogBtnBottomOffsetY((Integer) logBtnBottomOffsetY);
         }
         if (logBtnWidth != null) {
