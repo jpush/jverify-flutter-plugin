@@ -629,6 +629,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
         Object privacyItem = valueForKey(uiconfig, "privacyItem");
 
+        Object isPrivacyViewDarkMode = valueForKey(uiconfig, "isPrivacyViewDarkMode");
+
+
         /************* 状态栏 ***************/
         if (statusBarColorWithNav != null) {
             builder.setStatusBarColorWithNav((Boolean) statusBarColorWithNav);
@@ -1050,6 +1053,11 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                     builder.setPrivacyCheckDialoglogBtnTextColor(exchangeObject(logBtnTextColor_dialog));
                 }
             }
+        }
+    
+        /************** 协议页面是否支持暗黑模式 ***************/
+        if (isPrivacyViewDarkMode != null) {
+            builder.isPrivacyViewDarkMode((Boolean)isPrivacyViewDarkMode);
         }
     }
 

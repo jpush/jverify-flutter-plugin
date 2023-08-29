@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:html';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -397,7 +398,8 @@ class _MyAppState extends State<MyApp> {
         //协议二次弹窗内容设置 -iOS
         uiConfig.agreementAlertViewTitleTexSize = 18;
         uiConfig.agreementAlertViewTitleTextColor = Colors.red.value;
-        uiConfig.agreementAlertViewContentTextAlignment = JVTextAlignmentType.center;
+        uiConfig.agreementAlertViewContentTextAlignment =
+            JVTextAlignmentType.center;
         uiConfig.agreementAlertViewContentTextFontSize = 16;
         uiConfig.agreementAlertViewLoginBtnNormalImagePath = "login_btn_normal";
         uiConfig.agreementAlertViewLoginBtnPressedImagePath = "login_btn_press";
@@ -405,7 +407,8 @@ class _MyAppState extends State<MyApp> {
         uiConfig.agreementAlertViewLogBtnTextColor = Colors.black.value;
 
         //协议二次弹窗内容设置 -Android
-        JVPrivacyCheckDialogConfig privacyCheckDialogConfig = JVPrivacyCheckDialogConfig();
+        JVPrivacyCheckDialogConfig privacyCheckDialogConfig =
+            JVPrivacyCheckDialogConfig();
         // privacyCheckDialogConfig.width = 250;
         // privacyCheckDialogConfig.height = 100;
         privacyCheckDialogConfig.offsetX = 0;
@@ -499,6 +502,8 @@ class _MyAppState extends State<MyApp> {
           _hideLoading();
           _result = "[2016],msg = 当前网络环境不支持认证";
         });
+
+        // jverify.isPrivacyViewDarkMode = true;//协议页面是否支持暗黑模式
 
         /* 弹框模式
         JVPopViewConfig popViewConfig = JVPopViewConfig();
