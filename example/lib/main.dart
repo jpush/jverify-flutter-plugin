@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:html';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
@@ -422,6 +421,8 @@ class _MyAppState extends State<MyApp> {
         privacyCheckDialogConfig.logBtnTextColor = Colors.black.value;
         uiConfig.privacyCheckDialogConfig = privacyCheckDialogConfig;
 
+        uiConfig.setIsPrivacyViewDarkMode = false;//协议页面是否支持暗黑模式
+
         //弹框模式
         // JVPopViewConfig popViewConfig = JVPopViewConfig();
         // popViewConfig.width = (screenWidth - 100.0).toInt();
@@ -503,7 +504,6 @@ class _MyAppState extends State<MyApp> {
           _result = "[2016],msg = 当前网络环境不支持认证";
         });
 
-        // jverify.isPrivacyViewDarkMode = true;//协议页面是否支持暗黑模式
 
         /* 弹框模式
         JVPopViewConfig popViewConfig = JVPopViewConfig();

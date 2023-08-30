@@ -1,3 +1,7 @@
+## 2.3.5
++ 优化： fix
+## 2.3.4
++ 优化： 增加setIsPrivacyViewDarkMode参数，协议页面是否支持暗黑模式
 ## 2.3.3
 + 优化： 修复Android的回调参数个数问题 修复setLogBtnBottomOffsetY不生效问题
 ## 2.3.2

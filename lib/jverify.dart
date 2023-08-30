@@ -592,29 +592,33 @@ class JVUIConfig {
   JVIOSUIModalTransitionStyle modelTransitionStyle = //弹出方式 only ios
       JVIOSUIModalTransitionStyle.CoverVertical;
 
-  /*** 协议二次弹窗-iOS */ 
+  /*** 协议二次弹窗-iOS */
 
   /**协议二次弹窗标题文本样式*/
   int agreementAlertViewTitleTexSize = 14;
 
- /**协议二次弹窗标题文本颜色*/
- int? agreementAlertViewTitleTextColor;
+  /**协议二次弹窗标题文本颜色*/
+  int? agreementAlertViewTitleTextColor;
 
- /**协议二次弹窗内容文本对齐方式*/
- JVTextAlignmentType agreementAlertViewContentTextAlignment = JVTextAlignmentType.center;
+  /**协议二次弹窗内容文本对齐方式*/
+  JVTextAlignmentType agreementAlertViewContentTextAlignment =
+      JVTextAlignmentType.center;
 
- /**协议二次弹窗内容文本字体大小*/
- int agreementAlertViewContentTextFontSize = 12;
+  /**协议二次弹窗内容文本字体大小*/
+  int agreementAlertViewContentTextFontSize = 12;
 
 /**协议二次弹窗登录按钮背景图片
  激活状态的图片,失效状态的图片,高亮状态的图片
  */
   String? agreementAlertViewLoginBtnNormalImagePath;
-  String? agreementAlertViewLoginBtnPressedImagePath; 
-  String? agreementAlertViewLoginBtnUnableImagePath; 
+  String? agreementAlertViewLoginBtnPressedImagePath;
+  String? agreementAlertViewLoginBtnUnableImagePath;
 
 /**协议二次弹窗登录按钮文本颜色*/
- int?  agreementAlertViewLogBtnTextColor;
+  int? agreementAlertViewLogBtnTextColor;
+
+/**协议页面是否支持暗黑模式*/
+  bool setIsPrivacyViewDarkMode = true;
 
   Map toJsonMap() {
     return {
@@ -725,16 +729,25 @@ class JVUIConfig {
       "privacyNavTitleTitle": privacyNavTitleTitle ??= null,
       "textVerAlignment": textVerAlignment,
       //ios-协议的二次弹窗
-      "agreementAlertViewTitleTexSize": agreementAlertViewTitleTexSize ,
-      "agreementAlertViewTitleTextColor": agreementAlertViewTitleTextColor ??= Colors.black.value,
-      "agreementAlertViewContentTextAlignment": getStringFromEnum(agreementAlertViewContentTextAlignment),
-      "agreementAlertViewContentTextFontSize": agreementAlertViewContentTextFontSize,
-      "agreementAlertViewLoginBtnNormalImagePath": agreementAlertViewLoginBtnNormalImagePath ??= null,
-      "agreementAlertViewLoginBtnPressedImagePath": agreementAlertViewLoginBtnPressedImagePath ??= null,
-      "agreementAlertViewLoginBtnUnableImagePath": agreementAlertViewLoginBtnUnableImagePath ??= null,
-      "agreementAlertViewLogBtnTextColor": agreementAlertViewLogBtnTextColor ??= Colors.black.value,
-         "privacyCheckDialogConfig":
-          privacyCheckDialogConfig != null ? privacyCheckDialogConfig?.toJsonMap() : null,
+      "agreementAlertViewTitleTexSize": agreementAlertViewTitleTexSize,
+      "agreementAlertViewTitleTextColor": agreementAlertViewTitleTextColor ??=
+          Colors.black.value,
+      "agreementAlertViewContentTextAlignment":
+          getStringFromEnum(agreementAlertViewContentTextAlignment),
+      "agreementAlertViewContentTextFontSize":
+          agreementAlertViewContentTextFontSize,
+      "agreementAlertViewLoginBtnNormalImagePath":
+          agreementAlertViewLoginBtnNormalImagePath ??= null,
+      "agreementAlertViewLoginBtnPressedImagePath":
+          agreementAlertViewLoginBtnPressedImagePath ??= null,
+      "agreementAlertViewLoginBtnUnableImagePath":
+          agreementAlertViewLoginBtnUnableImagePath ??= null,
+      "agreementAlertViewLogBtnTextColor": agreementAlertViewLogBtnTextColor ??=
+          Colors.black.value,
+      "privacyCheckDialogConfig": privacyCheckDialogConfig != null
+          ? privacyCheckDialogConfig?.toJsonMap()
+          : null,
+      "setIsPrivacyViewDarkMode": setIsPrivacyViewDarkMode,
     }..removeWhere((key, value) => value == null);
   }
 }
@@ -781,15 +794,15 @@ class JVPopViewConfig {
 class JVPrivacyCheckDialogConfig {
   int? width; //协议⼆次弹窗本身的宽
   int? height; //协议⼆次弹窗本身的⾼
-  int? offsetX ; // 窗口相对屏幕中心的x轴偏移量
-  int? offsetY ; // 窗口相对屏幕中心的y轴偏移量
-  int?  titleTextSize ; // 弹窗标题字体大小
-  int?  titleTextColor ; // 弹窗标题字体颜色
-  String?  contentTextGravity ; //协议⼆次弹窗协议内容对⻬⽅式
-  int?  contentTextSize  ; //协议⼆次弹窗协议内容字体⼤⼩
-  String? logBtnImgPath ; //协议⼆次弹窗登录按钮的背景图⽚
-  int? logBtnTextColor ; //协议⼆次弹窗登录按钮的字体颜⾊
-  String? gravity ; //
+  int? offsetX; // 窗口相对屏幕中心的x轴偏移量
+  int? offsetY; // 窗口相对屏幕中心的y轴偏移量
+  int? titleTextSize; // 弹窗标题字体大小
+  int? titleTextColor; // 弹窗标题字体颜色
+  String? contentTextGravity; //协议⼆次弹窗协议内容对⻬⽅式
+  int? contentTextSize; //协议⼆次弹窗协议内容字体⼤⼩
+  String? logBtnImgPath; //协议⼆次弹窗登录按钮的背景图⽚
+  int? logBtnTextColor; //协议⼆次弹窗登录按钮的字体颜⾊
+  String? gravity; //
   bool? enablePrivacyCheckDialog;
   JVPrivacyCheckDialogConfig() {
     this.enablePrivacyCheckDialog = true;
@@ -808,10 +821,9 @@ class JVPrivacyCheckDialogConfig {
       "contentTextSize": contentTextSize,
       "logBtnImgPath": logBtnImgPath,
       "logBtnTextColor": logBtnTextColor,
-      "enablePrivacyCheckDialog":enablePrivacyCheckDialog,
+      "enablePrivacyCheckDialog": enablePrivacyCheckDialog,
     }..removeWhere((key, value) => value == null);
   }
-
 }
 
 /// 自定义控件
@@ -959,6 +971,7 @@ enum JVIOSUIModalTransitionStyle {
   CrossDissolve,
   PartialCurl
 }
+
 /*
 *
 * iOS状态栏设置，需要设置info.plist文件中

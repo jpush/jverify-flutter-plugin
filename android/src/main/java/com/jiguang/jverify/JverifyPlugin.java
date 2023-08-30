@@ -629,7 +629,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
         Object privacyItem = valueForKey(uiconfig, "privacyItem");
 
-        Object isPrivacyViewDarkMode = valueForKey(uiconfig, "isPrivacyViewDarkMode");
+        Object setIsPrivacyViewDarkMode = valueForKey(uiconfig, "setIsPrivacyViewDarkMode");
 
 
         /************* 状态栏 ***************/
@@ -1056,8 +1056,8 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
     
         /************** 协议页面是否支持暗黑模式 ***************/
-        if (isPrivacyViewDarkMode != null) {
-            builder.isPrivacyViewDarkMode((Boolean)isPrivacyViewDarkMode);
+        if (setIsPrivacyViewDarkMode != null) {
+            builder.setIsPrivacyViewDarkMode((Boolean)setIsPrivacyViewDarkMode);
         }
     }
 
