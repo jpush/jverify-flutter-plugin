@@ -96,7 +96,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             setup(call, result);
         } else if (call.method.equals("setDebugMode")) {
             setDebugMode(call, result);
-        } else if (call.method.equals("isInitSuccess")) {
+        } else if (call.method.equals("setCollectionAuth")) {
+            setCollectionAuth(call, result);
+        }else if (call.method.equals("isInitSuccess")) {
             isInitSuccess(call, result);
         } else if (call.method.equals("checkVerifyEnable")) {
             checkVerifyEnable(call, result);
@@ -193,6 +195,18 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             JVerificationInterface.setDebugMode((Boolean) enable);
         }
 
+        Map<String, Object> map = new HashMap<>();
+        map.put(j_result_key, enable);
+        runMainThread(map, result, null);
+    }
+
+    /**
+     * SDK合规授权
+     */
+    private void setCollectionAuth(MethodCall call, Result result) {
+        Log.d(TAG, "Action - setCollectionAuth:");
+        Object enable = getValueByKey(call, "auth");
+        JCollectionAuth.setAuth(context,enable);
         Map<String, Object> map = new HashMap<>();
         map.put(j_result_key, enable);
         runMainThread(map, result, null);

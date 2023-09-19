@@ -1,5 +1,6 @@
 #import "JverifyPlugin.h"
 #import "JVERIFICATIONService.h"
+#import "JGInforCollectionAuth.h"
 // 如果需要使用 idfa 功能所需要引入的头文件（可选）
 #import <AdSupport/AdSupport.h>
 #define UIColorFromRGB(rgbValue)  ([UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0])
@@ -40,6 +41,8 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
         [self setup:call result:result];
     }else if([methodName isEqualToString:@"setDebugMode"]){
         [self setDebugMode:call result:result];
+    }else if([methodName isEqualToString:@"setCollectionAuth"]){
+        [self setCollectionAuth:call result:result];
     }else if([methodName isEqualToString:@"isInitSuccess"]) {
         [self isSetupClient:result];
     }else if([methodName isEqualToString:@"checkVerifyEnable"]){
@@ -108,6 +111,18 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     NSDictionary *arguments = call.arguments;
     NSNumber *debug = arguments[@"debug"];
     [JVERIFICATIONService setDebug:[debug boolValue]];
+}
+
+#pragma mark - 设置合规/采集授权 
+-(void)setCollectionAuth:(FlutterMethodCall*) call result:(FlutterResult)result{
+    JVLog(@"Action - setCollectionAuth::");
+    
+    NSDictionary *arguments = call.arguments;
+    __block  NSNumber *auth = arguments[@"auth"];
+    
+    [JGInforCollectionAuth  JCollectionAuth:^(JGInforCollectionAuthItems * _Nonnull authInfo) {
+        authInfo.isAuth = auth;
+    }];
 }
 
 #pragma mark - 初始化 SDK

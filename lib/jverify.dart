@@ -181,6 +181,12 @@ class Jverify {
     _channel.invokeMethod("setDebugMode", {"debug": debug});
   }
 
+  /// 合规采集开关
+  void setCollectionAuth(bool auth) {
+    print("$flutter_log" + "setCollectionAuth");
+    _channel.invokeMethod("setCollectionAuth", {"auth": auth});
+  }
+
   ///设置前后两次获取验证码的时间间隔，默认 30000ms，有效范围(0,300000)
   void setGetCodeInternal(int intervalTime) {
     print("$flutter_log" + "setGetCodeInternal");

@@ -545,6 +545,7 @@ class _MyAppState extends State<MyApp> {
     });
 
     jverify.setDebugMode(true); // 打开调试模式
+    jverify.setCollectionAuth(false);
     jverify.setup(
         appKey: "4fcc3e237eec4c4fb804ad49", //"你自己应用的 AppKey",
         channel: "devloper-default"); // 初始化sdk,  appKey 和 channel 只对ios设置有效
