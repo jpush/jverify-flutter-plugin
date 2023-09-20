@@ -1,4 +1,5 @@
 package com.jiguang.jverify;
+import cn.jiguang.api.utils.JCollectionAuth;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -206,7 +207,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
     private void setCollectionAuth(MethodCall call, Result result) {
         Log.d(TAG, "Action - setCollectionAuth:");
         Object enable = getValueByKey(call, "auth");
-        JCollectionAuth.setAuth(context,enable);
+        JCollectionAuth.setAuth(context,(Boolean)enable);
         Map<String, Object> map = new HashMap<>();
         map.put(j_result_key, enable);
         runMainThread(map, result, null);
