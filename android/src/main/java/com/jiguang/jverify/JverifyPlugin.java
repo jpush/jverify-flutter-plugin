@@ -311,7 +311,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
         JVerificationInterface.getToken(context, timeOut, new VerifyListener() {
             @Override
-            public void onResult(int code, String content, String operator) {
+            public void onResult(final int code, final String content, final String operator, final JSONObject operatorReturn) {
 
                 if (code == 2000) {//code: 返回码，2000代表获取成功，其他为失败
                     Log.d(TAG, "token=" + content + ", operator=" + operator);
@@ -349,16 +349,16 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
         JVerificationInterface.preLogin(context, timeOut, new PreLoginListener() {
             @Override
-            public void onResult(int code, String message,String a1,String a2) {
+            public void onResult(final int code, final String content, final JSONObject operatorReturn) {
 
                 if (code == 7000) {//code: 返回码，7000代表获取成功，其他为失败，详见错误码描述
-                    Log.d(TAG, "verify success, message =" + message);
+                    Log.d(TAG, "verify success, message =" + content);
                 } else {
-                    Log.e(TAG, "verify fail，code=" + code + ", message =" + message);
+                    Log.e(TAG, "verify fail，code=" + code + ", message =" + content);
                 }
                 Map<String, Object> map = new HashMap<>();
                 map.put(j_code_key, code);
-                map.put(j_msg_key, message);
+                map.put(j_msg_key, content);
 
                 runMainThread(map, result, null);
             }
@@ -415,7 +415,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
         JVerificationInterface.loginAuth(context, settings, new VerifyListener() {
             @Override
-            public void onResult(int code, String content, String operator) {
+            public void onResult(final int code, final String content, final String operator, JSONObject operatorReturn) {
                 if (code == 6000) {
                     Log.d(TAG, "code=" + code + ", token=" + content + " ,operator=" + operator);
                 } else {

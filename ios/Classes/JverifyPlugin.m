@@ -299,7 +299,7 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
         
         NSDictionary *dict = @{
             j_code_key:res[@"code"],
-            j_msg_key :res[@"message"] ? res[@"message"] : @""
+            j_msg_key :res[@"content"] ? res[@"content"] : @""
         };
         dispatch_async(dispatch_get_main_queue(), ^{
             result(dict);
