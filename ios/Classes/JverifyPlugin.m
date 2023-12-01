@@ -504,8 +504,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     if (navTransparent) {
         uiconfig.navTransparent = [navTransparent boolValue];
     }
-    uiconfig.navReturnHidden = NO;
-    
+
     /************** logo ***************/
     JVLayoutItem logoLayoutItem = [self getLayotItem:[self getValue:config key:@"logoVerticalLayoutItem"]];
     NSNumber *logoWidth = [self getNumberValue:config key:@"logoWidth"];
