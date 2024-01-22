@@ -483,21 +483,15 @@ class _MyAppState extends State<MyApp> {
             landscapeConfig: uiConfig, widgets: widgetList);
 
         /// 步骤 2：调用一键登录接口
-
-        /// 方式一：使用同步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
-        /// 先，添加 loginAuthSyncApi 接口回调的监听
-        jverify.addLoginAuthCallBackListener((event) {
+        jverify.loginAuthSyncApi2(autoDismiss: true, loginAuthcallback: (event) {
           setState(() {
             _hideLoading();
             _hideLoading();
-            _result = "监听获取返回数据：[${event.code}] message = ${event.message}";
+            _result = "获取返回数据：[${event.code}] message = ${event.message}";
           });
           print(
-              "通过添加监听，获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
+              "获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
         });
-
-        /// 再，执行同步的一键登录接口
-        jverify.loginAuthSyncApi(autoDismiss: true);
       } else {
         setState(() {
           _hideLoading();
@@ -545,7 +539,7 @@ class _MyAppState extends State<MyApp> {
     });
 
     jverify.setDebugMode(true); // 打开调试模式
-    jverify.setCollectionAuth(false);
+    jverify.setCollectionAuth(true);
     jverify.setup(
         appKey: "4fcc3e237eec4c4fb804ad49", //"你自己应用的 AppKey",
         channel: "devloper-default"); // 初始化sdk,  appKey 和 channel 只对ios设置有效

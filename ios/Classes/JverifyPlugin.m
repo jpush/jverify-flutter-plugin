@@ -327,7 +327,8 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     NSDictionary *arguments = [call arguments];
     NSNumber *hide = arguments[@"autoDismiss"];
     NSTimeInterval timeout = [arguments[@"timeout"] longLongValue];
-    
+    NSInteger loginAuthIndex = [arguments[@"loginAuthIndex"] longLongValue];
+
     UIViewController *vc = [UIApplication sharedApplication].keyWindow.rootViewController;
     
     __weak typeof(self) weakself = self;
@@ -340,11 +341,11 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
         }else if(res[@"content"]){
             content = res[@"content"];
         }
-        
         NSDictionary *dict = @{
             j_code_key:res[@"code"],
             j_msg_key :content,
-            j_opr_key :res[@"operator"]?:@""
+            j_opr_key :res[@"operator"]?:@"",
+            @"loginAuthIndex": @(loginAuthIndex)
         };
         __strong typeof(weakself) strongself = weakself;
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -361,7 +362,8 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
         /// 事件
         NSDictionary *jsonMap = @{
             j_code_key:@(type),
-            j_msg_key:content?content:@""
+            j_msg_key:content?content:@"",
+            @"loginAuthIndex": @(loginAuthIndex)
         };
         __strong typeof(weakself) strongself = weakself;
         dispatch_async(dispatch_get_main_queue(), ^{

@@ -396,6 +396,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
         Object autoFinish = getValueByKey(call, "autoDismiss");
         Integer timeOut = call.argument("timeout");
+        final Integer loginAuthIndex = call.argument("loginAuthIndex");
 
         LoginSettings settings = new LoginSettings();
         settings.setAutoFinish((Boolean) autoFinish);
@@ -408,6 +409,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 final HashMap jsonMap = new HashMap();
                 jsonMap.put(j_code_key, cmd);
                 jsonMap.put(j_msg_key, msg);
+                jsonMap.put("loginAuthIndex", loginAuthIndex);
 
                 runMainThread(jsonMap, null, "onReceiveAuthPageEvent");
             }
@@ -425,6 +427,8 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 map.put(j_code_key, code);
                 map.put(j_msg_key, content);
                 map.put(j_opr_key, operator);
+                map.put("loginAuthIndex", loginAuthIndex);
+
                 if (isSync) {
                     // 通过 channel 返回
                     runMainThread(map, null, "onReceiveLoginAuthCallBackEvent");

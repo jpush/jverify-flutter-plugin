@@ -45,6 +45,10 @@ class JVEventHandlers {
   List<JVAuthPageEventListener> authPageEvents = [];
   List<JVLoginAuthCallBackListener> loginAuthCallBackEvents = [];
   JVSDKSetupCallBackListener? sdkSetupCallBackListener;
+
+  int loginAuthIndex = 0;
+  Map<int, JVAuthPageEventListener> authPageEventsMap = {};
+  Map<int, JVLoginAuthCallBackListener> loginAuthCallBackEventsMap = {};
 }
 
 class Jverify {
@@ -107,22 +111,38 @@ class Jverify {
         break;
       case 'onReceiveAuthPageEvent':
         {
+
+          Map json = call.arguments.cast<dynamic, dynamic>();
+          JVAuthPageEvent ev = JVAuthPageEvent.fromJson(json);
+          int index = json["loginAuthIndex"];
+
           for (JVAuthPageEventListener cb in _eventHanders.authPageEvents) {
-            Map json = call.arguments.cast<dynamic, dynamic>();
-            JVAuthPageEvent ev = JVAuthPageEvent.fromJson(json);
             cb(ev);
+          }
+
+          if (_eventHanders.authPageEventsMap.containsKey(index)) {
+            _eventHanders.authPageEventsMap[index]!(ev);
           }
         }
         break;
       case 'onReceiveLoginAuthCallBackEvent':
         {
+
+          Map json = call.arguments.cast<dynamic, dynamic>();
+          JVListenerEvent event = JVListenerEvent.fromJson(json);
+          int index = json["loginAuthIndex"];
+          //老版本callback
           for (JVLoginAuthCallBackListener cb
               in _eventHanders.loginAuthCallBackEvents) {
-            Map json = call.arguments.cast<dynamic, dynamic>();
-            JVListenerEvent event = JVListenerEvent.fromJson(json);
             cb(event);
             _eventHanders.loginAuthCallBackEvents.remove(cb);
           }
+
+          if (_eventHanders.loginAuthCallBackEventsMap.containsKey(index)) {
+            _eventHanders.loginAuthCallBackEventsMap[index]!(event);
+            _eventHanders.loginAuthCallBackEventsMap.remove(index);
+          }
+
         }
         break;
       case 'onReceiveSDKSetupCallBackEvent':
@@ -349,7 +369,7 @@ class Jverify {
   }
 
   /*
-  * SDK请求授权一键登录（同步接口）
+  * SDK请求授权一键登录（同步接口）（旧）
   *
   * @param autoDismiss  设置登录完成后是否自动关闭授权页
   * @param timeout      设置超时时间，单位毫秒。 合法范围（0，30000],范围以外默认设置为10000
@@ -373,6 +393,41 @@ class Jverify {
       print("$flutter_log" + repeatError.toString());
     }
   }
+
+
+  /*
+  * SDK请求授权一键登录（同步接口）
+  *
+  * @param autoDismiss  设置登录完成后是否自动关闭授权页
+  * @param timeout      设置超时时间，单位毫秒。 合法范围（0，30000],范围以外默认设置为10000
+  *
+  * 接口回调返回数据监听：通过添加 JVLoginAuthCallBackListener 监听，来监听接口的返回结果
+  *
+  * 授权页面点击事件监听：通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件
+  *
+  * */
+  void loginAuthSyncApi2(
+      {required bool autoDismiss, int timeout = 10000, JVLoginAuthCallBackListener? loginAuthcallback, JVAuthPageEventListener? pageEventCallback}) {
+    print("$flutter_log" + "loginAuthSyncApi");
+
+    String method = "loginAuthSyncApi";
+    var repeatError = isRepeatRequest(method: method);
+    if (repeatError == null) {
+      _eventHanders.loginAuthIndex++;
+      var map = {"autoDismiss": autoDismiss, "timeout": timeout, "loginAuthIndex": _eventHanders.loginAuthIndex};
+      if (loginAuthcallback != null) {
+        _eventHanders.loginAuthCallBackEventsMap[_eventHanders.loginAuthIndex] = loginAuthcallback;
+      }
+      if (pageEventCallback != null) {
+        _eventHanders.authPageEventsMap[_eventHanders.loginAuthIndex] = pageEventCallback;
+      }
+      _channel.invokeMethod(method, map);
+      requestQueue.remove(method);
+    } else {
+      print("$flutter_log" + repeatError.toString());
+    }
+  }
+
 
   /*
   * 关闭授权页面
