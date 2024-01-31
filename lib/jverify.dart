@@ -111,7 +111,6 @@ class Jverify {
         break;
       case 'onReceiveAuthPageEvent':
         {
-
           Map json = call.arguments.cast<dynamic, dynamic>();
           JVAuthPageEvent ev = JVAuthPageEvent.fromJson(json);
           int index = json["loginAuthIndex"];
@@ -127,7 +126,6 @@ class Jverify {
         break;
       case 'onReceiveLoginAuthCallBackEvent':
         {
-
           Map json = call.arguments.cast<dynamic, dynamic>();
           JVListenerEvent event = JVListenerEvent.fromJson(json);
           int index = json["loginAuthIndex"];
@@ -142,7 +140,6 @@ class Jverify {
             _eventHanders.loginAuthCallBackEventsMap[index]!(event);
             _eventHanders.loginAuthCallBackEventsMap.remove(index);
           }
-
         }
         break;
       case 'onReceiveSDKSetupCallBackEvent':
@@ -394,12 +391,12 @@ class Jverify {
     }
   }
 
-
   /*
   * SDK请求授权一键登录（同步接口）
   *
   * @param autoDismiss  设置登录完成后是否自动关闭授权页
   * @param timeout      设置超时时间，单位毫秒。 合法范围（0，30000],范围以外默认设置为10000
+  * @param enableSms     是否开启短信登录切换服务，开启时在授权登录失败时拉起短信登录页面，默认为false
   *
   * 接口回调返回数据监听：通过添加 JVLoginAuthCallBackListener 监听，来监听接口的返回结果
   *
@@ -407,19 +404,30 @@ class Jverify {
   *
   * */
   void loginAuthSyncApi2(
-      {required bool autoDismiss, int timeout = 10000, JVLoginAuthCallBackListener? loginAuthcallback, JVAuthPageEventListener? pageEventCallback}) {
+      {required bool autoDismiss,
+      int timeout = 10000,
+      bool enableSms = false,
+      JVLoginAuthCallBackListener? loginAuthcallback,
+      JVAuthPageEventListener? pageEventCallback}) {
     print("$flutter_log" + "loginAuthSyncApi");
 
     String method = "loginAuthSyncApi";
     var repeatError = isRepeatRequest(method: method);
     if (repeatError == null) {
       _eventHanders.loginAuthIndex++;
-      var map = {"autoDismiss": autoDismiss, "timeout": timeout, "loginAuthIndex": _eventHanders.loginAuthIndex};
+      var map = {
+        "autoDismiss": autoDismiss,
+        "timeout": timeout,
+        "enableSms": enableSms,
+        "loginAuthIndex": _eventHanders.loginAuthIndex
+      };
       if (loginAuthcallback != null) {
-        _eventHanders.loginAuthCallBackEventsMap[_eventHanders.loginAuthIndex] = loginAuthcallback;
+        _eventHanders.loginAuthCallBackEventsMap[_eventHanders.loginAuthIndex] =
+            loginAuthcallback;
       }
       if (pageEventCallback != null) {
-        _eventHanders.authPageEventsMap[_eventHanders.loginAuthIndex] = pageEventCallback;
+        _eventHanders.authPageEventsMap[_eventHanders.loginAuthIndex] =
+            pageEventCallback;
       }
       _channel.invokeMethod(method, map);
       requestQueue.remove(method);
@@ -427,7 +435,6 @@ class Jverify {
       print("$flutter_log" + repeatError.toString());
     }
   }
-
 
   /*
   * 关闭授权页面

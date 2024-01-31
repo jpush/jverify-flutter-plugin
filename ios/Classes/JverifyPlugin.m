@@ -328,11 +328,12 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     NSNumber *hide = arguments[@"autoDismiss"];
     NSTimeInterval timeout = [arguments[@"timeout"] longLongValue];
     NSInteger loginAuthIndex = [arguments[@"loginAuthIndex"] longLongValue];
+    NSNumber *enableSms = arguments[@"enableSms"];
 
     UIViewController *vc = [UIApplication sharedApplication].keyWindow.rootViewController;
     
     __weak typeof(self) weakself = self;
-    [JVERIFICATIONService getAuthorizationWithController:vc hide:[hide boolValue] animated:needStartAnim timeout:timeout completion:^(NSDictionary *res) {
+    [JVERIFICATIONService getAuthorizationWithController:vc enableSms:[enableSms boolValue] hide:[hide boolValue] animated:needStartAnim timeout:timeout completion:^(NSDictionary *res) {
         JVLog(@"getAuthorizationWithController result = %@",res);
         
         NSString *content = @"";
