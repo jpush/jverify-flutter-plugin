@@ -423,7 +423,7 @@ class _MyAppState extends State<MyApp> {
         privacyCheckDialogConfig.logBtnTextColor = Colors.black.value;
         uiConfig.privacyCheckDialogConfig = privacyCheckDialogConfig;
 
-        uiConfig.setIsPrivacyViewDarkMode = false;//协议页面是否支持暗黑模式
+        uiConfig.setIsPrivacyViewDarkMode = false; //协议页面是否支持暗黑模式
 
         //弹框模式
         // JVPopViewConfig popViewConfig = JVPopViewConfig();
@@ -485,21 +485,23 @@ class _MyAppState extends State<MyApp> {
             landscapeConfig: uiConfig, widgets: widgetList);
 
         /// 步骤 2：调用一键登录接口
-        jverify.loginAuthSyncApi2(autoDismiss: true, loginAuthcallback: (event) {
-          setState(() {
-            _hideLoading();
-            _hideLoading();
-            _result = "获取返回数据：[${event.code}] message = ${event.message}";
-          });
-          print(
-              "获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
-        });
+        jverify.loginAuthSyncApi2(
+            autoDismiss: true,
+            enableSms: true,
+            loginAuthcallback: (event) {
+              setState(() {
+                _hideLoading();
+                _hideLoading();
+                _result = "获取返回数据：[${event.code}] message = ${event.message}";
+              });
+              print(
+                  "获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
+            });
       } else {
         setState(() {
           _hideLoading();
           _result = "[2016],msg = 当前网络环境不支持认证";
         });
-
 
         /* 弹框模式
         JVPopViewConfig popViewConfig = JVPopViewConfig();
@@ -528,7 +530,6 @@ class _MyAppState extends State<MyApp> {
         });
 
         */
-
       }
     });
   }
