@@ -681,6 +681,9 @@ class JVUIConfig {
 /**协议页面是否支持暗黑模式*/
   bool setIsPrivacyViewDarkMode = true;
 
+  /** sms UI**/
+  JVSMSUIConfig? smsUIConfig;
+
   Map toJsonMap() {
     return {
       "privacyItem": privacyItem != null ? json.encode(privacyItem) : null,
@@ -809,6 +812,7 @@ class JVUIConfig {
           ? privacyCheckDialogConfig?.toJsonMap()
           : null,
       "setIsPrivacyViewDarkMode": setIsPrivacyViewDarkMode,
+      "smsUIConfig": smsUIConfig != null ? smsUIConfig?.toJsonMap() : null
     }..removeWhere((key, value) => value == null);
   }
 }
@@ -857,8 +861,10 @@ class JVPrivacyCheckDialogConfig {
   int? height; //协议⼆次弹窗本身的⾼
   int? offsetX; // 窗口相对屏幕中心的x轴偏移量
   int? offsetY; // 窗口相对屏幕中心的y轴偏移量
+  String? title; //弹窗标题
   int? titleTextSize; // 弹窗标题字体大小
   int? titleTextColor; // 弹窗标题字体颜色
+  String? logBtnText; //弹窗登录按钮
   String? contentTextGravity; //协议⼆次弹窗协议内容对⻬⽅式
   int? contentTextSize; //协议⼆次弹窗协议内容字体⼤⼩
   String? logBtnImgPath; //协议⼆次弹窗登录按钮的背景图⽚
@@ -876,14 +882,184 @@ class JVPrivacyCheckDialogConfig {
       "offsetX": offsetX,
       "offsetY": offsetY,
       "gravity": gravity,
+      "title": title,
       "titleTextSize": titleTextSize,
       "titleTextColor": titleTextColor,
+      "logBtnText": logBtnText,
       "contentTextGravity": contentTextGravity,
       "contentTextSize": contentTextSize,
       "logBtnImgPath": logBtnImgPath,
       "logBtnTextColor": logBtnTextColor,
       "enablePrivacyCheckDialog": enablePrivacyCheckDialog,
     }..removeWhere((key, value) => value == null);
+  }
+}
+
+
+/*
+ * 短信页面的配置
+ *
+ * */
+class JVSMSUIConfig {
+  String? smsNavText; //导航栏标题文字
+  int? smsSloganTextSize; //设置 slogan 字体大小
+  bool? isSmsSloganHidden; //设置 slogan 字体是否隐藏
+  bool? isSmsSloganTextBold; //设置 slogan 字体是否加粗
+  int? smsSloganOffsetX; //设置 slogan 相对于屏幕左边 x 轴偏移
+  int? smsSloganOffsetY; //设置 slogan 相对于标题栏下边缘 y 偏移
+  int? smsSloganOffsetBottomY; //设置 slogan 相对于屏幕底部下边缘 y 轴偏移
+  int? smsSloganTextColor; //设置移动 slogan 文字颜色
+  int? smsLogoWidth; //设置 logo 宽度（单位：dp）
+  int? smsLogoHeight; //设置 logo 高度（单位：dp）
+  int? smsLogoOffsetX; //设置 logo 相对于屏幕左边 x 轴偏移
+  int? smsLogoOffsetY; //设置 logo 相对于标题栏下边缘 y 偏移
+  int? smsLogoOffsetBottomY; //	设置 logo 相对于屏幕底部 y 轴偏移
+  bool? isSmsLogoHidden; //隐藏 logo
+  String? smsLogoResName; //设置 logo 图片
+  int? smsPhoneTextViewOffsetX; //设置号码标题相对于屏幕左边 x 轴偏移
+  int? smsPhoneTextViewOffsetY; //设置号码标题相对于相对于标题栏下边缘 y 偏移
+  int? smsPhoneTextViewTextSize; //设置号码标题字体大小
+  int? smsPhoneTextViewTextColor; //设置号码标题文字颜色
+  int? smsPhoneInputViewOffsetX; //设置号码输入框相对于屏幕左边 x 轴偏移
+  int? smsPhoneInputViewOffsetY; //设置号码输入框相对于屏幕底部 y 轴偏移
+  int? smsPhoneInputViewWidth; //设置号码输入框宽度
+  int? smsPhoneInputViewHeight; //设置号码输入框高度
+  int? smsPhoneInputViewTextColor; //设置手机号码输入框字体颜色
+  int? smsPhoneInputViewTextSize; //设置手机号码输入框字体大小
+  int? smsVerifyCodeTextViewOffsetX; //设置验证码标题相对于屏幕左边 x 轴偏移
+  int? smsVerifyCodeTextViewOffsetY; //设置验证码标题相对于相对于标题栏下边缘 y 偏移
+  int? smsVerifyCodeTextViewTextSize; //设置验证码标题字体大小
+  int? smsVerifyCodeTextViewTextColor; //设置验证码标题文字颜色
+  int? smsVerifyCodeEditTextViewTextSize; //设置验证码输入框字体大小
+  int? smsVerifyCodeEditTextViewTextColor; //设置验证码输入框字体颜色
+  int? smsVerifyCodeEditTextViewOffsetX; //设置验证码输入框相对于屏幕左边 x 轴偏移
+  int? smsVerifyCodeEditTextViewOffsetY; //设置验证码输入框相对于标题栏下边缘 y 偏移
+  int? smsVerifyCodeEditTextViewOffsetR; //设置验证码输入框相对于屏幕右边偏移
+  int? smsVerifyCodeEditTextViewWidth; //设置验证码输入框宽度
+  int? smsVerifyCodeEditTextViewHeight; //设置验证码输入框高度
+  int? smsGetVerifyCodeTextViewOffsetX; //设置获取验证码按钮相对于屏幕左边 x 轴偏移
+  int? smsGetVerifyCodeTextViewOffsetY; //设置获取验证码按钮相对于标题栏下边缘 y 偏移
+  int? smsGetVerifyCodeTextViewTextSize; //设置获取验证码按钮字体大小
+  int? smsGetVerifyCodeTextViewTextColor; //设置获取验证码按钮文字颜色
+  int? smsGetVerifyCodeTextViewOffsetR; //设置获取验证码按钮相对于屏幕右边偏移
+  String? smsGetVerifyCodeBtnBackgroundPath; //设置获取验证码按钮图片
+  //enableSmsGetVerifyCodeDialog;
+  //smsGetVerifyCodeDialog
+  int? smsLogBtnOffsetX; //设置登录按钮相对于屏幕左边 x 轴偏移
+  int? smsLogBtnOffsetY; //设置登录按钮相对于标题栏下边缘 y 偏移
+  int? smsLogBtnWidth; //设置登录按钮宽度
+  int? smsLogBtnHeight; //设置登录按钮高度
+  int? smsLogBtnTextSize; //设置登录按钮字体大小
+  int? smsLogBtnBottomOffsetY; //	设置登录按钮相对屏幕底部 y 轴偏移
+  String? smsLogBtnText; //设置登录按钮文字
+  int? smsLogBtnTextColor; //设置登录按钮文字颜色
+  bool? isSmsLogBtnTextBold; //	设置登录按钮字体是否加粗
+  String? smsLogBtnBackgroundPath; //设置授权登录按钮图片
+  int? smsFirstSeperLineOffsetX; //第一分割线相对于屏幕左边 x 轴偏移
+  int? smsFirstSeperLineOffsetY; //第一分割线相对于标题栏下边缘 y 偏移
+  int? smsFirstSeperLineOffsetR; //第一分割线相对于屏幕右边偏移
+  int? smsFirstSeperLineColor; //第一分割线颜色
+  int? smsSecondSeperLineOffsetX; //第二分割线相对于屏幕左边 x 轴偏移
+  int? smsSecondSeperLineOffsetY; //第二分割线相对于标题栏下边缘 y 偏移
+  int? smsSecondSeperLineOffsetR; //第二分割线相对于屏幕右边偏移
+  int? smsSecondSeperLineColor; //第二分割线颜色
+  bool? isSmsPrivacyTextGravityCenter; //设置隐私条款文字是否居中对齐（默认左对齐）
+  int? smsPrivacyOffsetX; //协议相对于屏幕左边 x 轴偏移
+  int? smsPrivacyOffsetY; //协议相对于底部 y 偏移
+  int? smsPrivacyTopOffsetY; //协议相对于标题栏下边缘 y 偏移
+  int? smsPrivacyMarginL; //设置协议相对于登录页左边的间距
+  int? smsPrivacyMarginR; //设置协议相对于登录页右边的间距
+  int? smsPrivacyMarginT; //设置协议相对于登录页顶部的间距
+  int? smsPrivacyMarginB; //设置协议相对于登录页底部的间距
+  int? smsPrivacyCheckboxSize; //设置隐私条款 checkbox 尺寸
+  bool? isSmsPrivacyCheckboxInCenter; //设置隐私条款 checkbox 是否相对协议文字纵向居中
+  List<int>? smsPrivacyCheckboxMargin; //设置协议相对于登录页的间距
+  List<JVPrivacy>? smsPrivacyBeanList; //设置协议内容
+  String? smsPrivacyClauseStart; //设置协议条款开头文本
+  String? smsPrivacyClauseEnd; //设置协议条款结尾文本
+  // List<VerifyCustomView> smsCustomViews
+  bool? enableSMSService; //如果开启了短信服务，在认证服务失败时，短信服务又可用的情况下拉起短信服务
+
+
+  Map toJsonMap() {
+    return {
+      "smsNavText": smsNavText ??= null,
+      "smsSloganTextSize": smsSloganTextSize ??= null,
+      "isSmsSloganHidden": isSmsSloganHidden ??= null,
+      "isSmsSloganTextBold": isSmsSloganTextBold ??= null,
+      "smsSloganOffsetX": smsSloganOffsetX ??= null,
+      "smsSloganOffsetY": smsSloganOffsetY ??= null,
+      "smsSloganOffsetBottomY": smsSloganOffsetBottomY ??= null,
+      "smsSloganTextColor": smsSloganTextColor ??= null,
+      "smsLogoWidth": smsLogoWidth ??= null,
+      "smsLogoHeight": smsLogoHeight ??= null,
+      "smsLogoOffsetX": smsLogoOffsetX ??= null,
+      "smsLogoOffsetY": smsLogoOffsetY ??= null,
+      "smsLogoOffsetBottomY": smsLogoOffsetBottomY ??= null,
+      "isSmsLogoHidden": isSmsLogoHidden ??= null,
+      "smsLogoResName": smsLogoResName ??= null,
+      "smsPhoneTextViewOffsetX": smsPhoneTextViewOffsetX ??= null,
+      "smsPhoneTextViewOffsetY": smsPhoneTextViewOffsetY ??= null,
+      "smsPhoneTextViewTextSize": smsPhoneTextViewTextSize ??= null,
+      "smsPhoneTextViewTextColor": smsPhoneTextViewTextColor ??= null,
+      "smsPhoneInputViewOffsetX": smsPhoneInputViewOffsetX ??= null,
+      "smsPhoneInputViewOffsetY": smsPhoneInputViewOffsetY ??= null,
+      "smsPhoneInputViewWidth": smsPhoneInputViewWidth ??= null,
+      "smsPhoneInputViewHeight": smsPhoneInputViewHeight ??= null,
+      "smsPhoneInputViewTextColor": smsPhoneInputViewTextColor ??= null,
+      "smsPhoneInputViewTextSize": smsPhoneInputViewTextSize ??= null,
+      "smsVerifyCodeTextViewOffsetX": smsVerifyCodeTextViewOffsetX ??= null,
+      "smsVerifyCodeTextViewOffsetY": smsVerifyCodeTextViewOffsetY ??= null,
+      "smsVerifyCodeTextViewTextSize": smsVerifyCodeTextViewTextSize ??= null,
+      "smsVerifyCodeTextViewTextColor": smsVerifyCodeTextViewTextColor ??= null,
+      "smsVerifyCodeEditTextViewTextSize": smsVerifyCodeEditTextViewTextSize ??= null,
+      "smsVerifyCodeEditTextViewTextColor": smsVerifyCodeEditTextViewTextColor ??= null,
+      "smsVerifyCodeEditTextViewOffsetX": smsVerifyCodeEditTextViewOffsetX ??= null,
+      "smsVerifyCodeEditTextViewOffsetY": smsVerifyCodeEditTextViewOffsetY ??= null,
+      "smsVerifyCodeEditTextViewOffsetR": smsVerifyCodeEditTextViewOffsetR ??= null,
+      "smsVerifyCodeEditTextViewWidth": smsVerifyCodeEditTextViewWidth ??= null,
+      "smsVerifyCodeEditTextViewHeight": smsVerifyCodeEditTextViewHeight ??= null,
+      "smsGetVerifyCodeTextViewOffsetX": smsGetVerifyCodeTextViewOffsetX ??= null,
+      "smsGetVerifyCodeTextViewOffsetY": smsGetVerifyCodeTextViewOffsetY ??= null,
+      "smsGetVerifyCodeTextViewTextSize": smsGetVerifyCodeTextViewTextSize ??= null,
+      "smsGetVerifyCodeTextViewTextColor": smsGetVerifyCodeTextViewTextColor ??= null,
+      "smsGetVerifyCodeTextViewOffsetR": smsGetVerifyCodeTextViewOffsetR ??= null,
+      "smsGetVerifyCodeBtnBackgroundPath": smsGetVerifyCodeBtnBackgroundPath ??= null,
+      "smsLogBtnOffsetX": smsLogBtnOffsetX ??= null,
+      "smsLogBtnOffsetY": smsLogBtnOffsetY ??= null,
+      "smsLogBtnWidth": smsLogBtnWidth ??= null,
+      "smsLogBtnHeight": smsLogBtnHeight ??= null,
+      "smsLogBtnTextSize": smsLogBtnTextSize ??= null,
+      "smsLogBtnBottomOffsetY": smsLogBtnBottomOffsetY ??= null,
+      "smsLogBtnText": smsLogBtnText ??= null,
+      "smsLogBtnTextColor": smsLogBtnTextColor ??= null,
+      "isSmsLogBtnTextBold": isSmsLogBtnTextBold ??= null,
+      "smsLogBtnBackgroundPath": smsLogBtnBackgroundPath ??= null,
+      "smsFirstSeperLineOffsetX": smsFirstSeperLineOffsetX ??= null,
+      "smsFirstSeperLineOffsetY": smsFirstSeperLineOffsetY ??= null,
+      "smsFirstSeperLineOffsetR": smsFirstSeperLineOffsetR ??= null,
+      "smsSecondSeperLineOffsetX":smsSecondSeperLineOffsetX  ??= null,
+      "smsSecondSeperLineOffsetY": smsSecondSeperLineOffsetY ??= null,
+      "smsSecondSeperLineOffsetR": smsSecondSeperLineOffsetR ??= null,
+      "smsFirstSeperLineColor": smsFirstSeperLineColor ??= null,
+      "smsSecondSeperLineColor": smsSecondSeperLineColor ??= null,
+      "isSmsPrivacyTextGravityCenter": isSmsPrivacyTextGravityCenter ??= null,
+      "smsPrivacyOffsetX": smsPrivacyOffsetX ??= null,
+      "smsPrivacyOffsetY": smsPrivacyOffsetY ??= null,
+      "smsPrivacyTopOffsetY": smsPrivacyTopOffsetY ??= null,
+      "smsPrivacyMarginL": smsPrivacyMarginL ??= null,
+      "smsPrivacyMarginR": smsPrivacyMarginR ??= null,
+      "smsPrivacyMarginT": smsPrivacyMarginT ??= null,
+      "smsPrivacyMarginB": smsPrivacyMarginB ??= null,
+      "smsPrivacyCheckboxSize": smsPrivacyCheckboxSize ??= null,
+      "isSmsPrivacyCheckboxInCenter": isSmsPrivacyCheckboxInCenter ??= null,
+      "smsPrivacyCheckboxMargin": smsPrivacyCheckboxMargin ??= null,
+      "smsPrivacyBeanList": smsPrivacyBeanList != null ? json.encode(smsPrivacyBeanList) : null,
+      "smsPrivacyClauseStart": smsPrivacyClauseStart ??= null,
+      "smsPrivacyClauseEnd": smsPrivacyClauseEnd ??= null,
+      "enableSMSService": enableSMSService ??= null,
+    }..removeWhere((key, value) => value == null);
+
   }
 }
 

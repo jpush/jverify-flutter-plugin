@@ -397,11 +397,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object autoFinish = getValueByKey(call, "autoDismiss");
         Integer timeOut = call.argument("timeout");
         final Integer loginAuthIndex = call.argument("loginAuthIndex");
+        Boolean enableSMSService = (Boolean) getValueByKey(call, "enableSMSService");
 
-        LoginSettings settings = new LoginSettings();
-        settings.setAutoFinish((Boolean) autoFinish);
-        settings.setTimeout(timeOut);
-        settings.setAuthPageEventListener(new AuthPageEventListener() {
+        AuthPageEventListener eventListener = new AuthPageEventListener() {
             @Override
             public void onEvent(int cmd, String msg) {
                 Log.d(TAG, "Action - AuthPageEventListener: cmd = " + cmd);
@@ -413,9 +411,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
                 runMainThread(jsonMap, null, "onReceiveAuthPageEvent");
             }
-        });
+        };
 
-        JVerificationInterface.loginAuth(context, settings, new VerifyListener() {
+        VerifyListener listener = new VerifyListener() {
             @Override
             public void onResult(final int code, final String content, final String operator, JSONObject operatorReturn) {
                 if (code == 6000) {
@@ -437,7 +435,19 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                     runMainThread(map, result, null);
                 }
             }
-        });
+        };
+
+        if (enableSMSService.booleanValue()) {
+            JVerificationInterface.loginAuth((Boolean)enableSMSService, context, (Boolean) autoFinish, listener, eventListener);
+        } else {
+            LoginSettings settings = new LoginSettings();
+            settings.setAutoFinish((Boolean) autoFinish);
+            settings.setTimeout(timeOut);
+            settings.setAuthPageEventListener(eventListener);
+
+            JVerificationInterface.loginAuth(context, settings, listener);
+        }
+
     }
 
     /**
@@ -1038,8 +1048,18 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 if(gravity !=null) {
                     builder.setprivacyCheckDialogGravity(getAlignmentFromString((String) gravity));
                 }
-                Object titleTextSize = valueForKey(privacyCheckDialogConfigMap, "titleTextSize");
 
+                Object dialogTitle = valueForKey(privacyCheckDialogConfigMap, "title");
+                if(dialogTitle !=null) {
+                    builder.setPrivacyCheckDialogTitleText((String) dialogTitle);
+                }
+
+                Object dialogLoginBtnText = valueForKey(privacyCheckDialogConfigMap, "logBtnText");
+                if(dialogLoginBtnText !=null) {
+                    builder.setPrivacyCheckDialogLogBtnText((String) dialogLoginBtnText);
+                }
+
+                Object titleTextSize = valueForKey(privacyCheckDialogConfigMap, "titleTextSize");
                 if(titleTextSize !=null) {
                     builder.setPrivacyCheckDialogTitleTextSize(exchangeObject(titleTextSize));
                 }
@@ -1078,6 +1098,355 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (setIsPrivacyViewDarkMode != null) {
             builder.setIsPrivacyViewDarkMode((Boolean)setIsPrivacyViewDarkMode);
         }
+
+
+        /************** SMS ***************/
+        Object smsUIConfig = valueForKey(uiconfig, "smsUIConfig");
+
+        /************** 协议的二次弹窗配置 ***************/
+        if (smsUIConfig != null) {
+            Map smsUIConfigMap = (Map) smsUIConfig;
+            Object enableSMSService = valueForKey(smsUIConfigMap, "enableSMSService");
+            if ((Boolean) enableSMSService) {
+
+                Object smsNavText = valueForKey(smsUIConfigMap, "smsNavText");
+                Object smsSloganTextSize = valueForKey(smsUIConfigMap, "smsSloganTextSize");
+                Object isSmsSloganHidden = valueForKey(smsUIConfigMap, "isSmsSloganHidden");
+                Object isSmsSloganTextBold = valueForKey(smsUIConfigMap, "isSmsSloganTextBold");
+                Object smsSloganOffsetX = valueForKey(smsUIConfigMap, "smsSloganOffsetX");
+                Object smsSloganOffsetY = valueForKey(smsUIConfigMap, "smsSloganOffsetY");
+                Object smsSloganOffsetBottomY = valueForKey(smsUIConfigMap, "smsSloganOffsetBottomY");
+                Object smsSloganTextColor = valueForKey(smsUIConfigMap, "smsSloganTextColor");
+                Object smsLogoWidth = valueForKey(smsUIConfigMap, "smsLogoWidth");
+                Object smsLogoHeight = valueForKey(smsUIConfigMap, "smsLogoHeight");
+                Object smsLogoOffsetX = valueForKey(smsUIConfigMap, "smsLogoOffsetX");
+                Object smsLogoOffsetY = valueForKey(smsUIConfigMap, "smsLogoOffsetY");
+                Object smsLogoOffsetBottomY = valueForKey(smsUIConfigMap, "smsLogoOffsetBottomY");
+                Object isSmsLogoHidden = valueForKey(smsUIConfigMap, "isSmsLogoHidden");
+                Object smsLogoResName = valueForKey(smsUIConfigMap, "smsLogoResName");
+
+                if(smsNavText !=null){
+                    builder.setSmsNavText((String) smsNavText);
+                }
+                if(smsSloganTextSize !=null){
+                    builder.setSmsSloganTextSize((Integer) smsSloganTextSize);
+                }
+                if(isSmsSloganHidden !=null){
+                    builder.setSmsSloganHidden((Boolean) isSmsSloganHidden);
+                }
+                if(isSmsSloganTextBold !=null){
+                    builder.setSmsSloganTextBold((Boolean) isSmsSloganTextBold);
+                }
+                if(smsSloganOffsetX !=null){
+                    builder.setSmsSloganOffsetX((Integer) smsSloganOffsetX);
+                }
+                if(smsSloganOffsetY !=null){
+                    builder.setSmsSloganOffsetY((Integer) smsSloganOffsetY);
+                }
+                if(smsSloganOffsetBottomY !=null){
+                    builder.setSmsSloganOffsetBottomY((Integer) smsSloganOffsetBottomY);
+                }
+                if(smsSloganTextColor !=null){
+                    builder.setSmsSloganTextColor((Integer) smsSloganTextColor);
+                }
+                if(smsLogoWidth !=null){
+                    builder.setSmsLogoWidth((Integer) smsLogoWidth);
+                }
+                if(smsLogoHeight !=null){
+                    builder.setSmsLogoHeight((Integer) smsLogoHeight);
+                }
+                if(smsLogoOffsetX !=null){
+                    builder.setSmsLogoOffsetX((Integer) smsLogoOffsetX);
+                }
+                if(smsLogoOffsetY !=null){
+                    builder.setSmsLogoOffsetY((Integer) smsLogoOffsetY);
+                }
+                if(smsLogoOffsetBottomY !=null){
+                    builder.setSmsLogoOffsetBottomY((Integer) smsLogoOffsetBottomY);
+                }
+                if(isSmsLogoHidden !=null){
+                    builder.setSmsLogoHidden((Boolean) isSmsLogoHidden);
+                }
+                if(smsLogoResName !=null){
+                    int res_id_smsLogoPath = getResourceByReflect((String) smsLogoResName);
+                    if (res_id_smsLogoPath > 0) {
+                        builder.setSmsLogoImgPath((String) smsLogoResName);
+                    }
+                }
+
+
+                Object smsPhoneTextViewOffsetX = valueForKey(smsUIConfigMap, "smsPhoneTextViewOffsetX");
+                Object smsPhoneTextViewOffsetY = valueForKey(smsUIConfigMap, "smsPhoneTextViewOffsetY");
+                Object smsPhoneTextViewTextSize = valueForKey(smsUIConfigMap, "smsPhoneTextViewTextSize");
+                Object smsPhoneTextViewTextColor = valueForKey(smsUIConfigMap, "smsPhoneTextViewTextColor");
+                Object smsPhoneInputViewOffsetX = valueForKey(smsUIConfigMap, "smsPhoneInputViewOffsetX");
+                Object smsPhoneInputViewOffsetY = valueForKey(smsUIConfigMap, "smsPhoneInputViewOffsetY");
+                Object smsPhoneInputViewWidth = valueForKey(smsUIConfigMap, "smsPhoneInputViewWidth");
+                Object smsPhoneInputViewHeight = valueForKey(smsUIConfigMap, "smsPhoneInputViewHeight");
+                Object smsPhoneInputViewTextColor = valueForKey(smsUIConfigMap, "smsPhoneInputViewTextColor");
+                Object smsPhoneInputViewTextSize = valueForKey(smsUIConfigMap, "smsPhoneInputViewTextSize");
+                Object smsVerifyCodeTextViewOffsetX = valueForKey(smsUIConfigMap, "smsVerifyCodeTextViewOffsetX");
+                Object smsVerifyCodeTextViewOffsetY = valueForKey(smsUIConfigMap, "smsVerifyCodeTextViewOffsetY");
+                Object smsVerifyCodeTextViewTextSize = valueForKey(smsUIConfigMap, "smsVerifyCodeTextViewTextSize");
+                Object smsVerifyCodeTextViewTextColor = valueForKey(smsUIConfigMap, "smsVerifyCodeTextViewTextColor");
+                Object smsVerifyCodeEditTextViewTextSize = valueForKey(smsUIConfigMap, "smsVerifyCodeEditTextViewTextSize");
+                Object smsVerifyCodeEditTextViewTextColor = valueForKey(smsUIConfigMap, "smsVerifyCodeEditTextViewTextColor");
+                Object smsVerifyCodeEditTextViewOffsetX = valueForKey(smsUIConfigMap, "smsVerifyCodeEditTextViewOffsetX");
+                Object smsVerifyCodeEditTextViewOffsetY = valueForKey(smsUIConfigMap, "smsVerifyCodeEditTextViewOffsetY");
+                Object smsVerifyCodeEditTextViewOffsetR = valueForKey(smsUIConfigMap, "smsVerifyCodeEditTextViewOffsetR");
+                Object smsVerifyCodeEditTextViewWidth = valueForKey(smsUIConfigMap, "smsVerifyCodeEditTextViewWidth");
+                Object smsVerifyCodeEditTextViewHeight = valueForKey(smsUIConfigMap, "smsVerifyCodeEditTextViewHeight");
+                Object smsGetVerifyCodeTextViewOffsetX = valueForKey(smsUIConfigMap, "smsGetVerifyCodeTextViewOffsetX");
+                Object smsGetVerifyCodeTextViewOffsetY = valueForKey(smsUIConfigMap, "smsGetVerifyCodeTextViewOffsetY");
+                Object smsGetVerifyCodeTextViewTextSize = valueForKey(smsUIConfigMap, "smsGetVerifyCodeTextViewTextSize");
+                Object smsGetVerifyCodeTextViewTextColor = valueForKey(smsUIConfigMap, "smsGetVerifyCodeTextViewTextColor");
+                Object smsGetVerifyCodeTextViewOffsetR = valueForKey(smsUIConfigMap, "smsGetVerifyCodeTextViewOffsetR");
+                Object smsGetVerifyCodeBtnBackgroundPath = valueForKey(smsUIConfigMap, "smsGetVerifyCodeBtnBackgroundPath");
+
+                if(smsPhoneTextViewOffsetX !=null){
+                    builder.setSmsPhoneTextViewOffsetX((Integer) smsPhoneTextViewOffsetX);
+                }
+                if(smsPhoneTextViewOffsetY !=null){
+                    builder.setSmsPhoneTextViewOffsetY((Integer) smsPhoneTextViewOffsetY);
+                }
+                if(smsPhoneTextViewTextSize !=null){
+                    builder.setSmsPhoneTextViewTextSize((Integer) smsPhoneTextViewTextSize);
+                }
+                if(smsPhoneTextViewTextColor !=null){
+                    builder.setSmsPhoneTextViewTextColor((Integer) smsPhoneTextViewTextColor);
+                }
+                if(smsPhoneInputViewOffsetX !=null){
+                    builder.setSmsPhoneInputViewOffsetX((Integer) smsPhoneInputViewOffsetX);
+                }
+                if(smsPhoneInputViewOffsetY !=null){
+                    builder.setSmsPhoneInputViewOffsetY((Integer) smsPhoneInputViewOffsetY);
+                }
+                if(smsPhoneInputViewWidth !=null){
+                    builder.setSmsPhoneInputViewWidth((Integer) smsPhoneInputViewWidth);
+                }
+                if(smsPhoneInputViewHeight !=null){
+                    builder.setSmsPhoneInputViewHeight((Integer) smsPhoneInputViewHeight);
+                }
+                if(smsPhoneInputViewTextColor !=null){
+                    builder.setSmsPhoneInputViewTextColor((Integer) smsPhoneInputViewTextColor);
+                }
+                if(smsPhoneInputViewTextSize !=null){
+                    builder.setSmsPhoneInputViewTextSize((Integer) smsPhoneInputViewTextSize);
+                }
+                if(smsVerifyCodeTextViewOffsetX !=null){
+                    builder.setSmsVerifyCodeTextViewOffsetX((Integer) smsVerifyCodeTextViewOffsetX);
+                }
+                if(smsVerifyCodeTextViewOffsetY !=null){
+                    builder.setSmsVerifyCodeTextViewOffsetY((Integer) smsVerifyCodeTextViewOffsetY);
+                }
+                if(smsVerifyCodeTextViewTextSize !=null){
+                    builder.setSmsVerifyCodeTextSizeTextSize((Integer) smsVerifyCodeTextViewTextSize);
+                }
+                if(smsVerifyCodeTextViewTextColor !=null){
+                    builder.setSmsVerifyCodeTextViewTextColor((Integer) smsVerifyCodeTextViewTextColor);
+                }
+                if(smsVerifyCodeEditTextViewTextSize !=null){
+                    builder.setSmsVerifyCodeEditTextViewTextSize((Integer) smsVerifyCodeEditTextViewTextSize);
+                }
+                if(smsVerifyCodeEditTextViewTextColor !=null){
+                    builder.setSmsVerifyCodeEditTextViewTextColor((Integer) smsVerifyCodeEditTextViewTextColor);
+                }
+                if(smsVerifyCodeEditTextViewOffsetX !=null){
+                    builder.setSmsVerifyCodeEditTextViewTextOffsetX((Integer) smsVerifyCodeEditTextViewOffsetX);
+                }
+                if(smsVerifyCodeEditTextViewOffsetY !=null){
+                    builder.setSmsVerifyCodeEditTextViewOffsetY((Integer) smsVerifyCodeEditTextViewOffsetY);
+                }
+                if(smsVerifyCodeEditTextViewOffsetR !=null){
+                    builder.setSmsVerifyCodeEditTextViewOffsetR((Integer) smsVerifyCodeEditTextViewOffsetR);
+                }
+                if(smsVerifyCodeEditTextViewWidth !=null){
+                    builder.setSmsVerifyCodeEditTextViewWidth((Integer) smsVerifyCodeEditTextViewWidth);
+                }
+                if(smsVerifyCodeEditTextViewHeight !=null){
+                    builder.setSmsVerifyCodeEditTextViewHeight((Integer) smsVerifyCodeEditTextViewHeight);
+                }
+                if(smsGetVerifyCodeTextViewOffsetX !=null){
+                    builder.setSmsGetVerifyCodeTextViewOffsetX((Integer) smsGetVerifyCodeTextViewOffsetX);
+                }
+                if(smsGetVerifyCodeTextViewOffsetY !=null){
+                    builder.setSmsGetVerifyCodeTextViewOffsetY((Integer) smsGetVerifyCodeTextViewOffsetY);
+                }
+                if(smsGetVerifyCodeTextViewTextSize !=null){
+                    builder.setSmsGetVerifyCodeTextSize((Integer) smsGetVerifyCodeTextViewTextSize);
+                }
+                if(smsGetVerifyCodeTextViewTextColor !=null){
+                    builder.setSmsGetVerifyCodeTextViewTextColor((Integer) smsGetVerifyCodeTextViewTextColor);
+                }
+                if(smsGetVerifyCodeTextViewOffsetR !=null){
+                    builder.setSmsGetVerifyCodeTextViewOffsetR((Integer) smsGetVerifyCodeTextViewOffsetR);
+                }
+                if(smsGetVerifyCodeBtnBackgroundPath !=null){
+                    int res_id_smsGetVerifyCodeBtnBackgroundPath = getResourceByReflect((String) smsGetVerifyCodeBtnBackgroundPath);
+                    if (res_id_smsGetVerifyCodeBtnBackgroundPath > 0) {
+                        builder.setSmsGetVerifyCodeBtnBackgroundPath((String) smsGetVerifyCodeBtnBackgroundPath);
+                    }
+                }
+
+
+                Object smsLogBtnOffsetX = valueForKey(smsUIConfigMap, "smsLogBtnOffsetX");
+                Object smsLogBtnOffsetY = valueForKey(smsUIConfigMap, "smsLogBtnOffsetY");
+                Object smsLogBtnWidth = valueForKey(smsUIConfigMap, "smsLogBtnWidth");
+                Object smsLogBtnHeight = valueForKey(smsUIConfigMap, "smsLogBtnHeight");
+                Object smsLogBtnTextSize = valueForKey(smsUIConfigMap, "smsLogBtnTextSize");
+                Object smsLogBtnBottomOffsetY = valueForKey(smsUIConfigMap, "smsLogBtnBottomOffsetY");
+                Object smsLogBtnText = valueForKey(smsUIConfigMap, "smsLogBtnText");
+                Object smsLogBtnTextColor = valueForKey(smsUIConfigMap, "smsLogBtnTextColor");
+                Object isSmsLogBtnTextBold = valueForKey(smsUIConfigMap, "isSmsLogBtnTextBold");
+                Object smsLogBtnBackgroundPath = valueForKey(smsUIConfigMap, "smsLogBtnBackgroundPath");
+                Object smsFirstSeperLineOffsetX = valueForKey(smsUIConfigMap, "smsFirstSeperLineOffsetX");
+                Object smsFirstSeperLineOffsetY = valueForKey(smsUIConfigMap, "smsFirstSeperLineOffsetY");
+                Object smsFirstSeperLineOffsetR = valueForKey(smsUIConfigMap, "smsFirstSeperLineOffsetR");
+                Object smsFirstSeperLineColor = valueForKey(smsUIConfigMap, "smsFirstSeperLineColor");
+                Object smsSecondSeperLineOffsetX = valueForKey(smsUIConfigMap, "smsSecondSeperLineOffsetX");
+                Object smsSecondSeperLineOffsetY = valueForKey(smsUIConfigMap, "smsSecondSeperLineOffsetY");
+                Object smsSecondSeperLineOffsetR = valueForKey(smsUIConfigMap, "smsSecondSeperLineOffsetR");
+                Object smsSecondSeperLineColor = valueForKey(smsUIConfigMap, "smsSecondSeperLineColor");
+                Object isSmsPrivacyTextGravityCenter = valueForKey(smsUIConfigMap, "isSmsPrivacyTextGravityCenter");
+                Object smsPrivacyOffsetX = valueForKey(smsUIConfigMap, "smsPrivacyOffsetX");
+                Object smsPrivacyOffsetY = valueForKey(smsUIConfigMap, "smsPrivacyOffsetY");
+                Object smsPrivacyTopOffsetY = valueForKey(smsUIConfigMap, "smsPrivacyTopOffsetY");
+                Object smsPrivacyMarginL = valueForKey(smsUIConfigMap, "smsPrivacyMarginL");
+                Object smsPrivacyMarginR = valueForKey(smsUIConfigMap, "smsPrivacyMarginR");
+                Object smsPrivacyMarginT = valueForKey(smsUIConfigMap, "smsPrivacyMarginT");
+                Object smsPrivacyMarginB = valueForKey(smsUIConfigMap, "smsPrivacyMarginB");
+                Object smsPrivacyCheckboxSize = valueForKey(smsUIConfigMap, "smsPrivacyCheckboxSize");
+                Object isSmsPrivacyCheckboxInCenter = valueForKey(smsUIConfigMap, "isSmsPrivacyCheckboxInCenter");
+                Object smsPrivacyCheckboxMargin = valueForKey(smsUIConfigMap, "smsPrivacyCheckboxMargin");
+                Object smsPrivacyBeanList = valueForKey(smsUIConfigMap, "smsPrivacyBeanList");
+                Object smsPrivacyClauseStart = valueForKey(smsUIConfigMap, "smsPrivacyClauseStart");
+                Object smsPrivacyClauseEnd = valueForKey(smsUIConfigMap, "smsPrivacyClauseEnd");
+
+                if(smsLogBtnOffsetX !=null){
+                    builder.setSmsLogBtnOffsetX((Integer) smsLogBtnOffsetX);
+                }
+                if(smsLogBtnOffsetY !=null){
+                    builder.setSmsLogBtnOffsetY((Integer) smsLogBtnOffsetY);
+                }
+                if(smsLogBtnWidth !=null){
+                    builder.setSmsLogBtnWidth((Integer) smsLogBtnWidth);
+                }
+                if(smsLogBtnHeight !=null){
+                    builder.setSmsLogBtnHeight((Integer) smsLogBtnHeight);
+                }
+                if(smsLogBtnTextSize !=null){
+                    builder.setSmsLogBtnTextSize((Integer) smsLogBtnTextSize);
+                }
+                if(smsLogBtnBottomOffsetY !=null){
+                    builder.setSmsLogBtnBottomOffsetY((Integer) smsLogBtnBottomOffsetY);
+                }
+                if(smsLogBtnText !=null){
+                    builder.setSmsLogBtnText((String) smsLogBtnText);
+                }
+                if(smsLogBtnTextColor !=null){
+                    builder.setSmsLogBtnTextColor((Integer) smsLogBtnTextColor);
+                }
+                if(isSmsLogBtnTextBold !=null){
+                    builder.isSmsLogBtnTextBold((Boolean) isSmsLogBtnTextBold);
+                }
+                if(smsLogBtnBackgroundPath !=null){
+                    int res_id_smsLogBtnBackgroundPath = getResourceByReflect((String) smsLogBtnBackgroundPath);
+                    if (res_id_smsLogBtnBackgroundPath > 0) {
+                        builder.setSmsLogBtnBackgroundPath((Integer) smsLogBtnBackgroundPath);
+                    }
+                }
+                if(smsFirstSeperLineOffsetX !=null){
+                    builder.setSmsFirstSeperLineOffsetX((Integer) smsFirstSeperLineOffsetX);
+                }
+                if(smsFirstSeperLineOffsetY !=null){
+                    builder.setSmsFirstSeperLineOffsetY((Integer) smsFirstSeperLineOffsetY);
+                }
+                if(smsFirstSeperLineOffsetR !=null){
+                    builder.setSmsFirstSeperLineOffsetR((Integer) smsFirstSeperLineOffsetR);
+                }
+                if(smsFirstSeperLineColor !=null){
+                    builder.setSmsFirstSeperLineColor((Integer) smsFirstSeperLineColor);
+                }
+                if(smsSecondSeperLineOffsetX !=null){
+                    builder.setSmsSecondSeperLineOffsetX((Integer) smsSecondSeperLineOffsetX);
+                }
+                if(smsSecondSeperLineOffsetY !=null){
+                    builder.setSmsSecondSeperLineOffsetY((Integer) smsSecondSeperLineOffsetY);
+                }
+                if(smsSecondSeperLineOffsetR !=null){
+                    builder.setSmsSecondSeperLineOffsetR((Integer) smsSecondSeperLineOffsetR);
+                }
+                if(smsSecondSeperLineColor !=null){
+                    builder.setSmsSecondSeperLineColor((Integer) smsSecondSeperLineColor);
+                }
+                if(isSmsPrivacyTextGravityCenter !=null){
+                    builder.isSmsPrivacyTextGravityCenter((Boolean) isSmsPrivacyTextGravityCenter);
+                }
+                if(smsPrivacyOffsetX !=null){
+                    builder.setSmsPrivacyOffsetX((Integer) smsPrivacyOffsetX);
+                }
+                if(smsPrivacyOffsetY !=null){
+                    builder.setSmsPrivacyOffsetY((Integer) smsPrivacyOffsetY);
+                }
+                if(smsPrivacyTopOffsetY !=null){
+                    builder.setSmsPrivacyTopOffsetY((Integer) smsPrivacyTopOffsetY);
+                }
+                if(smsPrivacyMarginL !=null){
+                    builder.setSmsPrivacyMarginL((Integer) smsPrivacyMarginL);
+                }
+                if(smsPrivacyMarginR !=null){
+                    builder.setSmsPrivacyMarginR((Integer) smsPrivacyMarginR);
+                }
+                if(smsPrivacyMarginT !=null){
+                    builder.setSmsPrivacyMarginT((Integer) smsPrivacyMarginT);
+                }
+                if(smsPrivacyMarginB !=null){
+                    builder.setSmsPrivacyMarginB((Integer) smsPrivacyMarginB);
+                }
+                if(smsPrivacyCheckboxSize !=null){
+                    builder.setSmsPrivacyCheckboxSize((Integer) smsPrivacyCheckboxSize);
+                }
+                if(isSmsPrivacyCheckboxInCenter !=null){
+                    builder.isSmsPrivacyCheckboxInCenter((Boolean) isSmsPrivacyCheckboxInCenter);
+                }
+                if(smsPrivacyCheckboxMargin !=null){
+                    ArrayList<Integer> smsPrivacyCheckboxMarginArray = (ArrayList) smsPrivacyCheckboxMargin;
+                    int[] intArray = new int[smsPrivacyCheckboxMarginArray.size()];
+                    for (int i = 0; i < smsPrivacyCheckboxMarginArray.size(); i++) {
+                        intArray[i] = smsPrivacyCheckboxMarginArray.get(i);
+                    }
+                    builder.setSmsPrivacyCheckboxMargin(intArray);
+                }
+                if (smsPrivacyBeanList != null) {
+                    try {
+                        JSONArray jsonArray = new JSONArray((String) smsPrivacyBeanList);
+                        int length = jsonArray.length();
+                        JSONObject jsonObject;
+                        PrivacyBean privacyBean;
+                        ArrayList<PrivacyBean> privacyBeans = new ArrayList<>(length);
+                        for (int i = 0; i < length; i++) {
+                            jsonObject = jsonArray.optJSONObject(i);
+                            privacyBean = new PrivacyBean(jsonObject.optString("name"), jsonObject.optString("url"),
+                                    jsonObject.optString("separator"));
+
+                            privacyBeans.add(privacyBean);
+                        }
+
+                        builder.setSmsPrivacyBeanList(privacyBeans);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if(smsPrivacyClauseStart !=null){
+                    builder.setSmsPrivacyClauseStart((String) smsPrivacyClauseStart);
+                }
+                if(smsPrivacyClauseEnd !=null){
+                    builder.setSmsPrivacyClauseEnd((String) smsPrivacyClauseEnd);
+                }
+
+            }
+        }
+
     }
 
     /** 添加自定义 widget 到 SDK 原有的授权界面里 */

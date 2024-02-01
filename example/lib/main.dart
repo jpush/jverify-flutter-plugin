@@ -410,8 +410,10 @@ class _MyAppState extends State<MyApp> {
             JVPrivacyCheckDialogConfig();
         // privacyCheckDialogConfig.width = 250;
         // privacyCheckDialogConfig.height = 100;
+        privacyCheckDialogConfig.title = "测试协议标题";
         privacyCheckDialogConfig.offsetX = 0;
         privacyCheckDialogConfig.offsetY = 0;
+        privacyCheckDialogConfig.logBtnText = "同意";
         privacyCheckDialogConfig.titleTextSize = 22;
         privacyCheckDialogConfig.gravity = "center";
         privacyCheckDialogConfig.titleTextColor = Colors.black.value;
