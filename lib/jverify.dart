@@ -85,7 +85,7 @@ class Jverify {
     _eventHanders.authPageEvents.add(callback);
   }
 
-  /// loginAuth 接口回调的监听
+  /// loginAuth 接口回调的监听 （旧，用于配合旧版loginAuthSyncApi使用）
   addLoginAuthCallBackListener(JVLoginAuthCallBackListener callback) {
     _eventHanders.loginAuthCallBackEvents.add(callback);
   }
