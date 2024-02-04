@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -1229,12 +1228,12 @@ enum JVIOSBarStyle {
   StatusBarStyleDarkContent // Dark content, for use on light backgrounds  iOS 13 以上
 }
 
-String getStringFromEnum<T>(T) {
-  if (T == null) {
+String getStringFromEnum<T>(t) {
+  if (t == null) {
     return "";
   }
 
-  return T.toString().split('.').last;
+  return t.toString().split('.').last;
 }
 
 class JVPrivacy {
