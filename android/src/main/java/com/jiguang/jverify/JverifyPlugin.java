@@ -397,7 +397,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object autoFinish = getValueByKey(call, "autoDismiss");
         Integer timeOut = call.argument("timeout");
         final Integer loginAuthIndex = call.argument("loginAuthIndex");
-        Boolean enableSMSService = (Boolean) getValueByKey(call, "enableSMSService");
+        Boolean enableSMSService = (Boolean) getValueByKey(call, "enableSms");
 
         AuthPageEventListener eventListener = new AuthPageEventListener() {
             @Override
@@ -1100,10 +1100,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
 
 
-        /************** SMS ***************/
+        /************** SMS UI配置***************/
         Object smsUIConfig = valueForKey(uiconfig, "smsUIConfig");
 
-        /************** 协议的二次弹窗配置 ***************/
         if (smsUIConfig != null) {
             Map smsUIConfigMap = (Map) smsUIConfig;
             Object enableSMSService = valueForKey(smsUIConfigMap, "enableSMSService");
@@ -1278,9 +1277,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 if(smsGetVerifyCodeTextViewTextColor !=null){
                     builder.setSmsGetVerifyCodeTextViewTextColor((Integer) smsGetVerifyCodeTextViewTextColor);
                 }
-                if(smsGetVerifyCodeTextViewOffsetR !=null){
-                    builder.setSmsGetVerifyCodeTextViewOffsetR((Integer) smsGetVerifyCodeTextViewOffsetR);
-                }
+//                if(smsGetVerifyCodeTextViewOffsetR !=null){
+//                    builder.setSmsGetVerifyCodeTextViewOffsetR((Integer) smsGetVerifyCodeTextViewOffsetR);
+//                }
                 if(smsGetVerifyCodeBtnBackgroundPath !=null){
                     int res_id_smsGetVerifyCodeBtnBackgroundPath = getResourceByReflect((String) smsGetVerifyCodeBtnBackgroundPath);
                     if (res_id_smsGetVerifyCodeBtnBackgroundPath > 0) {
@@ -1352,7 +1351,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 if(smsLogBtnBackgroundPath !=null){
                     int res_id_smsLogBtnBackgroundPath = getResourceByReflect((String) smsLogBtnBackgroundPath);
                     if (res_id_smsLogBtnBackgroundPath > 0) {
-                        builder.setSmsLogBtnBackgroundPath((Integer) smsLogBtnBackgroundPath);
+                        builder.setSmsLogBtnBackgroundPath((String) smsLogBtnBackgroundPath);
                     }
                 }
                 if(smsFirstSeperLineOffsetX !=null){

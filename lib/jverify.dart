@@ -127,8 +127,13 @@ class Jverify {
       case 'onReceiveLoginAuthCallBackEvent':
         {
           Map json = call.arguments.cast<dynamic, dynamic>();
+
           JVListenerEvent event = JVListenerEvent.fromJson(json);
           int index = json["loginAuthIndex"];
+          if (_eventHanders.loginAuthCallBackEventsMap.containsKey(index)) {
+            _eventHanders.loginAuthCallBackEventsMap[index]!(event);
+            _eventHanders.loginAuthCallBackEventsMap.remove(index);
+          }
           //老版本callback
           for (JVLoginAuthCallBackListener cb
               in _eventHanders.loginAuthCallBackEvents) {
@@ -136,10 +141,6 @@ class Jverify {
             _eventHanders.loginAuthCallBackEvents.remove(cb);
           }
 
-          if (_eventHanders.loginAuthCallBackEventsMap.containsKey(index)) {
-            _eventHanders.loginAuthCallBackEventsMap[index]!(event);
-            _eventHanders.loginAuthCallBackEventsMap.remove(index);
-          }
         }
         break;
       case 'onReceiveSDKSetupCallBackEvent':
