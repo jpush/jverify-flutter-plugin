@@ -422,6 +422,9 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
 JVLayoutConstraint *JVLayoutTop(CGFloat top,JVLayoutItem toItem,NSLayoutAttribute attr2) {
     return [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:toItem attribute:attr2 multiplier:1 constant:top];
 }
+JVLayoutConstraint *JVLayoutBottom(CGFloat bottom,JVLayoutItem toItem,NSLayoutAttribute attr2) {
+    return [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:toItem attribute:attr2 multiplier:1 constant:bottom];
+}
 JVLayoutConstraint *JVLayoutLeft(CGFloat left,JVLayoutItem toItem,NSLayoutAttribute attr2) {
     return [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:toItem attribute:attr2 multiplier:1 constant:left];
 }
@@ -430,6 +433,9 @@ JVLayoutConstraint *JVLayoutRight(CGFloat right,JVLayoutItem toItem,NSLayoutAttr
 }
 JVLayoutConstraint *JVLayoutCenterX(CGFloat centerX) {
     return [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemSuper attribute:NSLayoutAttributeCenterX multiplier:1 constant:centerX];
+}
+JVLayoutConstraint *JVLayoutCenterY(CGFloat centerY,JVLayoutItem toItem) {
+    return [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:toItem attribute:NSLayoutAttributeCenterY multiplier:1 constant:centerY];
 }
 JVLayoutConstraint *JVLayoutWidth(CGFloat widht) {
     return [JVLayoutConstraint constraintWithAttribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:JVLayoutItemNone attribute:NSLayoutAttributeWidth multiplier:1 constant:widht];
@@ -974,6 +980,443 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
         uiconfig.windowConstraints = @[windowConstraintX,windowConstraintY,windowConstraintW,windowConstraintH];
         uiconfig.windowHorizontalConstraints = uiconfig.windowConstraints;
     }
+    
+    NSDictionary *smsUIConfig = [config valueForKey:@"smsUIConfig"];
+    if (smsUIConfig && [smsUIConfig isKindOfClass:[NSDictionary class]]) {
+        [self setCustomSmsUIConfig:uiconfig smsUIConfigArguments:smsUIConfig];
+    }
+}
+
+- (void)setCustomSmsUIConfig:(JVUIConfig *)uiConfig smsUIConfigArguments:(NSDictionary *)smsUIConfig {
+    
+    NSString *smsAuthPageBackgroundImagePath = [self getValue:smsUIConfig key:@"smsAuthPageBackgroundImagePath"];
+    if (smsAuthPageBackgroundImagePath) {
+        uiConfig.smsAuthPageBackgroundImage = [UIImage imageNamed:smsAuthPageBackgroundImagePath];
+    }
+    
+    NSString *smsNavText = [self getValue:smsUIConfig key:@"smsNavText"];
+    NSNumber *smsNavTextSize = [self getValue:smsUIConfig key:@"smsNavTextSize"];
+    NSNumber *smsNavTextColor = [self getValue:smsUIConfig key:@"smsNavTextColor"];
+    NSNumber *smsNavTextBold = [self getValue:smsUIConfig key:@"smsNavTextBold"];
+    NSMutableDictionary *smsNavTextAttris = [NSMutableDictionary dictionary];
+    if (smsNavTextColor) {
+        [smsNavTextAttris setValue:UIColorFromRGB([smsNavTextColor integerValue]) forKey:NSForegroundColorAttributeName];
+    }
+    if (smsNavTextSize) {
+        if (smsNavTextBold) {
+            [smsNavTextAttris setValue:[UIFont boldSystemFontOfSize:[smsNavTextSize floatValue]] forKey:NSFontAttributeName];
+        }else {
+            [smsNavTextAttris setValue:[UIFont systemFontOfSize:[smsNavTextSize floatValue]] forKey:NSFontAttributeName];
+        }
+       
+    }
+    if (smsNavText) {
+        uiConfig.smsNavText = [[NSAttributedString alloc]initWithString:smsNavText attributes:nil];;
+    }
+    
+    // logo
+    NSNumber *smsLogoWidth = [self getValue:smsUIConfig key:@"smsLogoWidth"];
+    NSNumber *smsLogoHeight = [self getValue:smsUIConfig key:@"smsLogoHeight"];
+    NSNumber *smsLogoOffsetX = [self getValue:smsUIConfig key:@"smsLogoOffsetX"];
+    NSNumber *smsLogoOffsetY = [self getValue:smsUIConfig key:@"smsLogoOffsetY"];
+    NSNumber *smsLogoOffsetBottomY = [self getValue:smsUIConfig key:@"smsLogoOffsetBottomY"];
+    NSNumber *isSmsLogoHidden = [self getValue:smsUIConfig key:@"isSmsLogoHidden"];
+    NSString *smsLogoResName =[self getValue:smsUIConfig key:@"smsLogoResName"];
+    if (isSmsLogoHidden) {
+        uiConfig.smsLogoHidden = [isSmsLogoHidden boolValue];
+    }
+    if(smsLogoResName){
+        uiConfig.smsLogoImg  = [UIImage imageNamed:smsLogoResName];
+    }
+    NSMutableArray *smsLogoAttris = [NSMutableArray array];
+    if (smsLogoWidth){
+        JVLayoutConstraint *sms_logo_cons_w = JVLayoutWidth([smsLogoWidth floatValue]);
+        [smsLogoAttris addObject:sms_logo_cons_w];
+    }
+    if (smsLogoHeight) {
+        JVLayoutConstraint *sms_logo_cons_h = JVLayoutHeight([smsLogoHeight floatValue]);
+        [smsLogoAttris addObject:sms_logo_cons_h];
+    }
+    if (smsLogoOffsetX) {
+        JVLayoutConstraint *sms_logo_cons_x = JVLayoutLeft([smsLogoOffsetX floatValue], JVLayoutItemSuper, NSLayoutAttributeLeft);
+        [smsLogoAttris addObject:sms_logo_cons_x];
+    }
+    if (smsLogoOffsetY) {
+        JVLayoutConstraint *sms_logo_cons_y = JVLayoutTop([smsLogoOffsetY floatValue],JVLayoutItemSuper,NSLayoutAttributeTop);
+        [smsLogoAttris addObject:sms_logo_cons_y];
+    }
+    if (smsLogoOffsetBottomY) {
+        JVLayoutConstraint *sms_logo_cons_b = JVLayoutBottom([smsLogoOffsetBottomY floatValue], JVLayoutItemSuper, NSLayoutAttributeBottom);
+        [smsLogoAttris addObject:sms_logo_cons_b];
+    }
+  
+    uiConfig.smsLogoConstraints = smsLogoAttris;
+    uiConfig.smsLogoHorizontalConstraints = uiConfig.smsLogoConstraints;
+    
+    // slogan
+    NSNumber *smsSloganTextSize = [self getValue:smsUIConfig key:@"smsSloganTextSize"];
+    NSNumber *smsSloganTextColor = [self getValue:smsUIConfig key:@"smsSloganTextColor"];
+    NSNumber *smsSloganOffsetX = [self getValue:smsUIConfig key:@"smsSloganOffsetX"];
+    NSNumber *smsSloganOffsetY = [self getValue:smsUIConfig key:@"smsSloganOffsetY"];
+    NSNumber *smsSloganOffsetBottomY = [self getValue:smsUIConfig key:@"smsSloganOffsetBottomY"];
+    NSNumber *smsSloganHeight = [self getValue:smsUIConfig key:@"smsSloganHeight"];
+    NSNumber *smsSloganWidth = [self getValue:smsUIConfig key:@"smsSloganWidth"];
+    if (smsSloganTextSize) {
+        uiConfig.smsSloganFont = [UIFont systemFontOfSize:[smsSloganTextSize floatValue]];
+    }
+    if (smsSloganTextColor) {
+        uiConfig.smsSloganTextColor = UIColorFromRGB([smsSloganTextColor integerValue]);
+    }
+    NSMutableArray *smsSloganAttris = [NSMutableArray array];
+    if (smsSloganOffsetX) {
+        JVLayoutConstraint *sms_slogan_cons_x = JVLayoutLeft([smsSloganOffsetX floatValue], JVLayoutItemSuper, NSLayoutAttributeLeft);
+        [smsSloganAttris addObject:sms_slogan_cons_x];
+    }
+    if (smsSloganOffsetY) {
+        JVLayoutConstraint *sms_slogan_cons_y = JVLayoutTop([smsSloganOffsetY floatValue],JVLayoutItemSuper,NSLayoutAttributeTop);
+        [smsSloganAttris addObject:sms_slogan_cons_y];
+    }
+    if (smsSloganOffsetBottomY) {
+        JVLayoutConstraint *sms_slogan_cons_b = JVLayoutBottom([smsSloganOffsetBottomY floatValue], JVLayoutItemSuper, NSLayoutAttributeBottom);
+        [smsSloganAttris addObject:sms_slogan_cons_b];
+    }
+    if (smsSloganWidth) {
+        JVLayoutConstraint *sms_slogan_cons_w = JVLayoutWidth([smsSloganWidth floatValue]);
+        [smsSloganAttris addObject:sms_slogan_cons_w];
+    }
+    if (smsSloganHeight) {
+        JVLayoutConstraint *sms_slogan_cons_h = JVLayoutHeight([smsSloganHeight floatValue]);
+        [smsSloganAttris addObject:sms_slogan_cons_h];
+    }
+    uiConfig.smsSloganConstraints = smsSloganAttris;
+    uiConfig.smsSloganHorizontalConstraints = uiConfig.smsSloganConstraints;
+  
+    
+    // SMS号码输入框设置
+    NSNumber *smsPhoneInputViewOffsetX = [self getValue:smsUIConfig key:@"smsPhoneInputViewOffsetX"];
+    NSNumber *smsPhoneInputViewOffsetY = [self getValue:smsUIConfig key:@"smsPhoneInputViewOffsetY"];
+    NSNumber *smsPhoneInputViewWidth = [self getValue:smsUIConfig key:@"smsPhoneInputViewWidth"];
+    NSNumber *smsPhoneInputViewHeight = [self getValue:smsUIConfig key:@"smsPhoneInputViewHeight"];
+    NSNumber *smsPhoneInputViewTextColor = [self getValue:smsUIConfig key:@"smsPhoneInputViewTextColor"];
+    NSNumber *smsPhoneInputViewTextSize = [self getValue:smsUIConfig key:@"smsPhoneInputViewTextSize"];
+    NSString *smsPhoneInputViewPlaceholderText = [self getValue:smsUIConfig key:@"smsPhoneInputViewPlaceholderText"];
+    NSString *smsPhoneInputViewBorderStyle = [self getValue:smsUIConfig key:@"smsPhoneInputViewBorderStyle"];
+    if (smsPhoneInputViewTextColor) {
+        uiConfig.smsNumberTFColor = UIColorFromRGB([smsPhoneInputViewTextColor integerValue]);
+    }
+    if (smsPhoneInputViewTextSize) {
+        uiConfig.smsNumberTFFont = [UIFont systemFontOfSize:[smsPhoneInputViewTextSize floatValue]];
+    }
+    if (smsPhoneInputViewPlaceholderText) {
+        uiConfig.smsNumberTFPlaceholder = smsPhoneInputViewPlaceholderText;
+    }
+    if (smsPhoneInputViewBorderStyle) {
+        uiConfig.smsNumberTFBorderStyle = [self getTFBorderStyleStyle:smsPhoneInputViewBorderStyle];
+    }
+    NSMutableArray *smsPhoneInputViewAttris = [NSMutableArray array];
+    if (smsPhoneInputViewOffsetX) {
+        JVLayoutConstraint *sms_phoneInputView_cons_x = JVLayoutLeft([smsPhoneInputViewOffsetX floatValue], JVLayoutItemSuper, NSLayoutAttributeLeft);
+        [smsPhoneInputViewAttris addObject:sms_phoneInputView_cons_x];
+    }
+    if (smsPhoneInputViewOffsetY) {
+        JVLayoutConstraint *sms_phoneInputView_cons_y = JVLayoutTop([smsPhoneInputViewOffsetY floatValue],JVLayoutItemSuper,NSLayoutAttributeTop);
+        [smsPhoneInputViewAttris addObject:sms_phoneInputView_cons_y];
+    }
+    if (smsPhoneInputViewWidth) {
+        JVLayoutConstraint *sms_phoneInputView_cons_w = JVLayoutWidth([smsPhoneInputViewWidth floatValue]);
+        [smsPhoneInputViewAttris addObject:sms_phoneInputView_cons_w];
+    }
+    if (smsPhoneInputViewHeight) {
+        JVLayoutConstraint *sms_phoneInputView_cons_h = JVLayoutHeight([smsPhoneInputViewHeight floatValue]);
+        [smsPhoneInputViewAttris addObject:sms_phoneInputView_cons_h];
+    }
+    
+    uiConfig.smsNumberTFConstraints = smsPhoneInputViewAttris;
+    uiConfig.smsNumberTFHorizontalConstraints = uiConfig.smsNumberTFConstraints;
+    
+    
+    // SMS验证码输入框设置
+    NSNumber *smsVerifyCodeEditTextViewOffsetX = [self getValue:smsUIConfig key:@"smsVerifyCodeEditTextViewOffsetX"];
+    NSNumber *smsVerifyCodeEditTextViewOffsetY = [self getValue:smsUIConfig key:@"smsVerifyCodeEditTextViewOffsetY"];
+    NSNumber *smsVerifyCodeEditTextViewOffsetR = [self getValue:smsUIConfig key:@"smsVerifyCodeEditTextViewOffsetR"];
+    NSNumber *smsVerifyCodeEditTextViewWidth = [self getValue:smsUIConfig key:@"smsVerifyCodeEditTextViewWidth"];
+    NSNumber *smsVerifyCodeEditTextViewHeight = [self getValue:smsUIConfig key:@"smsVerifyCodeEditTextViewHeight"];
+    NSNumber *smsVerifyCodeEditTextViewTextColor = [self getValue:smsUIConfig key:@"smsVerifyCodeEditTextViewTextColor"];
+    NSNumber *smsVerifyCodeEditTextViewTextSize = [self getValue:smsUIConfig key:@"smsVerifyCodeEditTextViewTextSize"];
+    NSString *smsVerifyCodeEditTextViewPlaceholderText = [self getValue:smsUIConfig key:@"smsVerifyCodeEditTextViewPlaceholderText"];
+    NSString *smsVerifyCodeEditTextViewBorderStyle = [self getValue:smsUIConfig key:@"smsVerifyCodeEditTextViewBorderStyle"];
+    if (smsVerifyCodeEditTextViewTextColor) {
+        uiConfig.smsCodeTFColor = UIColorFromRGB([smsVerifyCodeEditTextViewTextColor integerValue]);
+    }
+    if (smsVerifyCodeEditTextViewTextSize) {
+        uiConfig.smsCodeTFFont = [UIFont systemFontOfSize:[smsVerifyCodeEditTextViewTextSize floatValue]];
+    }
+    if (smsVerifyCodeEditTextViewPlaceholderText) {
+        uiConfig.smsCodeTFPlaceholder = smsVerifyCodeEditTextViewPlaceholderText;
+    }
+    if (smsVerifyCodeEditTextViewBorderStyle) {
+        uiConfig.smsCodeTFBorderStyle = [self getTFBorderStyleStyle:smsVerifyCodeEditTextViewBorderStyle];
+    }
+    NSMutableArray *smsVerifyCodeEditTextViewAttris = [NSMutableArray array];
+    if (smsVerifyCodeEditTextViewOffsetX) {
+        JVLayoutConstraint *sms_verifyCodeEditTextView_cons_x = JVLayoutLeft([smsVerifyCodeEditTextViewOffsetX floatValue], JVLayoutItemSuper, NSLayoutAttributeLeft);
+        [smsVerifyCodeEditTextViewAttris addObject:sms_verifyCodeEditTextView_cons_x];
+    }
+    if (smsVerifyCodeEditTextViewOffsetY) {
+        JVLayoutConstraint *sms_verifyCodeEditTextView_cons_y = JVLayoutTop([smsVerifyCodeEditTextViewOffsetY floatValue],JVLayoutItemSuper,NSLayoutAttributeTop);
+        [smsVerifyCodeEditTextViewAttris addObject:sms_verifyCodeEditTextView_cons_y];
+    }
+    if (smsVerifyCodeEditTextViewOffsetR) {
+        JVLayoutConstraint *sms_verifyCodeEditTextView_cons_R = JVLayoutRight([smsVerifyCodeEditTextViewOffsetR floatValue],JVLayoutItemSuper,NSLayoutAttributeRight);
+        [smsVerifyCodeEditTextViewAttris addObject:sms_verifyCodeEditTextView_cons_R];
+    }
+    if (smsVerifyCodeEditTextViewWidth) {
+        JVLayoutConstraint *w = JVLayoutWidth([smsVerifyCodeEditTextViewWidth floatValue]);
+        [smsVerifyCodeEditTextViewAttris addObject:w];
+    }
+    if (smsVerifyCodeEditTextViewHeight) {
+        JVLayoutConstraint *h = JVLayoutHeight([smsVerifyCodeEditTextViewHeight floatValue]);
+        [smsVerifyCodeEditTextViewAttris addObject:h];
+    }
+    uiConfig.smsCodeTFConstraints = smsVerifyCodeEditTextViewAttris;
+    uiConfig.smsCodeTFHorizontalConstraints = uiConfig.smsCodeTFConstraints;
+    
+    //  SMS获取验证码按钮
+    NSNumber *smsGetVerifyCodeTextViewOffsetX = [self getValue:smsUIConfig key:@"smsGetVerifyCodeTextViewOffsetX"];
+    NSNumber *smsGetVerifyCodeTextViewOffsetY = [self getValue:smsUIConfig key:@"smsGetVerifyCodeTextViewOffsetY"];
+    NSNumber *smsGetVerifyCodeTextViewOffsetR = [self getValue:smsUIConfig key:@"smsGetVerifyCodeTextViewOffsetR"];
+    NSNumber *smsGetVerifyCodeBtnWidth = [self getValue:smsUIConfig key:@"smsGetVerifyCodeBtnWidth"];
+    NSNumber *smsGetVerifyCodeBtnHeight = [self getValue:smsUIConfig key:@"smsGetVerifyCodeBtnHeight"];
+    NSNumber *smsGetVerifyCodeTextViewTextColor = [self getValue:smsUIConfig key:@"smsGetVerifyCodeTextViewTextColor"];
+    NSNumber *smsGetVerifyCodeTextViewTextSize = [self getValue:smsUIConfig key:@"smsGetVerifyCodeTextViewTextSize"];
+    NSString *smsGetVerifyCodeBtnText = [self getValue:smsUIConfig key:@"smsGetVerifyCodeBtnText"];
+    NSString *smsGetVerifyCodeBtnBackgroundPath = [self getValue:smsUIConfig key:@"smsGetVerifyCodeBtnBackgroundPaths"];
+    NSArray *smsGetVerifyCodeBtnBackgroundPaths = [self getValue:smsUIConfig key:@"smsGetVerifyCodeBtnBackgroundPaths"];
+    NSNumber *smsGetVerifyCodeBtnCornerRadius = [self getValue:smsUIConfig key:@"smsGetVerifyCodeBtnCornerRadius"];
+    if (smsGetVerifyCodeBtnText) {
+        NSMutableDictionary *smsGetVerifyCodeTextViewAttr = [NSMutableDictionary dictionary];
+        if (smsGetVerifyCodeTextViewTextColor) {
+            [smsGetVerifyCodeTextViewAttr setValue:UIColorFromRGB([smsGetVerifyCodeTextViewTextColor integerValue]) forKey:NSForegroundColorAttributeName];
+        }
+        if (smsGetVerifyCodeTextViewTextSize) {
+            [smsGetVerifyCodeTextViewAttr setValue:[UIFont systemFontOfSize:[smsGetVerifyCodeTextViewTextSize floatValue]] forKey:NSFontAttributeName];
+        }
+        uiConfig.smsGetCodeBtnAttributedString = [[NSAttributedString alloc] initWithString:smsGetVerifyCodeBtnText attributes:smsGetVerifyCodeTextViewAttr];
+    }
+    if (smsGetVerifyCodeBtnBackgroundPaths) {
+        UIImage *img = [UIImage imageNamed:smsGetVerifyCodeBtnBackgroundPaths[0]];
+        UIImage *img1 = [UIImage imageNamed:smsGetVerifyCodeBtnBackgroundPaths[1]];
+        UIImage *img2 = [UIImage imageNamed:smsGetVerifyCodeBtnBackgroundPaths[2]];
+        uiConfig.smsGetCodeBtnImgs = @[img, img1, img2];
+    }else if (smsGetVerifyCodeBtnBackgroundPath) {
+        UIImage *img = [UIImage imageNamed:smsGetVerifyCodeBtnBackgroundPath];
+        uiConfig.smsGetCodeBtnImgs = @[img,img,img];
+    }
+    if (smsGetVerifyCodeBtnCornerRadius) {
+        uiConfig.smsGetCodeBtnCornerRadius = [smsGetVerifyCodeBtnCornerRadius floatValue];
+    }
+    NSMutableArray *smsGetVerifyCodeBtnAttris = [NSMutableArray array];
+    if (smsGetVerifyCodeTextViewOffsetX) {
+        JVLayoutConstraint *sms_getVerifyCodeBtn_cons_x = JVLayoutLeft([smsGetVerifyCodeTextViewOffsetX floatValue], JVLayoutItemSuper, NSLayoutAttributeLeft);
+        [smsGetVerifyCodeBtnAttris addObject:sms_getVerifyCodeBtn_cons_x];
+    }
+    if (smsGetVerifyCodeTextViewOffsetY) {
+        JVLayoutConstraint *sms_getVerifyCodeBtn_cons_y = JVLayoutTop([smsGetVerifyCodeTextViewOffsetY floatValue],JVLayoutItemSuper,NSLayoutAttributeTop);
+        [smsGetVerifyCodeBtnAttris addObject:sms_getVerifyCodeBtn_cons_y];
+    }
+    if (smsGetVerifyCodeTextViewOffsetR) {
+        JVLayoutConstraint *sms_getVerifyCodeBtn_cons_R = JVLayoutRight([smsGetVerifyCodeTextViewOffsetR floatValue],JVLayoutItemSuper,NSLayoutAttributeRight);
+        [smsGetVerifyCodeBtnAttris addObject:sms_getVerifyCodeBtn_cons_R];
+    }
+    if (smsGetVerifyCodeBtnWidth) {
+        JVLayoutConstraint *sms_getVerifyCodeBtn_cons_W = JVLayoutWidth([smsGetVerifyCodeBtnWidth floatValue]);
+        [smsGetVerifyCodeBtnAttris addObject:sms_getVerifyCodeBtn_cons_W];
+    }
+    if (smsGetVerifyCodeBtnHeight) {
+        JVLayoutConstraint *sms_getVerifyCodeBtn_cons_H = JVLayoutHeight([smsGetVerifyCodeBtnHeight floatValue]);
+        [smsGetVerifyCodeBtnAttris addObject:sms_getVerifyCodeBtn_cons_H];
+    }
+    uiConfig.smsGetCodeBtnConstraints = smsGetVerifyCodeBtnAttris;
+    uiConfig.smsGetCodeBtnHorizontalConstraints = uiConfig.smsCodeTFConstraints;
+    
+    
+    //  SMS登录按钮
+    NSNumber *smsLogBtnOffsetX = [self getValue:smsUIConfig key:@"smsLogBtnOffsetX"];
+    NSNumber *smsLogBtnOffsetY = [self getValue:smsUIConfig key:@"smsLogBtnOffsetY"];
+    NSNumber *smsLogBtnBottomOffsetY = [self getValue:smsUIConfig key:@"smsLogBtnBottomOffsetY"];
+    NSNumber *smsLogBtnWidth = [self getValue:smsUIConfig key:@"smsLogBtnWidth"];
+    NSNumber *smsLogBtnHeight = [self getValue:smsUIConfig key:@"smsLogBtnHeight"];
+    NSNumber *smsLogBtnTextColor = [self getValue:smsUIConfig key:@"smsLogBtnTextColor"];
+    NSNumber *smsLogBtnTextSize = [self getValue:smsUIConfig key:@"smsLogBtnTextSize"];
+    NSString *smsLogBtnText = [self getValue:smsUIConfig key:@"smsLogBtnText"];
+    NSNumber *isSmsLogBtnTextBold = [self getValue:smsUIConfig key:@"isSmsLogBtnTextBold"];
+    NSString *smsLogBtnBackgroundPath = [self getValue:smsUIConfig key:@"smsLogBtnBackgroundPath"];
+    NSArray *smsLogBtnBackgroundPaths = [self getValue:smsUIConfig key:@"smsLogBtnBackgroundPaths"];
+    if (smsLogBtnText) {
+        NSMutableDictionary *smsLogBtnAttr = [NSMutableDictionary dictionary];
+        if (smsLogBtnTextColor) {
+            [smsLogBtnAttr setValue:UIColorFromRGB([smsLogBtnTextColor integerValue]) forKey:NSForegroundColorAttributeName];
+        }
+        if (smsLogBtnTextSize) {
+            UIFont *font;
+            if (!isSmsLogBtnTextBold || (isSmsLogBtnTextBold && [isSmsLogBtnTextBold boolValue] == NO)) {
+                font = [UIFont systemFontOfSize:[smsLogBtnTextSize floatValue]];
+            }else {
+                font = [UIFont boldSystemFontOfSize:[smsLogBtnTextSize floatValue]];
+            }
+            [smsLogBtnAttr setValue:font forKey:NSFontAttributeName];
+        }
+        uiConfig.smsLogBtnAttributedString = [[NSAttributedString alloc] initWithString:smsLogBtnText attributes:smsLogBtnAttr];
+    }
+    if (smsLogBtnBackgroundPaths) {
+        UIImage *img = [UIImage imageNamed:smsLogBtnBackgroundPaths[0]];
+        UIImage *img1 = [UIImage imageNamed:smsLogBtnBackgroundPaths[1]];
+        UIImage *img2 = [UIImage imageNamed:smsLogBtnBackgroundPaths[2]];
+        uiConfig.smsLogBtnImgs = @[img, img1, img2];
+    }else if (smsLogBtnBackgroundPath) {
+        UIImage *img = [UIImage imageNamed:smsLogBtnBackgroundPath];
+        uiConfig.smsLogBtnImgs = @[img,img,img];
+    }
+
+    NSMutableArray *smsLogBtnConstraints = [NSMutableArray array];
+    if (smsLogBtnOffsetX) {
+        JVLayoutConstraint *sms_logBtn_cons_x = JVLayoutLeft([smsLogBtnOffsetX floatValue], JVLayoutItemSuper, NSLayoutAttributeLeft);
+        [smsLogBtnConstraints addObject:sms_logBtn_cons_x];
+    }
+    if (smsLogBtnOffsetY) {
+        JVLayoutConstraint *sms_logBtn_cons_y = JVLayoutTop([smsLogBtnOffsetY floatValue],JVLayoutItemSuper,NSLayoutAttributeTop);
+        [smsLogBtnConstraints addObject:sms_logBtn_cons_y];
+    }
+    if (smsLogBtnBottomOffsetY) {
+        JVLayoutConstraint *sms_logBtn_cons_B = JVLayoutBottom([smsLogBtnBottomOffsetY floatValue],JVLayoutItemSuper,NSLayoutAttributeBottom);
+        [smsLogBtnConstraints addObject:sms_logBtn_cons_B];
+    }
+    if (smsLogBtnWidth) {
+        JVLayoutConstraint *sms_logBtn_cons_W = JVLayoutWidth([smsLogBtnWidth floatValue]);
+        [smsLogBtnConstraints addObject:sms_logBtn_cons_W];
+    }
+    if (smsLogBtnWidth) {
+        JVLayoutConstraint *sms_logBtn_cons_H = JVLayoutHeight([smsLogBtnHeight floatValue]);
+        [smsLogBtnConstraints addObject:sms_logBtn_cons_H];
+    }
+    uiConfig.smsLogBtnConstraints = smsLogBtnConstraints;
+    uiConfig.smsLogBtnHorizontalConstraints = uiConfig.smsCodeTFConstraints;
+   
+    
+    // SMS隐私条款
+    NSArray *smsPrivacyColor = [self getValue:smsUIConfig key:@"smsPrivacyColor"];
+    NSNumber *smsPrivacyTextVerAlignment = [self getValue:smsUIConfig key:@"smsPrivacyTextVerAlignment"];
+    NSNumber *isSmsPrivacyTextGravityCenter = [self getValue:smsUIConfig key:@"isSmsPrivacyTextGravityCenter"];
+    NSString *smsPrivacyCheckboxCheckedImgPath = [self getValue:smsUIConfig key:@"smsPrivacyCheckboxCheckedImgPath"];
+    NSString *smsPrivacyCheckboxUncheckedImgPath = [self getValue:smsUIConfig key:@"smsPrivacyCheckboxUncheckedImgPath"];
+    NSNumber *smsPrivacyCheckboxState = [self getValue:smsUIConfig key:@"smsPrivacyCheckboxState"];
+    NSNumber *smsPrivacyCheckboxSize = [self getValue:smsUIConfig key:@"smsPrivacyCheckboxSize"];
+    NSNumber *isSmsPrivacyCheckboxInCenter = [self getValue:smsUIConfig key:@"isSmsPrivacyCheckboxInCenter"];
+    NSNumber *smsPrivacyCheckboxOffsetX = [self getValue:smsUIConfig key:@"smsPrivacyCheckboxOffsetX"];
+    NSNumber *smsPrivacyOffsetX = [self getValue:smsUIConfig key:@"smsPrivacyOffsetX"];
+    NSNumber *smsPrivacyOffsetY = [self getValue:smsUIConfig key:@"smsPrivacyOffsetY"];
+    NSNumber *smsPrivacyTopOffsetY = [self getValue:smsUIConfig key:@"smsPrivacyTopOffsetY"];
+    NSNumber *smsPrivacyWidth = [self getValue:smsUIConfig key:@"smsPrivacyWidth"];
+    NSNumber *smsPrivacyHeight = [self getValue:smsUIConfig key:@"smsPrivacyHeight"];
+    if (smsPrivacyColor) {
+        uiConfig.smsAppPrivacyColor = @[UIColorFromRGB([smsPrivacyColor[0] integerValue]), UIColorFromRGB([smsPrivacyColor[1] integerValue])];
+    }
+    if (smsPrivacyTextVerAlignment) {
+        uiConfig.smsTextVerAlignment = [smsPrivacyTextVerAlignment integerValue];
+    }
+    if (smsPrivacyCheckboxCheckedImgPath) {
+        uiConfig.smsCheckedImg = [UIImage imageNamed:smsPrivacyCheckboxCheckedImgPath];
+    }
+    if (smsPrivacyCheckboxUncheckedImgPath) {
+        uiConfig.smsUncheckedImg = [UIImage imageNamed:smsPrivacyCheckboxUncheckedImgPath];
+    }
+    if (smsPrivacyCheckboxState) {
+        uiConfig.smsPrivacyState = [smsPrivacyCheckboxState boolValue];
+    }
+    if (isSmsPrivacyTextGravityCenter) {
+        uiConfig.smsPrivacyTextAlignment = [isSmsPrivacyTextGravityCenter boolValue]? NSTextAlignmentCenter : NSTextAlignmentLeft;
+    }
+    NSMutableArray *smsPrivacyConstraints = [NSMutableArray array];
+    if (smsPrivacyOffsetX) {
+        JVLayoutConstraint *sms_privacy_cons_x = JVLayoutLeft([smsPrivacyOffsetX floatValue], JVLayoutItemSuper, NSLayoutAttributeLeft);
+        [smsPrivacyConstraints addObject:sms_privacy_cons_x];
+    }
+    if (smsPrivacyOffsetY) {
+        JVLayoutConstraint *sms_privacy_cons_b = JVLayoutBottom([smsPrivacyOffsetY floatValue], JVLayoutItemSuper, NSLayoutAttributeBottom);
+        [smsPrivacyConstraints addObject:sms_privacy_cons_b];
+    }
+    if (smsPrivacyTopOffsetY) {
+        JVLayoutConstraint *sms_privacy_cons_y = JVLayoutBottom([smsPrivacyTopOffsetY floatValue], JVLayoutItemSuper, NSLayoutAttributeBottom);
+        [smsPrivacyConstraints addObject:sms_privacy_cons_y];
+    }
+    if (smsPrivacyWidth) {
+        JVLayoutConstraint *sms_privacy_cons_w = JVLayoutWidth([smsPrivacyWidth floatValue]);
+        [smsPrivacyConstraints addObject:sms_privacy_cons_w];
+    }
+    if (smsPrivacyHeight) {
+        JVLayoutConstraint *sms_privacy_cons_h = JVLayoutHeight([smsPrivacyHeight floatValue]);
+        [smsPrivacyConstraints addObject:sms_privacy_cons_h];
+    }
+    uiConfig.smsPrivacyConstraints = smsPrivacyConstraints;
+    uiConfig.smsPrivacyHorizontalConstraints = uiConfig.smsPrivacyConstraints;
+    
+
+    NSMutableArray *smsPrivacyCheckboxSizeAttris = [NSMutableArray array];
+    if (smsPrivacyCheckboxSize) {
+        JVLayoutConstraint *w = JVLayoutWidth([smsPrivacyCheckboxSize floatValue]);
+        JVLayoutConstraint *h = JVLayoutHeight([smsPrivacyCheckboxSize floatValue]);
+        [smsPrivacyCheckboxSizeAttris addObject:w];
+        [smsPrivacyCheckboxSizeAttris addObject:h];
+    }
+    if ([isSmsPrivacyCheckboxInCenter boolValue]) {
+        JVLayoutConstraint *centerY = JVLayoutCenterY(0, JVLayoutItemPrivacy);
+        [smsPrivacyCheckboxSizeAttris addObject:centerY];
+    }else {
+        JVLayoutConstraint *top = JVLayoutTop(0, JVLayoutItemPrivacy, NSLayoutAttributeTop);
+        [smsPrivacyCheckboxSizeAttris addObject:top];
+    }
+    if (smsPrivacyCheckboxOffsetX) {
+        JVLayoutConstraint *x = JVLayoutLeft([smsPrivacyCheckboxOffsetX floatValue], JVLayoutItemSuper, NSLayoutAttributeLeft);
+        [smsPrivacyCheckboxSizeAttris addObject:x];
+    }
+    
+    uiConfig.smsCheckViewConstraints = smsPrivacyCheckboxSizeAttris;
+    
+    NSMutableArray *smsAppPrivacys = [NSMutableArray array];
+    NSString *smsPrivacyClauseStart = [self getValue:smsUIConfig key:@"smsPrivacyClauseStart"];
+    [smsAppPrivacys addObject:smsPrivacyClauseStart ?: @""];
+    if([[smsUIConfig allKeys] containsObject:@"smsPrivacyBeanList"] && [[smsUIConfig objectForKey:@"smsPrivacyBeanList"] isKindOfClass:[NSString class]]){
+        NSString *privacyJson = [smsUIConfig objectForKey:@"smsPrivacyBeanList"];
+        NSData *privacyData = [privacyJson  dataUsingEncoding:NSUTF8StringEncoding];
+        NSArray *privacys= [NSJSONSerialization JSONObjectWithData:privacyData options:0 error:nil];
+        for (NSInteger i = 0; i<privacys.count; i++) {
+            NSMutableArray *item = [NSMutableArray array];
+            NSDictionary *obj = [privacys objectAtIndex:i];
+            //加入协议之间的分隔符
+            if ([[obj allKeys] containsObject:@"separator"] ) {
+                [item addObject:[obj objectForKey:@"name"]?:@""];
+            }
+            //加入name
+            if ([[obj allKeys] containsObject:@"name"] ) {
+                [item addObject:[obj objectForKey:@"name"]];
+            }
+            //加入url
+            if ([[obj allKeys] containsObject:@"url"] ) {
+                [item addObject:[obj objectForKey:@"url"]];
+            }
+            //加入协议详细页面的导航栏文字 可以是NSAttributedString类型 自定义  这里是直接拿name进行展示
+            if ([[obj allKeys] containsObject:@"name"] ) {
+                [item addObject:[obj objectForKey:@"name"]];
+            }
+            [smsAppPrivacys addObject:item];
+        }
+        
+        NSString *smsPrivacyClauseEnd = [self getValue:smsUIConfig key:@"smsPrivacyClauseEnd"];
+        [smsAppPrivacys addObject:smsPrivacyClauseEnd ?: @""];
+        
+    }
+    uiConfig.smsAppPrivacys = smsAppPrivacys;
+    
 }
 
 #pragma mark - 添加 label
@@ -1189,6 +1632,18 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
         }
     }
     return UIStatusBarStyleDefault;
+}
+
+- (UITextBorderStyle)getTFBorderStyleStyle:(NSString*)itemStr{
+    if ([itemStr isEqualToString:@"BorderStyleRoundedRect"]){
+        return UITextBorderStyleRoundedRect;
+    }else if ([itemStr isEqualToString:@"BorderStyleLine"]){
+        return UITextBorderStyleLine;
+    }else if ([itemStr isEqualToString:@"BorderStyleBezel"]){
+        return UITextBorderStyleBezel;
+      
+    }
+    return UITextBorderStyleNone;
 }
 
 
