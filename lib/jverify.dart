@@ -126,14 +126,19 @@ class Jverify {
         break;
       case 'onReceiveLoginAuthCallBackEvent':
         {
+
           Map json = call.arguments.cast<dynamic, dynamic>();
+          print(json.toString());
 
           JVListenerEvent event = JVListenerEvent.fromJson(json);
-          int index = json["loginAuthIndex"];
-          if (_eventHanders.loginAuthCallBackEventsMap.containsKey(index)) {
-            _eventHanders.loginAuthCallBackEventsMap[index]!(event);
-            _eventHanders.loginAuthCallBackEventsMap.remove(index);
+          if (json["loginAuthIndex"] != null) {
+            int index = json["loginAuthIndex"];
+            if (_eventHanders.loginAuthCallBackEventsMap.containsKey(index)) {
+              _eventHanders.loginAuthCallBackEventsMap[index]!(event);
+              _eventHanders.loginAuthCallBackEventsMap.remove(index);
+            }
           }
+
           //老版本callback
           for (JVLoginAuthCallBackListener cb
               in _eventHanders.loginAuthCallBackEvents) {
@@ -872,18 +877,39 @@ class JVPrivacyCheckDialogConfig {
   String? title; //弹窗标题
   int? titleTextSize; // 弹窗标题字体大小
   int? titleTextColor; // 弹窗标题字体颜色
-  String? logBtnText; //弹窗登录按钮
   String? contentTextGravity; //协议⼆次弹窗协议内容对⻬⽅式
   int? contentTextSize; //协议⼆次弹窗协议内容字体⼤⼩
-  String? logBtnImgPath; //协议⼆次弹窗登录按钮的背景图⽚
-  int? logBtnTextColor; //协议⼆次弹窗登录按钮的字体颜⾊
   String? gravity; //
   bool? enablePrivacyCheckDialog;
+  List<JVCustomWidget>? widgets;
+
+  String? logBtnText; //弹窗登录按钮
+  String? logBtnImgPath; //协议⼆次弹窗登录按钮的背景图⽚
+  int? logBtnTextColor; //协议⼆次弹窗登录按钮的字体颜⾊
+  int? logBtnMarginL; //协议⼆次弹窗登录按钮左边距
+  int? logBtnMarginR; //协议⼆次弹窗登录按钮右边距
+  int? logBtnMarginT; //协议⼆次弹窗登录按钮上边距
+  int? logBtnMarginB; //协议⼆次弹窗登录按钮下边距
+  int? logBtnWidth; //协议⼆次弹窗登录按钮宽
+  int? logBtnHeight; //协议⼆次弹窗登录按高
+
   JVPrivacyCheckDialogConfig() {
     this.enablePrivacyCheckDialog = true;
   }
 
   Map toJsonMap() {
+
+    var widgetList = [];
+
+    if (widgets != null) {
+      for (JVCustomWidget widget in widgets!) {
+        var para2 = widget.toJsonMap();
+        para2.removeWhere((key, value) => value == null);
+        widgetList.add(para2);
+      }
+    }
+
+
     return {
       "width": width,
       "height": height,
@@ -893,12 +919,19 @@ class JVPrivacyCheckDialogConfig {
       "title": title,
       "titleTextSize": titleTextSize,
       "titleTextColor": titleTextColor,
-      "logBtnText": logBtnText,
       "contentTextGravity": contentTextGravity,
       "contentTextSize": contentTextSize,
+      "enablePrivacyCheckDialog": enablePrivacyCheckDialog,
+      "widgets": widgetList,
+      "logBtnText": logBtnText,
       "logBtnImgPath": logBtnImgPath,
       "logBtnTextColor": logBtnTextColor,
-      "enablePrivacyCheckDialog": enablePrivacyCheckDialog,
+      "logBtnMarginL": logBtnMarginL,
+      "logBtnMarginR": logBtnMarginR,
+      "logBtnMarginT": logBtnMarginT,
+      "logBtnMarginB": logBtnMarginB,
+      "logBtnWidth": logBtnWidth,
+      "logBtnHeight": logBtnHeight,
     }..removeWhere((key, value) => value == null);
   }
 }

@@ -413,7 +413,7 @@ class _MyAppState extends State<MyApp> {
         privacyCheckDialogConfig.title = "测试协议标题";
         privacyCheckDialogConfig.offsetX = 0;
         privacyCheckDialogConfig.offsetY = 0;
-        privacyCheckDialogConfig.logBtnText = "同意";
+        privacyCheckDialogConfig.logBtnText = "同11意";
         privacyCheckDialogConfig.titleTextSize = 22;
         privacyCheckDialogConfig.gravity = "center";
         privacyCheckDialogConfig.titleTextColor = Colors.black.value;
@@ -421,6 +421,36 @@ class _MyAppState extends State<MyApp> {
         privacyCheckDialogConfig.contentTextSize = 14;
         privacyCheckDialogConfig.logBtnImgPath = "login_btn_normal";
         privacyCheckDialogConfig.logBtnTextColor = Colors.black.value;
+        privacyCheckDialogConfig.logBtnMarginT = 20;
+        privacyCheckDialogConfig.logBtnMarginB = 20;
+        privacyCheckDialogConfig.logBtnMarginL = 10;
+        privacyCheckDialogConfig.logBtnWidth = 140;
+        privacyCheckDialogConfig.logBtnHeight = 40;
+        /// 添加自定义的 控件 到dialog
+        List<JVCustomWidget> dialogWidgetList = [];
+        final String btn_dialog_widgetId = "jv_add_custom_dialog_button"; // 标识控件 id
+        JVCustomWidget buttonDialogWidget =
+        JVCustomWidget(btn_dialog_widgetId, JVCustomWidgetType.button);
+        buttonDialogWidget.title = "取消";
+        buttonDialogWidget.left = 163;
+        buttonDialogWidget.top = 142;
+        buttonDialogWidget.width = 140;
+        buttonDialogWidget.height = 40;
+        buttonDialogWidget.textAlignment = JVTextAlignmentType.center;
+        buttonDialogWidget.btnNormalImageName = "main_btn_other";
+        buttonDialogWidget.btnPressedImageName = "main_btn_other";
+        // buttonDialogWidget.backgroundColor = Colors.yellow.value;
+        //buttonWidget.textAlignment = JVTextAlignmentType.left;
+
+        // 添加点击事件监听
+        jverify.addClikWidgetEventListener(btn_dialog_widgetId, (eventId) {
+          print("receive listener - click dialog widget event :$eventId");
+          if (btn_dialog_widgetId == eventId) {
+            print("receive listener - 点击【新加 dialog button】");
+          }
+        });
+        dialogWidgetList.add(buttonDialogWidget);
+        privacyCheckDialogConfig.widgets = dialogWidgetList;
         uiConfig.privacyCheckDialogConfig = privacyCheckDialogConfig;
 
         uiConfig.setIsPrivacyViewDarkMode = false; //协议页面是否支持暗黑模式
@@ -483,7 +513,6 @@ class _MyAppState extends State<MyApp> {
         /// 步骤 1：调用接口设置 UI
         jverify.setCustomAuthorizationView(true, uiConfig,
             landscapeConfig: uiConfig, widgets: widgetList);
-
         /// 步骤 2：调用一键登录接口
         jverify.loginAuthSyncApi2(
             autoDismiss: true,

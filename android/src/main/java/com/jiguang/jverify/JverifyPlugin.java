@@ -1,5 +1,4 @@
 package com.jiguang.jverify;
-import cn.jiguang.api.utils.JCollectionAuth;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -15,7 +14,6 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -31,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import cn.jiguang.api.utils.JCollectionAuth;
 import cn.jiguang.verifysdk.api.AuthPageEventListener;
 import cn.jiguang.verifysdk.api.JVerificationInterface;
 import cn.jiguang.verifysdk.api.JVerifyUIClickCallback;
@@ -374,7 +373,6 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         JVerificationInterface.clearPreLoginCache();
     }
 
-
     /**
      * SDK请求授权一键登录，异步
      */
@@ -397,7 +395,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object autoFinish = getValueByKey(call, "autoDismiss");
         Integer timeOut = call.argument("timeout");
         final Integer loginAuthIndex = call.argument("loginAuthIndex");
-        Boolean enableSMSService = (Boolean) getValueByKey(call, "enableSms");
+        Object enableSMSService =  getValueByKey(call, "enableSms");
 
         AuthPageEventListener eventListener = new AuthPageEventListener() {
             @Override
@@ -437,7 +435,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             }
         };
 
-        if (enableSMSService.booleanValue()) {
+        if (enableSMSService != null) {
             JVerificationInterface.loginAuth((Boolean)enableSMSService, context, (Boolean) autoFinish, listener, eventListener);
         } else {
             LoginSettings settings = new LoginSettings();
@@ -486,9 +484,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 /// 新增自定义的控件
                 String type = (String) widgetMap.get("type");
                 if (type.equals("textView")) {
-                    addCustomTextWidgets(widgetMap, builder);
+                    addCustomTextWidgets(widgetMap, builder, false);
                 } else if (type.equals("button")) {
-                    addCustomButtonWidgets(widgetMap, builder);
+                    addCustomButtonWidgets(widgetMap, builder, false);
                 } else {
                     Log.e(TAG, "don't support widget");
                 }
@@ -521,14 +519,14 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 /// 新增自定义的控件
                 String type = (String) widgetMap.get("type");
                 if (type.equals("textView")) {
-                    addCustomTextWidgets(widgetMap, portraitBuilder);
+                    addCustomTextWidgets(widgetMap, portraitBuilder, false);
                     if (isAutorotate) {
-                        addCustomTextWidgets(widgetMap, landscapeBuilder);
+                        addCustomTextWidgets(widgetMap, landscapeBuilder, false);
                     }
                 } else if (type.equals("button")) {
-                    addCustomButtonWidgets(widgetMap, portraitBuilder);
+                    addCustomButtonWidgets(widgetMap, portraitBuilder, false);
                     if (isAutorotate) {
-                        addCustomButtonWidgets(widgetMap, landscapeBuilder);
+                        addCustomButtonWidgets(widgetMap, landscapeBuilder, false);
                     }
                 } else {
                     Log.e(TAG, "don't support widget");
@@ -1054,10 +1052,6 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                     builder.setPrivacyCheckDialogTitleText((String) dialogTitle);
                 }
 
-                Object dialogLoginBtnText = valueForKey(privacyCheckDialogConfigMap, "logBtnText");
-                if(dialogLoginBtnText !=null) {
-                    builder.setPrivacyCheckDialogLogBtnText((String) dialogLoginBtnText);
-                }
 
                 Object titleTextSize = valueForKey(privacyCheckDialogConfigMap, "titleTextSize");
                 if(titleTextSize !=null) {
@@ -1066,8 +1060,6 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
                 Object titleTextColor = valueForKey(privacyCheckDialogConfigMap, "titleTextColor");
                 Object contentTextSize = valueForKey(privacyCheckDialogConfigMap, "contentTextSize");
-                Object logBtnImgPath = valueForKey(privacyCheckDialogConfigMap, "logBtnImgPath");
-                Object logBtnTextColor_dialog = valueForKey(privacyCheckDialogConfigMap, "logBtnTextColor");
 
                 builder.enablePrivacyCheckDialog(true);
 
@@ -1082,6 +1074,20 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                     builder.setPrivacyCheckDialogContentTextSize(exchangeObject(contentTextSize));
                 }
 
+                Object dialogLoginBtnText = valueForKey(privacyCheckDialogConfigMap, "logBtnText");
+                Object logBtnImgPath = valueForKey(privacyCheckDialogConfigMap, "logBtnImgPath");
+                Object logBtnTextColor_dialog = valueForKey(privacyCheckDialogConfigMap, "logBtnTextColor");
+                Object logBtnMarginL = valueForKey(privacyCheckDialogConfigMap, "logBtnMarginL");
+                Object logBtnMarginR = valueForKey(privacyCheckDialogConfigMap, "logBtnMarginR");
+                Object logBtnMarginT = valueForKey(privacyCheckDialogConfigMap, "logBtnMarginT");
+                Object logBtnMarginB = valueForKey(privacyCheckDialogConfigMap, "logBtnMarginB");
+                Object dialogLogBtnWidth = valueForKey(privacyCheckDialogConfigMap, "logBtnWidth");
+                Object dialogLogBtnHeight = valueForKey(privacyCheckDialogConfigMap, "logBtnHeight");
+
+
+                if(dialogLoginBtnText !=null) {
+                    builder.setPrivacyCheckDialogLogBtnText((String) dialogLoginBtnText);
+                }
                 if(logBtnImgPath != null){
                     int res_id_logBtnImgPath = getResourceByReflect((String) logBtnImgPath);
                     if (res_id_logBtnImgPath > 0) {
@@ -1090,6 +1096,40 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 }
                 if (logBtnTextColor_dialog != null){
                     builder.setPrivacyCheckDialoglogBtnTextColor(exchangeObject(logBtnTextColor_dialog));
+                }
+                if(logBtnMarginL !=null) {
+                    builder.setPrivacyCheckDialogLogBtnMarginL((int) logBtnMarginL);
+                }
+                if(logBtnMarginR !=null) {
+                    builder.setPrivacyCheckDialogLogBtnMarginR((int) logBtnMarginR);
+                }
+                if(logBtnMarginT !=null) {
+                    builder.setPrivacyCheckDialogLogBtnMarginT((int) logBtnMarginT);
+                }
+                if(logBtnMarginB !=null) {
+                    builder.setPrivacyCheckDialogLogBtnMarginB((int) logBtnMarginB);
+                }
+                if(dialogLogBtnWidth !=null) {
+                    builder.setPrivacyCheckDialogLogBtnWidth((int) dialogLogBtnWidth);
+                }
+                if(dialogLogBtnHeight !=null) {
+                    builder.setPrivacyCheckDialogLogBtnHeight((int) dialogLogBtnHeight);
+                }
+
+                Object widgets = valueForKey(privacyCheckDialogConfigMap,"widgets");
+                if (widgets != null) {
+                    List<Map> widgetList = (List) widgets;
+                    for (Map widgetMap : widgetList) {
+                        /// 新增自定义的控件
+                        String type = (String) widgetMap.get("type");
+                        if (type.equals("textView")) {
+                            addCustomTextWidgets(widgetMap, builder, true);
+                        } else if (type.equals("button")) {
+                            addCustomButtonWidgets(widgetMap, builder, true);
+                        } else {
+                            Log.e(TAG, "don't support widget");
+                        }
+                    }
                 }
             }
         }
@@ -1453,7 +1493,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
     /**
      * 添加自定义 TextView
      */
-    private void addCustomTextWidgets(Map para, JVerifyUIConfig.Builder builder) {
+    private void addCustomTextWidgets(Map para, JVerifyUIConfig.Builder builder, boolean isDialog) {
         Log.d(TAG, "addCustomTextView " + para);
 
         TextView customView = new TextView(context);
@@ -1536,19 +1576,31 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         final HashMap jsonMap = new HashMap();
         jsonMap.put("widgetId", widgetId);
 
-        builder.addCustomView(customView, false, new JVerifyUIClickCallback() {
-            @Override
-            public void onClicked(Context context, View view) {
-                Log.d(TAG, "onClicked text widget.");
-                channel.invokeMethod("onReceiveClickWidgetEvent", jsonMap);
-            }
-        });
+
+        if (isDialog) {
+            builder.addCustomViewToCheckDialog(customView, new JVerifyUIClickCallback() {
+                @Override
+                public void onClicked(Context context, View view) {
+                    Log.d(TAG, "onClicked dialog button widget.");
+                    runMainThread(jsonMap, null, "onReceiveClickWidgetEvent");
+                }
+            });
+        } else {
+            builder.addCustomView(customView, false, new JVerifyUIClickCallback() {
+                @Override
+                public void onClicked(Context context, View view) {
+                    Log.d(TAG, "onClicked text widget.");
+                    channel.invokeMethod("onReceiveClickWidgetEvent", jsonMap);
+                }
+            });
+        }
+
     }
 
     /**
      * 添加自定义 button
      */
-    private void addCustomButtonWidgets(Map para, JVerifyUIConfig.Builder builder) {
+    private void addCustomButtonWidgets(Map para, JVerifyUIConfig.Builder builder, boolean isDialog) {
         Log.d(TAG, "addCustomButtonWidgets: para = " + para);
 
         Button customView = new Button(context);
@@ -1590,10 +1642,12 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         // 设置背景图（只支持 button 设置）
         String btnNormalImageName = (String) para.get("btnNormalImageName");
         String btnPressedImageName = (String) para.get("btnPressedImageName");
-        if (btnPressedImageName == null) {
-            btnPressedImageName = btnNormalImageName;
+        if (btnNormalImageName != null) {
+            if (btnPressedImageName == null) {
+                btnPressedImageName = btnNormalImageName;
+            }
+            setButtonSelector(customView, btnNormalImageName, btnPressedImageName);
         }
-        setButtonSelector(customView, btnNormalImageName, btnPressedImageName);
 
         //下划线
         Boolean isShowUnderline = (Boolean) para.get("isShowUnderline");
@@ -1641,13 +1695,24 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         final HashMap jsonMap = new HashMap();
         jsonMap.put("widgetId", widgetId);
 
-        builder.addCustomView(customView, false, new JVerifyUIClickCallback() {
-            @Override
-            public void onClicked(Context context, View view) {
-                Log.d(TAG, "onClicked button widget.");
-                runMainThread(jsonMap, null, "onReceiveClickWidgetEvent");
-            }
-        });
+        if (isDialog) {
+            builder.addCustomViewToCheckDialog(customView, new JVerifyUIClickCallback() {
+                @Override
+                public void onClicked(Context context, View view) {
+                    Log.d(TAG, "onClicked dialog button widget.");
+                    runMainThread(jsonMap, null, "onReceiveClickWidgetEvent");
+                }
+            });
+        } else {
+            builder.addCustomView(customView, false, new JVerifyUIClickCallback() {
+                @Override
+                public void onClicked(Context context, View view) {
+                    Log.d(TAG, "onClicked button widget.");
+                    runMainThread(jsonMap, null, "onReceiveClickWidgetEvent");
+                }
+            });
+        }
+
     }
 
 
