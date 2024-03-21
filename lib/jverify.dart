@@ -1118,6 +1118,8 @@ class JVSMSUIConfig {
   String? smsPrivacyClauseEnd; //设置协议条款结尾文本
   // List<VerifyCustomView> smsCustomViews
   bool? enableSMSService; //如果开启了短信服务，在认证服务失败时，短信服务又可用的情况下拉起短信服务
+
+  //android独占
   String? smsPrivacyUncheckedMsg; //短信协议没有被勾选的提示
   String? smsGetCodeFailMsg; //短信获取失败提示
   String? smsPhoneInvalidMsg; //手机号无效提示

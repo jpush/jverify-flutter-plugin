@@ -311,7 +311,7 @@ class _MyAppState extends State<MyApp> {
             "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
         uiConfig.authBGVideoImgPath = "main_v_bg";
 
-        uiConfig.navHidden = true;
+        uiConfig.navHidden = !isiOS;
         // uiConfig.navColor = Colors.red.value;
         // uiConfig.navText = "登录";
         // uiConfig.navTextColor = Colors.blue.value;
