@@ -16,6 +16,8 @@ static NSString *const j_code_key = @"code";
 static NSString *const j_msg_key = @"message";
 /// 运营商信息
 static NSString *const j_opr_key = @"operator";
+/// 手机号
+static NSString *const j_phone_key = @"phone";
 /// 默认超时时间
 static long j_default_timeout = 5000;
 static BOOL needStartAnim = FALSE;
@@ -71,6 +73,8 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
         [self getSMSCode:call result:result];
     }else if ([methodName isEqualToString:@"setGetCodeInternal"]){
         [self setGetCodeInternal:call result:result];
+    }else if ([methodName isEqualToString:@"smsAuth"]) {
+        [self smsAuth:call result:result];
     }
     else {
         result(FlutterMethodNotImplemented);
@@ -104,6 +108,45 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     NSNumber *time = arguments[@"timeInterval"];
     [JVERIFICATIONService setGetCodeInternal:[time intValue]];
 }
+
+- (void)smsAuth:(FlutterMethodCall*) call result:(FlutterResult)resultDict{
+    NSDictionary *arguments = call.arguments;
+    NSNumber *autoDismiss = arguments[@"autoDismiss"];
+    NSTimeInterval timeout = [arguments[@"timeout"] longLongValue];
+    NSInteger smsAuthIndex = [arguments[@"smsAuthIndex"] longLongValue];
+    UIViewController *vc = [UIApplication sharedApplication].keyWindow.rootViewController;
+    __weak typeof(self) weakself = self;
+    [JVERIFICATIONService getSMSAuthorizationWithController:vc hide:[autoDismiss boolValue] animated:needStartAnim timeout:timeout completion:^(NSDictionary * _Nonnull res) {
+       
+        JVLog(@"getSMSAuthorizationWithController result = %@",res);
+        
+        NSString *msg;
+        NSString *phoneNumber;
+        if([res[@"content"] isKindOfClass:[NSString class]]){
+            msg = res[@"content"];
+        }else if ([res[@"content"] isKindOfClass:[NSDictionary class]]) {
+            phoneNumber = [res[@"content"] objectForKey:@"number"];
+            if ([[res[@"content"] objectForKey:@"tokenReponse"] isKindOfClass:[NSDictionary class]]) {
+                msg = [res[@"content"][@"tokenReponse"] objectForKey:@"resultMsg"];
+            }
+        }
+        NSDictionary *dict = @{
+            j_code_key:res[@"code"],
+            j_msg_key :msg?:@"",
+            j_phone_key: phoneNumber?:@"",
+            @"smsAuthIndex": @(smsAuthIndex)
+        };
+        __strong typeof(weakself) strongself = weakself;
+        dispatch_async(dispatch_get_main_queue(), ^{
+            //通过 channel 返回
+            [strongself.channel invokeMethod:@"onReceiveSMSAuthCallBackEvent" arguments:dict];
+        });
+        
+    } actionBlock:^(NSInteger type, NSString * _Nonnull content) {
+        
+    }];
+}
+
 #pragma mark - 设置日志 debug 模式
 -(void)setDebugMode:(FlutterMethodCall*) call result:(FlutterResult)result{
     JVLog(@"Action - setDebugMode::");
