@@ -23,6 +23,19 @@ typedef JVAuthPageEventListener = void Function(JVAuthPageEvent event);
 typedef JVLoginAuthCallBackListener = void Function(JVListenerEvent event);
 
 /**
+ * 短信登录接口的回调监听
+ *
+ * @param event
+ *          code     ：返回码，6000 代表loginToken获取成功，6001 代表loginToken获取失败，其他返回码详见描述
+ *          message  ：返回码的解释信息，若获取成功，内容信息代表loginToken。
+ *          phone ：手机号
+ *
+ * @discussion 调用 smsAuth 接口后，可以通过添加此监听事件来监听接口的返回结果
+ * */
+typedef JVSMSListener = void Function(JVSMSEvent event);
+
+
+/**
  * SDK 初始接口回调监听
  *
  * @param event
@@ -32,6 +45,7 @@ typedef JVLoginAuthCallBackListener = void Function(JVListenerEvent event);
  * @discussion 调用 setup 接口后，可以通过添加此监听事件来监听接口的返回结果
  * */
 typedef JVSDKSetupCallBackListener = void Function(JVSDKSetupEvent event);
+
 
 class JVEventHandlers {
   static final JVEventHandlers _instance = new JVEventHandlers._internal();
@@ -47,8 +61,11 @@ class JVEventHandlers {
   JVSDKSetupCallBackListener? sdkSetupCallBackListener;
 
   int loginAuthIndex = 0;
+  int smsAuthIndex = 0;
   Map<int, JVAuthPageEventListener> authPageEventsMap = {};
   Map<int, JVLoginAuthCallBackListener> loginAuthCallBackEventsMap = {};
+  Map<int, JVSMSListener> smsCallBackEventsMap = {};
+
 }
 
 class Jverify {
@@ -144,6 +161,22 @@ class Jverify {
               in _eventHanders.loginAuthCallBackEvents) {
             cb(event);
             _eventHanders.loginAuthCallBackEvents.remove(cb);
+          }
+
+        }
+        break;
+      case 'onReceiveSMSAuthCallBackEvent':
+        {
+
+          Map json = call.arguments.cast<dynamic, dynamic>();
+          print(json.toString());
+          JVSMSEvent event = JVSMSEvent.fromJson(json);
+          if (json["smsAuthIndex"] != null) {
+            int index = json["smsAuthIndex"];
+            if (_eventHanders.smsCallBackEventsMap.containsKey(index)) {
+              _eventHanders.smsCallBackEventsMap[index]!(event);
+              _eventHanders.smsCallBackEventsMap.remove(index);
+            }
           }
 
         }
@@ -434,6 +467,44 @@ class Jverify {
       if (pageEventCallback != null) {
         _eventHanders.authPageEventsMap[_eventHanders.loginAuthIndex] =
             pageEventCallback;
+      }
+      _channel.invokeMethod(method, map);
+      requestQueue.remove(method);
+    } else {
+      print("$flutter_log" + repeatError.toString());
+    }
+  }
+
+
+
+  /*
+  * 短信登录
+  *
+  * @param autoDismiss  设置登录完成后是否自动关闭授权页
+  * @param timeout      设置超时时间，单位毫秒。 合法范围（0，10000],若小于等于 0 则取默认值 5000. 大于 10000 则取 10000
+  *
+  * 接口回调返回数据监听：通过添加 JVSMSListener 监听，来监听接口的返回结果
+  *
+  *
+  * */
+  void smsAuth(
+      {required bool autoDismiss,
+        int timeout = 5000,
+        JVSMSListener? smsCallback}) {
+    print("$flutter_log" + "smsAuth");
+
+    String method = "smsAuth";
+    var repeatError = isRepeatRequest(method: method);
+    if (repeatError == null) {
+      _eventHanders.smsAuthIndex++;
+      var map = {
+        "autoDismiss": autoDismiss,
+        "timeout": timeout,
+        "smsAuthIndex": _eventHanders.smsAuthIndex
+      };
+      if (smsCallback != null) {
+        _eventHanders.smsCallBackEventsMap[_eventHanders.smsAuthIndex] =
+            smsCallback;
       }
       _channel.invokeMethod(method, map);
       requestQueue.remove(method);
@@ -1047,6 +1118,9 @@ class JVSMSUIConfig {
   String? smsPrivacyClauseEnd; //设置协议条款结尾文本
   // List<VerifyCustomView> smsCustomViews
   bool? enableSMSService; //如果开启了短信服务，在认证服务失败时，短信服务又可用的情况下拉起短信服务
+  String? smsPrivacyUncheckedMsg; //短信协议没有被勾选的提示
+  String? smsGetCodeFailMsg; //短信获取失败提示
+  String? smsPhoneInvalidMsg; //手机号无效提示
 
   Map toJsonMap() {
     return {
@@ -1169,6 +1243,9 @@ class JVSMSUIConfig {
           smsPrivacyBeanList != null ? json.encode(smsPrivacyBeanList) : null,
       "smsPrivacyClauseStart": smsPrivacyClauseStart ??= null,
       "smsPrivacyClauseEnd": smsPrivacyClauseEnd ??= null,
+      "smsPrivacyUncheckedMsg": smsPrivacyUncheckedMsg ??= null,
+      "smsGetCodeFailMsg": smsGetCodeFailMsg ??= null,
+      "smsPhoneInvalidMsg": smsPhoneInvalidMsg ??= null,
       "enableSMSService": enableSMSService ??= null,
     }..removeWhere((key, value) => value == null);
   }
@@ -1245,6 +1322,23 @@ enum JVCustomWidgetType { textView, button }
 
 /// 文本对齐方式
 enum JVTextAlignmentType { left, right, center }
+
+/// SMS监听返回类
+class JVSMSEvent {
+  int?
+  code; //返回码，具体事件返回码请查看（https://docs.jiguang.cn/jverification/client/android_api/）
+  String? message; //事件描述、事件返回值等
+  String? phone; //电话号
+
+  JVSMSEvent.fromJson(Map<dynamic, dynamic> json)
+      : code = json['code'],
+        message = json['message'],
+        phone = json['phone'];
+
+  Map toMap() {
+    return {'code': code, 'message': message, 'phone': phone};
+  }
+}
 
 /// 监听返回类
 class JVListenerEvent {

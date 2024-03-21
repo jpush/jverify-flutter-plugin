@@ -1,5 +1,6 @@
 package com.jiguang.jverify;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -16,6 +17,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,12 +34,15 @@ import java.util.Map;
 import cn.jiguang.api.utils.JCollectionAuth;
 import cn.jiguang.verifysdk.api.AuthPageEventListener;
 import cn.jiguang.verifysdk.api.JVerificationInterface;
+import cn.jiguang.verifysdk.api.JVerifyLoginBtClickCallback;
 import cn.jiguang.verifysdk.api.JVerifyUIClickCallback;
 import cn.jiguang.verifysdk.api.JVerifyUIConfig;
 import cn.jiguang.verifysdk.api.LoginSettings;
 import cn.jiguang.verifysdk.api.PreLoginListener;
 import cn.jiguang.verifysdk.api.PrivacyBean;
 import cn.jiguang.verifysdk.api.RequestCallback;
+import cn.jiguang.verifysdk.api.SmsClickActionListener;
+import cn.jiguang.verifysdk.api.SmsListener;
 import cn.jiguang.verifysdk.api.VerifyListener;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
@@ -63,6 +68,8 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
     private static String j_msg_key = "message";
     /// 运营商信息
     private static String j_opr_key = "operator";
+    /// 手机号信息
+    private static String j_phone_key = "phone";
     // 默认超时时间
     private static int j_default_timeout = 5000;
     // 重复请求
@@ -126,6 +133,8 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             getSMSCode(call, result);
         } else if (call.method.equals("setSmsIntervalTime")) {
             setGetCodeInternal(call, result);
+        } else if (call.method.equals("smsAuth")) {
+            smsAuth(call, result);
         } else {
             result.notImplemented();
         }
@@ -446,6 +455,34 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             JVerificationInterface.loginAuth(context, settings, listener);
         }
 
+    }
+
+    /**
+     * SDK请求短信登录
+     */
+    private void smsAuth(MethodCall call, final Result result){
+        Log.d(TAG, "Action - smsAuth:");
+
+        Object autoFinish = getValueByKey(call, "autoDismiss");
+        Integer timeOut = call.argument("timeout");
+        final Integer smsAuthIndex = call.argument("smsAuthIndex");
+
+        JVerificationInterface.smsLoginAuth(context, (Boolean) autoFinish, timeOut, new SmsListener(){
+            @Override
+            public void onResult(final int code, final String content,final String phone){
+                Log.d(TAG, "smsAuth code=" + code + ", token=" + content + " ,phone=" + phone);
+
+                Map<String, Object> map = new HashMap<>();
+                map.put(j_code_key, code);
+                map.put(j_msg_key, content);
+                map.put(j_phone_key, phone);
+                map.put("smsAuthIndex", smsAuthIndex);
+
+                // 通过 channel 返回
+                runMainThread(map, null, "onReceiveSMSAuthCallBackEvent");
+
+            }
+        });
     }
 
     /**
@@ -1146,7 +1183,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (smsUIConfig != null) {
             Map smsUIConfigMap = (Map) smsUIConfig;
             Object enableSMSService = valueForKey(smsUIConfigMap, "enableSMSService");
-            if ((Boolean) enableSMSService) {
+            if (enableSMSService != null && (Boolean) enableSMSService) {
 
                 Object smsNavText = valueForKey(smsUIConfigMap, "smsNavText");
                 Object smsSloganTextSize = valueForKey(smsUIConfigMap, "smsSloganTextSize");
@@ -1360,6 +1397,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 Object smsPrivacyBeanList = valueForKey(smsUIConfigMap, "smsPrivacyBeanList");
                 Object smsPrivacyClauseStart = valueForKey(smsUIConfigMap, "smsPrivacyClauseStart");
                 Object smsPrivacyClauseEnd = valueForKey(smsUIConfigMap, "smsPrivacyClauseEnd");
+                Object smsPrivacyUncheckedMsg = valueForKey(smsUIConfigMap, "smsPrivacyUncheckedMsg");
+                Object smsGetCodeFailMsg = valueForKey(smsUIConfigMap, "smsGetCodeFailMsg");
+                Object smsPhoneInvalidMsg = valueForKey(smsUIConfigMap, "smsPhoneInvalidMsg");
 
                 if(smsLogBtnOffsetX !=null){
                     builder.setSmsLogBtnOffsetX((Integer) smsLogBtnOffsetX);
@@ -1482,7 +1522,23 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 if(smsPrivacyClauseEnd !=null){
                     builder.setSmsPrivacyClauseEnd((String) smsPrivacyClauseEnd);
                 }
+                builder.setSmsGetVerifyCodeDialog(true,Toast.makeText(context,smsPhoneInvalidMsg != null ? (String) smsPhoneInvalidMsg :"请输入正确的手机号",Toast.LENGTH_SHORT));
 
+                builder.setSmsClickActionListener(new SmsClickActionListener() {
+                    @Override
+                    public void onClicked(int Code, String msg, Context context, Activity activity, Boolean isUnchecked, List<PrivacyBean> beanArrayList, JVerifyLoginBtClickCallback jVerifyLoginBtClickCallback) {
+                        Log.d(TAG, msg);
+                        if (!isUnchecked){
+                            Toast.makeText(context, smsPrivacyUncheckedMsg != null ? (String) smsPrivacyUncheckedMsg : "请先勾选协议",Toast.LENGTH_SHORT).show();
+                        }else if(Code ==3005){
+                            Toast.makeText(context, smsGetCodeFailMsg != null ? (String) smsGetCodeFailMsg : "获取验证码失败",Toast.LENGTH_SHORT).show();
+                            jVerifyLoginBtClickCallback.login();
+                        }else {
+                            jVerifyLoginBtClickCallback.login();
+                        }
+
+                    }
+                });
             }
         }
 

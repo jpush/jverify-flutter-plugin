@@ -124,9 +124,21 @@ class _MyAppState extends State<MyApp> {
             child: SizedBox(
               child: new CustomButton(
                 onPressed: () {
-                  loginAuth();
+                  loginAuth(false);
                 },
                 title: "一键登录",
+              ),
+              width: double.infinity,
+            ),
+            margin: EdgeInsets.fromLTRB(40, 5, 40, 5),
+          ),
+          new Container(
+            child: SizedBox(
+              child: new CustomButton(
+                onPressed: () {
+                  loginAuth(true);
+                },
+                title: "短信登录",
               ),
               width: double.infinity,
             ),
@@ -273,13 +285,16 @@ class _MyAppState extends State<MyApp> {
   }
 
   /// SDK 请求授权一键登录
-  void loginAuth() {
+  void loginAuth(bool isSms) {
     setState(() {
       _showLoading(context);
     });
     jverify.checkVerifyEnable().then((map) {
       bool result = map[f_result_key];
-      if (result) {
+      print("checkVerifyEnable $map");
+      //需要使用sms的时候不检查result
+      // if (result) {
+      if (true) {
         final screenSize = MediaQuery.of(context).size;
         final screenWidth = screenSize.width;
         final screenHeight = screenSize.height;
@@ -296,11 +311,11 @@ class _MyAppState extends State<MyApp> {
             "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
         uiConfig.authBGVideoImgPath = "main_v_bg";
 
-        //uiConfig.navHidden = true;
-        uiConfig.navColor = Colors.red.value;
-        uiConfig.navText = "登录";
-        uiConfig.navTextColor = Colors.blue.value;
-        uiConfig.navReturnImgPath = "return_bg"; //图片必须存在
+        uiConfig.navHidden = true;
+        // uiConfig.navColor = Colors.red.value;
+        // uiConfig.navText = "登录";
+        // uiConfig.navTextColor = Colors.blue.value;
+        // uiConfig.navReturnImgPath = "return_bg"; //图片必须存在
 
         uiConfig.logoWidth = 100;
         uiConfig.logoHeight = 80;
@@ -377,7 +392,7 @@ class _MyAppState extends State<MyApp> {
             JVIOSUIModalTransitionStyle.CrossDissolve;
 
         uiConfig.statusBarColorWithNav = true;
-        uiConfig.virtualButtonTransparent = true;
+        // uiConfig.virtualButtonTransparent = true;
 
         uiConfig.privacyStatusBarColorWithNav = true;
         uiConfig.privacyVirtualButtonTransparent = true;
@@ -453,6 +468,13 @@ class _MyAppState extends State<MyApp> {
         privacyCheckDialogConfig.widgets = dialogWidgetList;
         uiConfig.privacyCheckDialogConfig = privacyCheckDialogConfig;
 
+        //sms
+        JVSMSUIConfig smsConfig = JVSMSUIConfig();
+        smsConfig.smsPrivacyBeanList = [JVPrivacy("自定义协议1", "http://www.baidu.com",
+            beforeName: "==", afterName: "++", separator: "*")];
+        smsConfig.enableSMSService = true;
+        uiConfig.smsUIConfig = smsConfig;
+
         uiConfig.setIsPrivacyViewDarkMode = false; //协议页面是否支持暗黑模式
 
         //弹框模式
@@ -513,19 +535,31 @@ class _MyAppState extends State<MyApp> {
         /// 步骤 1：调用接口设置 UI
         jverify.setCustomAuthorizationView(true, uiConfig,
             landscapeConfig: uiConfig, widgets: widgetList);
-        /// 步骤 2：调用一键登录接口
-        jverify.loginAuthSyncApi2(
-            autoDismiss: true,
-            enableSms: true,
-            loginAuthcallback: (event) {
-              setState(() {
-                _hideLoading();
-                _hideLoading();
-                _result = "获取返回数据：[${event.code}] message = ${event.message}";
+        if (!isSms) {
+          /// 步骤 2：调用一键登录接口
+          jverify.loginAuthSyncApi2(
+              autoDismiss: true,
+              enableSms: true,
+              loginAuthcallback: (event) {
+                setState(() {
+                  _hideLoading();
+                  _result = "获取返回数据：[${event.code}] message = ${event.message}";
+                });
+                print(
+                    "获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
               });
-              print(
-                  "获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
+        } else {
+          /// 步骤 2：调用短信登录接口
+          jverify.smsAuth(autoDismiss: true, smsCallback: (event) {
+            setState(() {
+              _hideLoading();
+              _result = "获取返回数据：[${event.code}] message = ${event.message}";
             });
+            print(
+                "获取到 smsAuth 接口返回数据，code=${event.code},message = ${event.message},phone = ${event.phone}");
+          });
+        }
+
       } else {
         setState(() {
           _hideLoading();
