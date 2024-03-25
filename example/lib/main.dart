@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:jverify/jverify.dart';
 
@@ -123,9 +124,21 @@ class _MyAppState extends State<MyApp> {
             child: SizedBox(
               child: new CustomButton(
                 onPressed: () {
-                  loginAuth();
+                  loginAuth(false);
                 },
                 title: "一键登录",
+              ),
+              width: double.infinity,
+            ),
+            margin: EdgeInsets.fromLTRB(40, 5, 40, 5),
+          ),
+          new Container(
+            child: SizedBox(
+              child: new CustomButton(
+                onPressed: () {
+                  loginAuth(true);
+                },
+                title: "短信登录",
               ),
               width: double.infinity,
             ),
@@ -209,7 +222,7 @@ class _MyAppState extends State<MyApp> {
       _showLoading(context);
     });
     String phoneNum = controllerPHone.text;
-    if (phoneNum == null || phoneNum.isEmpty) {
+    if (phoneNum.isEmpty) {
       setState(() {
         _hideLoading();
         _result = "[3002],msg = 没有输入手机号码";
@@ -272,13 +285,16 @@ class _MyAppState extends State<MyApp> {
   }
 
   /// SDK 请求授权一键登录
-  void loginAuth() {
+  void loginAuth(bool isSms) {
     setState(() {
       _showLoading(context);
     });
     jverify.checkVerifyEnable().then((map) {
       bool result = map[f_result_key];
-      if (result) {
+      print("checkVerifyEnable $map");
+      //需要使用sms的时候不检查result
+      // if (result) {
+      if (true) {
         final screenSize = MediaQuery.of(context).size;
         final screenWidth = screenSize.width;
         final screenHeight = screenSize.height;
@@ -290,12 +306,16 @@ class _MyAppState extends State<MyApp> {
         ///
         JVUIConfig uiConfig = JVUIConfig();
         // uiConfig.authBGGifPath = "main_gif";
+        // uiConfig.authBGVideoPath="main_vi";
+        uiConfig.authBGVideoPath =
+            "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
+        uiConfig.authBGVideoImgPath = "main_v_bg";
 
-        //uiConfig.navHidden = true;
-        uiConfig.navColor = Colors.red.value;
-        uiConfig.navText = "登录";
-        uiConfig.navTextColor = Colors.blue.value;
-        uiConfig.navReturnImgPath = "return_bg"; //图片必须存在
+        uiConfig.navHidden = !isiOS;
+        // uiConfig.navColor = Colors.red.value;
+        // uiConfig.navText = "登录";
+        // uiConfig.navTextColor = Colors.blue.value;
+        // uiConfig.navReturnImgPath = "return_bg"; //图片必须存在
 
         uiConfig.logoWidth = 100;
         uiConfig.logoHeight = 80;
@@ -313,8 +333,6 @@ class _MyAppState extends State<MyApp> {
         uiConfig.numberColor = Colors.blue.value;
         uiConfig.numberSize = 18;
 
-
-
         uiConfig.sloganOffsetY = isiOS ? 20 : 160;
         uiConfig.sloganVerticalLayoutItem = JVIOSLayoutItem.ItemNumber;
         uiConfig.sloganTextColor = Colors.black.value;
@@ -330,6 +348,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.logBtnText = "登录按钮";
         uiConfig.logBtnTextColor = Colors.brown.value;
         uiConfig.logBtnTextSize = 16;
+        uiConfig.logBtnTextBold = true;
         uiConfig.loginBtnNormalImage = "login_btn_normal"; //图片必须存在
         uiConfig.loginBtnPressedImage = "login_btn_press"; //图片必须存在
         uiConfig.loginBtnUnableImage = "login_btn_unable"; //图片必须存在
@@ -337,12 +356,13 @@ class _MyAppState extends State<MyApp> {
         uiConfig.privacyHintToast =
             true; //only android 设置隐私条款不选中时点击登录按钮默认显示toast。
 
-        uiConfig.privacyState = true; //设置默认勾选
+        uiConfig.privacyState = false; //设置默认勾选
         uiConfig.privacyCheckboxSize = 20;
         uiConfig.checkedImgPath = "check_image"; //图片必须存在
         uiConfig.uncheckedImgPath = "uncheck_image"; //图片必须存在
         uiConfig.privacyCheckboxInCenter = true;
-        //uiConfig.privacyCheckboxHidden = false;
+        uiConfig.privacyCheckboxHidden = false;
+        uiConfig.isAlertPrivacyVc = true;
 
         //uiConfig.privacyOffsetX = isiOS ? (20 + uiConfig.privacyCheckboxSize) : null;
         uiConfig.privacyOffsetY = 15; // 距离底部距离
@@ -353,8 +373,17 @@ class _MyAppState extends State<MyApp> {
         uiConfig.clauseNameTwo = "协议二";
         uiConfig.clauseUrlTwo = "http://www.hao123.com";
         uiConfig.clauseColor = Colors.red.value;
-        uiConfig.privacyText = ["1极", "2光", "3认", "4证"];
+        uiConfig.privacyText = ["1极", "4证"];
         uiConfig.privacyTextSize = 13;
+        uiConfig.privacyItem = [
+          JVPrivacy("自定义协议1", "http://www.baidu.com",
+              beforeName: "==", afterName: "++", separator: "*"),
+          JVPrivacy("自定义协议2", "http://www.baidu.com", separator: "、"),
+          JVPrivacy("自定义协议3", "http://www.baidu.com", separator: "、"),
+          JVPrivacy("自定义协议4", "http://www.baidu.com", separator: "、"),
+          JVPrivacy("自定义协议5", "http://www.baidu.com", separator: "、")
+        ];
+        uiConfig.textVerAlignment = 1;
         //uiConfig.privacyWithBookTitleMark = true;
         //uiConfig.privacyTextCenterGravity = false;
         uiConfig.authStatusBarStyle = JVIOSBarStyle.StatusBarStyleDarkContent;
@@ -363,7 +392,7 @@ class _MyAppState extends State<MyApp> {
             JVIOSUIModalTransitionStyle.CrossDissolve;
 
         uiConfig.statusBarColorWithNav = true;
-        uiConfig.virtualButtonTransparent = true;
+        // uiConfig.virtualButtonTransparent = true;
 
         uiConfig.privacyStatusBarColorWithNav = true;
         uiConfig.privacyVirtualButtonTransparent = true;
@@ -373,60 +402,99 @@ class _MyAppState extends State<MyApp> {
         uiConfig.enterAnim = "activity_slide_enter_bottom";
         uiConfig.exitAnim = "activity_slide_exit_bottom";
 
-
         uiConfig.privacyNavColor = Colors.red.value;
         uiConfig.privacyNavTitleTextColor = Colors.blue.value;
         uiConfig.privacyNavTitleTextSize = 16;
 
         uiConfig.privacyNavTitleTitle = "ios lai le"; //only ios
-        uiConfig.privacyNavTitleTitle1 = "协议11 web页标题";
-        uiConfig.privacyNavTitleTitle2 = "协议22 web页标题";
-        uiConfig.privacyNavReturnBtnImage = "return_bg"; //图片必须存在;
+        uiConfig.privacyNavReturnBtnImage = "back"; //图片必须存在;
+
+        //协议二次弹窗内容设置 -iOS
+        uiConfig.agreementAlertViewTitleTexSize = 18;
+        uiConfig.agreementAlertViewTitleTextColor = Colors.red.value;
+        uiConfig.agreementAlertViewContentTextAlignment =
+            JVTextAlignmentType.center;
+        uiConfig.agreementAlertViewContentTextFontSize = 16;
+        uiConfig.agreementAlertViewLoginBtnNormalImagePath = "login_btn_normal";
+        uiConfig.agreementAlertViewLoginBtnPressedImagePath = "login_btn_press";
+        uiConfig.agreementAlertViewLoginBtnUnableImagePath = "login_btn_unable";
+        uiConfig.agreementAlertViewLogBtnTextColor = Colors.black.value;
+
+        //协议二次弹窗内容设置 -Android
+        JVPrivacyCheckDialogConfig privacyCheckDialogConfig =
+            JVPrivacyCheckDialogConfig();
+        // privacyCheckDialogConfig.width = 250;
+        // privacyCheckDialogConfig.height = 100;
+        privacyCheckDialogConfig.title = "测试协议标题";
+        privacyCheckDialogConfig.offsetX = 0;
+        privacyCheckDialogConfig.offsetY = 0;
+        privacyCheckDialogConfig.logBtnText = "同11意";
+        privacyCheckDialogConfig.titleTextSize = 22;
+        privacyCheckDialogConfig.gravity = "center";
+        privacyCheckDialogConfig.titleTextColor = Colors.black.value;
+        privacyCheckDialogConfig.contentTextGravity = "left";
+        privacyCheckDialogConfig.contentTextSize = 14;
+        privacyCheckDialogConfig.logBtnImgPath = "login_btn_normal";
+        privacyCheckDialogConfig.logBtnTextColor = Colors.black.value;
+        privacyCheckDialogConfig.logBtnMarginT = 20;
+        privacyCheckDialogConfig.logBtnMarginB = 20;
+        privacyCheckDialogConfig.logBtnMarginL = 10;
+        privacyCheckDialogConfig.logBtnWidth = 140;
+        privacyCheckDialogConfig.logBtnHeight = 40;
+        /// 添加自定义的 控件 到dialog
+        List<JVCustomWidget> dialogWidgetList = [];
+        final String btn_dialog_widgetId = "jv_add_custom_dialog_button"; // 标识控件 id
+        JVCustomWidget buttonDialogWidget =
+        JVCustomWidget(btn_dialog_widgetId, JVCustomWidgetType.button);
+        buttonDialogWidget.title = "取消";
+        buttonDialogWidget.left = 163;
+        buttonDialogWidget.top = 142;
+        buttonDialogWidget.width = 140;
+        buttonDialogWidget.height = 40;
+        buttonDialogWidget.textAlignment = JVTextAlignmentType.center;
+        buttonDialogWidget.btnNormalImageName = "main_btn_other";
+        buttonDialogWidget.btnPressedImageName = "main_btn_other";
+        // buttonDialogWidget.backgroundColor = Colors.yellow.value;
+        //buttonWidget.textAlignment = JVTextAlignmentType.left;
+
+        // 添加点击事件监听
+        jverify.addClikWidgetEventListener(btn_dialog_widgetId, (eventId) {
+          print("receive listener - click dialog widget event :$eventId");
+          if (btn_dialog_widgetId == eventId) {
+            print("receive listener - 点击【新加 dialog button】");
+          }
+        });
+        dialogWidgetList.add(buttonDialogWidget);
+        privacyCheckDialogConfig.widgets = dialogWidgetList;
+        uiConfig.privacyCheckDialogConfig = privacyCheckDialogConfig;
+
+        //sms
+        JVSMSUIConfig smsConfig = JVSMSUIConfig();
+        smsConfig.smsPrivacyBeanList = [JVPrivacy("自定义协议1", "http://www.baidu.com",
+            beforeName: "==", afterName: "++", separator: "*")];
+        smsConfig.enableSMSService = true;
+        uiConfig.smsUIConfig = smsConfig;
+
+        uiConfig.setIsPrivacyViewDarkMode = false; //协议页面是否支持暗黑模式
 
         //弹框模式
         // JVPopViewConfig popViewConfig = JVPopViewConfig();
         // popViewConfig.width = (screenWidth - 100.0).toInt();
         // popViewConfig.height = (screenHeight - 150.0).toInt();
-        //
+
         // uiConfig.popViewConfig = popViewConfig;
 
         /// 添加自定义的 控件 到授权界面
         List<JVCustomWidget> widgetList = [];
 
-        /// 步骤 1：调用接口设置 UI
-        jverify.setCustomAuthorizationView(true, uiConfig,
-            landscapeConfig: uiConfig, widgets: widgetList);
-
-        /// 步骤 2：调用一键登录接口
-
-        /// 方式一：使用同步接口 （如果想使用异步接口，则忽略此步骤，看方式二）
-        /// 先，添加 loginAuthSyncApi 接口回调的监听
-        jverify.addLoginAuthCallBackListener((event) {
-          setState(() {
-            _hideLoading();
-            _hideLoading();
-            _result = "监听获取返回数据：[${event.code}] message = ${event.message}";
-          });
-          print(
-              "通过添加监听，获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
-        });
-
-        /// 再，执行同步的一键登录接口
-        jverify.loginAuthSyncApi(autoDismiss: true);
-      } else {
-        setState(() {
-          _hideLoading();
-          _result = "[2016],msg = 当前网络环境不支持认证";
-        });
-
-        /*
-        final String text_widgetId = "jv_add_custom_text";// 标识控件 id
-        JVCustomWidget textWidget = JVCustomWidget(text_widgetId, JVCustomWidgetType.textView);
+        final String text_widgetId = "jv_add_custom_text"; // 标识控件 id
+        JVCustomWidget textWidget =
+            JVCustomWidget(text_widgetId, JVCustomWidgetType.textView);
         textWidget.title = "新加 text view 控件";
         textWidget.left = 20;
-        textWidget.top = 360 ;
+        textWidget.top = 360;
         textWidget.width = 200;
-        textWidget.height  = 40;
+        textWidget.height = 40;
         textWidget.backgroundColor = Colors.yellow.value;
         textWidget.isShowUnderline = true;
         textWidget.textAlignment = JVTextAlignmentType.center;
@@ -441,13 +509,14 @@ class _MyAppState extends State<MyApp> {
         });
         widgetList.add(textWidget);
 
-        final String btn_widgetId = "jv_add_custom_button";// 标识控件 id
-        JVCustomWidget buttonWidget = JVCustomWidget(btn_widgetId, JVCustomWidgetType.button);
+        final String btn_widgetId = "jv_add_custom_button"; // 标识控件 id
+        JVCustomWidget buttonWidget =
+            JVCustomWidget(btn_widgetId, JVCustomWidgetType.button);
         buttonWidget.title = "新加 button 控件";
         buttonWidget.left = 100;
         buttonWidget.top = 400;
         buttonWidget.width = 150;
-        buttonWidget.height  = 40;
+        buttonWidget.height = 40;
         buttonWidget.isShowUnderline = true;
         buttonWidget.backgroundColor = Colors.brown.value;
         //buttonWidget.btnNormalImageName = "";
@@ -462,7 +531,40 @@ class _MyAppState extends State<MyApp> {
           }
         });
         widgetList.add(buttonWidget);
-        */
+
+        /// 步骤 1：调用接口设置 UI
+        jverify.setCustomAuthorizationView(true, uiConfig,
+            landscapeConfig: uiConfig, widgets: widgetList);
+        if (!isSms) {
+          /// 步骤 2：调用一键登录接口
+          jverify.loginAuthSyncApi2(
+              autoDismiss: true,
+              enableSms: true,
+              loginAuthcallback: (event) {
+                setState(() {
+                  _hideLoading();
+                  _result = "获取返回数据：[${event.code}] message = ${event.message}";
+                });
+                print(
+                    "获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
+              });
+        } else {
+          /// 步骤 2：调用短信登录接口
+          jverify.smsAuth(autoDismiss: true, smsCallback: (event) {
+            setState(() {
+              _hideLoading();
+              _result = "获取返回数据：[${event.code}] message = ${event.message}";
+            });
+            print(
+                "获取到 smsAuth 接口返回数据，code=${event.code},message = ${event.message},phone = ${event.phone}");
+          });
+        }
+
+      } else {
+        setState(() {
+          _hideLoading();
+          _result = "[2016],msg = 当前网络环境不支持认证";
+        });
 
         /* 弹框模式
         JVPopViewConfig popViewConfig = JVPopViewConfig();
@@ -491,7 +593,6 @@ class _MyAppState extends State<MyApp> {
         });
 
         */
-
       }
     });
   }
@@ -504,8 +605,9 @@ class _MyAppState extends State<MyApp> {
     });
 
     jverify.setDebugMode(true); // 打开调试模式
+    jverify.setCollectionAuth(true);
     jverify.setup(
-        appKey: "a0e6ace8d5b3e0247e3f58db", //"你自己应用的 AppKey",
+        appKey: "4fcc3e237eec4c4fb804ad49", //"你自己应用的 AppKey",
         channel: "devloper-default"); // 初始化sdk,  appKey 和 channel 只对ios设置有效
     // If the widget was removed from the tree while the asynchronous platform
     // message was in flight, we want to discard the reply rather than calling
@@ -516,6 +618,12 @@ class _MyAppState extends State<MyApp> {
     jverify.addAuthPageEventListener((JVAuthPageEvent event) {
       print("receive auth page event :${event.toMap()}");
     });
+  }
+
+  @override
+  void debugFillProperties(DiagnosticPropertiesBuilder properties) {
+    super.debugFillProperties(properties);
+    properties.add(StringProperty('f_result_key', f_result_key));
   }
 }
 

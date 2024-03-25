@@ -1,5 +1,6 @@
 package com.jiguang.jverify;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -14,9 +15,13 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -26,13 +31,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import cn.jiguang.api.utils.JCollectionAuth;
 import cn.jiguang.verifysdk.api.AuthPageEventListener;
 import cn.jiguang.verifysdk.api.JVerificationInterface;
+import cn.jiguang.verifysdk.api.JVerifyLoginBtClickCallback;
 import cn.jiguang.verifysdk.api.JVerifyUIClickCallback;
 import cn.jiguang.verifysdk.api.JVerifyUIConfig;
 import cn.jiguang.verifysdk.api.LoginSettings;
 import cn.jiguang.verifysdk.api.PreLoginListener;
+import cn.jiguang.verifysdk.api.PrivacyBean;
 import cn.jiguang.verifysdk.api.RequestCallback;
+import cn.jiguang.verifysdk.api.SmsClickActionListener;
+import cn.jiguang.verifysdk.api.SmsListener;
 import cn.jiguang.verifysdk.api.VerifyListener;
 import io.flutter.embedding.engine.plugins.FlutterPlugin;
 import io.flutter.plugin.common.MethodCall;
@@ -58,6 +68,8 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
     private static String j_msg_key = "message";
     /// 运营商信息
     private static String j_opr_key = "operator";
+    /// 手机号信息
+    private static String j_phone_key = "phone";
     // 默认超时时间
     private static int j_default_timeout = 5000;
     // 重复请求
@@ -91,7 +103,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             setup(call, result);
         } else if (call.method.equals("setDebugMode")) {
             setDebugMode(call, result);
-        } else if (call.method.equals("isInitSuccess")) {
+        } else if (call.method.equals("setCollectionAuth")) {
+            setCollectionAuth(call, result);
+        }else if (call.method.equals("isInitSuccess")) {
             isInitSuccess(call, result);
         } else if (call.method.equals("checkVerifyEnable")) {
             checkVerifyEnable(call, result);
@@ -119,6 +133,8 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             getSMSCode(call, result);
         } else if (call.method.equals("setSmsIntervalTime")) {
             setGetCodeInternal(call, result);
+        } else if (call.method.equals("smsAuth")) {
+            smsAuth(call, result);
         } else {
             result.notImplemented();
         }
@@ -188,6 +204,18 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             JVerificationInterface.setDebugMode((Boolean) enable);
         }
 
+        Map<String, Object> map = new HashMap<>();
+        map.put(j_result_key, enable);
+        runMainThread(map, result, null);
+    }
+
+    /**
+     * SDK合规授权
+     */
+    private void setCollectionAuth(MethodCall call, Result result) {
+        Log.d(TAG, "Action - setCollectionAuth:");
+        Object enable = getValueByKey(call, "auth");
+        JCollectionAuth.setAuth(context,(Boolean)enable);
         Map<String, Object> map = new HashMap<>();
         map.put(j_result_key, enable);
         runMainThread(map, result, null);
@@ -291,7 +319,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
         JVerificationInterface.getToken(context, timeOut, new VerifyListener() {
             @Override
-            public void onResult(int code, String content, String operator) {
+            public void onResult(final int code, final String content, final String operator, final JSONObject operatorReturn) {
 
                 if (code == 2000) {//code: 返回码，2000代表获取成功，其他为失败
                     Log.d(TAG, "token=" + content + ", operator=" + operator);
@@ -329,16 +357,16 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
         JVerificationInterface.preLogin(context, timeOut, new PreLoginListener() {
             @Override
-            public void onResult(int code, String message) {
+            public void onResult(final int code, final String content, final JSONObject operatorReturn) {
 
                 if (code == 7000) {//code: 返回码，7000代表获取成功，其他为失败，详见错误码描述
-                    Log.d(TAG, "verify success, message =" + message);
+                    Log.d(TAG, "verify success, message =" + content);
                 } else {
-                    Log.e(TAG, "verify fail，code=" + code + ", message =" + message);
+                    Log.e(TAG, "verify fail，code=" + code + ", message =" + content);
                 }
                 Map<String, Object> map = new HashMap<>();
                 map.put(j_code_key, code);
-                map.put(j_msg_key, message);
+                map.put(j_msg_key, content);
 
                 runMainThread(map, result, null);
             }
@@ -353,7 +381,6 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Log.d(TAG, "Action - clearPreLoginCache:");
         JVerificationInterface.clearPreLoginCache();
     }
-
 
     /**
      * SDK请求授权一键登录，异步
@@ -376,11 +403,10 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
         Object autoFinish = getValueByKey(call, "autoDismiss");
         Integer timeOut = call.argument("timeout");
+        final Integer loginAuthIndex = call.argument("loginAuthIndex");
+        Object enableSMSService =  getValueByKey(call, "enableSms");
 
-        LoginSettings settings = new LoginSettings();
-        settings.setAutoFinish((Boolean) autoFinish);
-        settings.setTimeout(timeOut);
-        settings.setAuthPageEventListener(new AuthPageEventListener() {
+        AuthPageEventListener eventListener = new AuthPageEventListener() {
             @Override
             public void onEvent(int cmd, String msg) {
                 Log.d(TAG, "Action - AuthPageEventListener: cmd = " + cmd);
@@ -388,14 +414,15 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 final HashMap jsonMap = new HashMap();
                 jsonMap.put(j_code_key, cmd);
                 jsonMap.put(j_msg_key, msg);
+                jsonMap.put("loginAuthIndex", loginAuthIndex);
 
                 runMainThread(jsonMap, null, "onReceiveAuthPageEvent");
             }
-        });
+        };
 
-        JVerificationInterface.loginAuth(context, settings, new VerifyListener() {
+        VerifyListener listener = new VerifyListener() {
             @Override
-            public void onResult(int code, String content, String operator) {
+            public void onResult(final int code, final String content, final String operator, JSONObject operatorReturn) {
                 if (code == 6000) {
                     Log.d(TAG, "code=" + code + ", token=" + content + " ,operator=" + operator);
                 } else {
@@ -405,6 +432,8 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 map.put(j_code_key, code);
                 map.put(j_msg_key, content);
                 map.put(j_opr_key, operator);
+                map.put("loginAuthIndex", loginAuthIndex);
+
                 if (isSync) {
                     // 通过 channel 返回
                     runMainThread(map, null, "onReceiveLoginAuthCallBackEvent");
@@ -412,6 +441,46 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                     // 通过回调返回
                     runMainThread(map, result, null);
                 }
+            }
+        };
+
+        if (enableSMSService != null) {
+            JVerificationInterface.loginAuth((Boolean)enableSMSService, context, (Boolean) autoFinish, listener, eventListener);
+        } else {
+            LoginSettings settings = new LoginSettings();
+            settings.setAutoFinish((Boolean) autoFinish);
+            settings.setTimeout(timeOut);
+            settings.setAuthPageEventListener(eventListener);
+
+            JVerificationInterface.loginAuth(context, settings, listener);
+        }
+
+    }
+
+    /**
+     * SDK请求短信登录
+     */
+    private void smsAuth(MethodCall call, final Result result){
+        Log.d(TAG, "Action - smsAuth:");
+
+        Object autoFinish = getValueByKey(call, "autoDismiss");
+        Integer timeOut = call.argument("timeout");
+        final Integer smsAuthIndex = call.argument("smsAuthIndex");
+
+        JVerificationInterface.smsLoginAuth(context, (Boolean) autoFinish, timeOut, new SmsListener(){
+            @Override
+            public void onResult(final int code, final String content,final String phone){
+                Log.d(TAG, "smsAuth code=" + code + ", token=" + content + " ,phone=" + phone);
+
+                Map<String, Object> map = new HashMap<>();
+                map.put(j_code_key, code);
+                map.put(j_msg_key, content);
+                map.put(j_phone_key, phone);
+                map.put("smsAuthIndex", smsAuthIndex);
+
+                // 通过 channel 返回
+                runMainThread(map, null, "onReceiveSMSAuthCallBackEvent");
+
             }
         });
     }
@@ -452,9 +521,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 /// 新增自定义的控件
                 String type = (String) widgetMap.get("type");
                 if (type.equals("textView")) {
-                    addCustomTextWidgets(widgetMap, builder);
+                    addCustomTextWidgets(widgetMap, builder, false);
                 } else if (type.equals("button")) {
-                    addCustomButtonWidgets(widgetMap, builder);
+                    addCustomButtonWidgets(widgetMap, builder, false);
                 } else {
                     Log.e(TAG, "don't support widget");
                 }
@@ -487,14 +556,14 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 /// 新增自定义的控件
                 String type = (String) widgetMap.get("type");
                 if (type.equals("textView")) {
-                    addCustomTextWidgets(widgetMap, portraitBuilder);
+                    addCustomTextWidgets(widgetMap, portraitBuilder, false);
                     if (isAutorotate) {
-                        addCustomTextWidgets(widgetMap, landscapeBuilder);
+                        addCustomTextWidgets(widgetMap, landscapeBuilder, false);
                     }
                 } else if (type.equals("button")) {
-                    addCustomButtonWidgets(widgetMap, portraitBuilder);
+                    addCustomButtonWidgets(widgetMap, portraitBuilder, false);
                     if (isAutorotate) {
-                        addCustomButtonWidgets(widgetMap, landscapeBuilder);
+                        addCustomButtonWidgets(widgetMap, landscapeBuilder, false);
                     }
                 } else {
                     Log.e(TAG, "don't support widget");
@@ -523,10 +592,13 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object authBGGifPath = valueForKey(uiconfig, "authBGGifPath");
 
         Object authBackgroundImage = valueForKey(uiconfig, "authBackgroundImage");
+        Object authBGVideoPath = valueForKey(uiconfig, "authBGVideoPath");
+        Object authBGVideoImgPath = valueForKey(uiconfig, "authBGVideoImgPath");
 
         Object navColor = valueForKey(uiconfig, "navColor");
         Object navText = valueForKey(uiconfig, "navText");
         Object navTextColor = valueForKey(uiconfig, "navTextColor");
+        Object navTextBold = valueForKey(uiconfig, "navTextBold");
         Object navReturnImgPath = valueForKey(uiconfig, "navReturnImgPath");
         Object navHidden = valueForKey(uiconfig, "navHidden");
         Object navReturnBtnHidden = valueForKey(uiconfig, "navReturnBtnHidden");
@@ -538,11 +610,14 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object logoOffsetY = valueForKey(uiconfig, "logoOffsetY");
         Object logoOffsetX = valueForKey(uiconfig, "logoOffsetX");
         Object logoHidden = valueForKey(uiconfig, "logoHidden");
+        Object logoOffsetBottomY = valueForKey(uiconfig, "logoOffsetBottomY");
 
         Object numberColor = valueForKey(uiconfig, "numberColor");
         Object numberSize = valueForKey(uiconfig, "numberSize");
+        Object numberTextBold = valueForKey(uiconfig, "numberTextBold");
         Object numFieldOffsetY = valueForKey(uiconfig, "numFieldOffsetY");
         Object numFieldOffsetX = valueForKey(uiconfig, "numFieldOffsetX");
+        Object numberFieldOffsetBottomY = valueForKey(uiconfig, "numberFieldOffsetBottomY");
         Object numberFieldWidth = valueForKey(uiconfig, "numberFieldWidth");
         Object numberFieldHeight = valueForKey(uiconfig, "numberFieldHeight");
 
@@ -550,10 +625,12 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object logBtnText = valueForKey(uiconfig, "logBtnText");
         Object logBtnOffsetY = valueForKey(uiconfig, "logBtnOffsetY");
         Object logBtnOffsetX = valueForKey(uiconfig, "logBtnOffsetX");
+        Object logBtnBottomOffsetY = valueForKey(uiconfig, "logBtnBottomOffsetY");
         Object logBtnWidth = valueForKey(uiconfig, "logBtnWidth");
         Object logBtnHeight = valueForKey(uiconfig, "logBtnHeight");
         Object logBtnTextSize = valueForKey(uiconfig, "logBtnTextSize");
         Object logBtnTextColor = valueForKey(uiconfig, "logBtnTextColor");
+        Object logBtnTextBold = valueForKey(uiconfig, "logBtnTextBold");
         Object logBtnBackgroundPath = valueForKey(uiconfig, "logBtnBackgroundPath");
 
         Object uncheckedImgPath = valueForKey(uiconfig, "uncheckedImgPath");
@@ -562,15 +639,16 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object privacyTopOffsetY = valueForKey(uiconfig, "privacyTopOffsetY");
         Object privacyOffsetY = valueForKey(uiconfig, "privacyOffsetY");
         Object privacyOffsetX = valueForKey(uiconfig, "privacyOffsetX");
-        Object CLAUSE_NAME = valueForKey(uiconfig, "clauseName");
-        Object CLAUSE_URL = valueForKey(uiconfig, "clauseUrl");
+//        Object CLAUSE_NAME = valueForKey(uiconfig, "clauseName");
+//        Object CLAUSE_URL = valueForKey(uiconfig, "clauseUrl");
         Object CLAUSE_BASE_COLOR = valueForKey(uiconfig, "clauseBaseColor");
         Object CLAUSE_COLOR = valueForKey(uiconfig, "clauseColor");
-        Object CLAUSE_NAME_TWO = valueForKey(uiconfig, "clauseNameTwo");
-        Object CLAUSE_URL_TWO = valueForKey(uiconfig, "clauseUrlTwo");
+//        Object CLAUSE_NAME_TWO = valueForKey(uiconfig, "clauseNameTwo");
+//        Object CLAUSE_URL_TWO = valueForKey(uiconfig, "clauseUrlTwo");
         Object privacyTextCenterGravity = valueForKey(uiconfig, "privacyTextCenterGravity");
         Object privacyText = valueForKey(uiconfig, "privacyText");
         Object privacyTextSize = valueForKey(uiconfig, "privacyTextSize");
+        Object privacyTextBold = valueForKey(uiconfig, "privacyTextBold");
         Object privacyCheckboxHidden = valueForKey(uiconfig, "privacyCheckboxHidden");
         Object privacyCheckboxSize = valueForKey(uiconfig, "privacyCheckboxSize");
         Object privacyWithBookTitleMark = valueForKey(uiconfig, "privacyWithBookTitleMark");
@@ -583,11 +661,14 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object sloganBottomOffsetY = valueForKey(uiconfig, "sloganBottomOffsetY");
         Object sloganTextSize = valueForKey(uiconfig, "sloganTextSize");
         Object sloganHidden = valueForKey(uiconfig, "sloganHidden");
+        Object sloganTextBold = valueForKey(uiconfig, "sloganTextBold");
+        Object privacyUnderlineText = valueForKey(uiconfig, "privacyUnderlineText");
 
         Object privacyNavColor = valueForKey(uiconfig, "privacyNavColor");
         Object privacyNavTitleTextColor = valueForKey(uiconfig, "privacyNavTitleTextColor");
         Object privacyNavTitleTextSize = valueForKey(uiconfig, "privacyNavTitleTextSize");
-        Object privacyNavReturnBtnImage = valueForKey(uiconfig, "privacyNavReturnBtnImage");
+        Object privacyNavTitleTextBold = valueForKey(uiconfig, "privacyNavTitleTextBold");
+        Object privacyNavReturnBtnPath = valueForKey(uiconfig, "privacyNavReturnBtnImage");
         Object privacyNavTitleTitle1 = valueForKey(uiconfig, "privacyNavTitleTitle1");
         Object privacyNavTitleTitle2 = valueForKey(uiconfig, "privacyNavTitleTitle2");
 
@@ -609,6 +690,11 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object popViewConfig = valueForKey(uiconfig, "popViewConfig");
 
         Object privacyHintToast = valueForKey(uiconfig, "privacyHintToast");
+
+        Object privacyItem = valueForKey(uiconfig, "privacyItem");
+
+        Object setIsPrivacyViewDarkMode = valueForKey(uiconfig, "setIsPrivacyViewDarkMode");
+
 
         /************* 状态栏 ***************/
         if (statusBarColorWithNav != null) {
@@ -686,6 +772,12 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             }
         }
 
+        if (authBGVideoPath != null) {
+            if (!((String)authBGVideoPath).startsWith("http"))
+                authBGVideoPath = "android.resource://"+context.getPackageName()+"/raw/"+authBGVideoPath;
+            builder.setAuthBGVideoPath((String) authBGVideoPath, (String) authBGVideoImgPath);
+        }
+
         /************** nav ***************/
         if (navHidden != null) {
             builder.setNavHidden((Boolean) navHidden);
@@ -704,6 +796,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
         if (navTextColor != null) {
             builder.setNavTextColor(exchangeObject(navTextColor));
+        }
+        if (navTextBold != null) {
+            builder.setNavTextBold((Boolean) navTextBold);
         }
         if (navReturnImgPath != null) {
             builder.setNavReturnImgPath((String) navReturnImgPath);
@@ -731,8 +826,14 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 builder.setLogoImgPath((String) logoImgPath);
             }
         }
+        if (logoOffsetBottomY != null) {
+            builder.setLogoOffsetBottomY((Integer) logoOffsetBottomY);
+        }
 
         /************** number ***************/
+        if (numberFieldOffsetBottomY != null) {
+            builder.setNumberFieldOffsetBottomY((Integer) numberFieldOffsetBottomY);
+        }
         if (numFieldOffsetY != null) {
             builder.setNumFieldOffsetY((Integer) numFieldOffsetY);
         }
@@ -751,6 +852,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (numberSize != null) {
             builder.setNumberSize((Number) numberSize);
         }
+        if (numberTextBold != null) {
+            builder.setNumberTextBold((Boolean) numberTextBold);
+        }
 
 
         /************** slogan ***************/
@@ -759,6 +863,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
         if (sloganOffsetX != null) {
             builder.setSloganOffsetX((Integer) sloganOffsetX);
+        }
+        if (sloganBottomOffsetY != null) {
+            builder.setSloganBottomOffsetY((Integer) sloganBottomOffsetY);
         }
         if (sloganTextSize != null) {
             builder.setSloganTextSize((Integer) sloganTextSize);
@@ -769,6 +876,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (sloganHidden != null) {
             builder.setSloganHidden((Boolean) sloganHidden);
         }
+        if (sloganTextBold != null) {
+            builder.setSloganTextBold((Boolean) sloganTextBold);
+        }
 
 
         /************** login btn ***************/
@@ -777,6 +887,10 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
         if (logBtnOffsetX != null) {
             builder.setLogBtnOffsetX((Integer) logBtnOffsetX);
+        }
+        if (logBtnBottomOffsetY != null) {
+            builder.setLogoOffsetY(-1);
+            builder.setLogBtnBottomOffsetY((Integer) logBtnBottomOffsetY);
         }
         if (logBtnWidth != null) {
             builder.setLogBtnWidth((Integer) logBtnWidth);
@@ -792,6 +906,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
         if (logBtnTextColor != null) {
             builder.setLogBtnTextColor(exchangeObject(logBtnTextColor));
+        }
+        if (logBtnTextBold != null) {
+            builder.setLogBtnTextBold((Boolean) logBtnTextBold);
         }
         if (logBtnBackgroundPath != null) {
             int res_id = getResourceByReflect((String) logBtnBackgroundPath);
@@ -840,7 +957,13 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (privacyText != null) {
             ArrayList<String> privacyTextList = (ArrayList) privacyText;
             privacyTextList.addAll(Arrays.asList("", "", "", ""));
-            builder.setPrivacyText(privacyTextList.get(0), privacyTextList.get(1), privacyTextList.get(2), privacyTextList.get(3));
+            builder.setPrivacyText(privacyTextList.get(0), privacyTextList.get(1));
+        }
+        if (privacyTextBold != null) {
+            builder.setPrivacyTextBold((Boolean) privacyTextBold);
+        }
+        if (privacyUnderlineText != null) {
+            builder.setPrivacyUnderlineText((Boolean) privacyUnderlineText);
         }
 
         builder.setPrivacyTextCenterGravity((Boolean) privacyTextCenterGravity);
@@ -848,11 +971,28 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         builder.setPrivacyCheckboxInCenter((Boolean) privacyCheckboxInCenter);
         builder.setPrivacyState((Boolean) privacyState);
 
-        if (CLAUSE_NAME != null && CLAUSE_URL != null) {
-            builder.setAppPrivacyOne((String) CLAUSE_NAME, (String) CLAUSE_URL);
+        if (privacyItem != null) {
+            try {
+                JSONArray jsonArray = new JSONArray((String) privacyItem);
+                int length = jsonArray.length();
+                JSONObject jsonObject;
+                PrivacyBean privacyBean;
+                ArrayList<PrivacyBean> privacyBeans = new ArrayList<>(length);
+                for (int i = 0; i < length; i++) {
+                    jsonObject = jsonArray.optJSONObject(i);
+                    privacyBean = new PrivacyBean(jsonObject.optString("name"), jsonObject.optString("url"),
+                            jsonObject.optString("separator"));
+
+                    privacyBeans.add(privacyBean);
+                }
+
+                builder.setPrivacyNameAndUrlBeanList(privacyBeans);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
+
         int baseColor = -10066330;
-        ;
         int color = -16007674;
         if (CLAUSE_BASE_COLOR != null) {
             if (CLAUSE_BASE_COLOR instanceof Long) {
@@ -869,9 +1009,6 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             }
         }
         builder.setAppPrivacyColor(baseColor, color);
-        if (CLAUSE_NAME_TWO != null && CLAUSE_URL_TWO != null) {
-            builder.setAppPrivacyTwo((String) CLAUSE_NAME_TWO, (String) CLAUSE_URL_TWO);
-        }
 
         /************** 隐私 web 页面 ***************/
         if (privacyNavColor != null) {
@@ -883,19 +1020,21 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (privacyNavTitleTextColor != null) {
             builder.setPrivacyNavTitleTextColor(exchangeObject(privacyNavTitleTextColor));
         }
-        if (privacyNavTitleTitle1 != null) {
-            builder.setAppPrivacyNavTitle1((String) privacyNavTitleTitle1);
-        }
-        if (privacyNavTitleTitle2 != null) {
-            builder.setAppPrivacyNavTitle2((String) privacyNavTitleTitle2);
+//        if (privacyNavTitleTitle1 != null) {
+//            builder.setAppPrivacyNavTitle1((String) privacyNavTitleTitle1);
+//        }
+//        if (privacyNavTitleTitle2 != null) {
+//            builder.setAppPrivacyNavTitle2((String) privacyNavTitleTitle2);
+//        }
+
+        if (privacyNavTitleTextBold != null) {
+            builder.setPrivacyNavTitleTextBold((Boolean) privacyNavTitleTextBold);
         }
 
-        if (privacyNavReturnBtnImage != null) {
-            int res_id = getResourceByReflect((String) privacyNavReturnBtnImage);
+        if (privacyNavReturnBtnPath != null) {
+            int res_id = getResourceByReflect((String) privacyNavReturnBtnPath);
             if (res_id > 0) {
-                ImageView view = new ImageView(context);
-                view.setImageResource(res_id);
-                builder.setPrivacyNavReturnBtn(view);
+                builder.setPrivacyNavReturnBtnPath((String) privacyNavReturnBtnPath);
             }
         }
 
@@ -915,6 +1054,494 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
             }
         }
+
+        Object privacyCheckDialogConfig = valueForKey(uiconfig, "privacyCheckDialogConfig");
+
+        /************** 协议的二次弹窗配置 ***************/
+        if (privacyCheckDialogConfig != null) {
+            Map privacyCheckDialogConfigMap = (Map) privacyCheckDialogConfig;
+            Object enablePrivacyCheckDialog = valueForKey(privacyCheckDialogConfigMap, "enablePrivacyCheckDialog");
+            if ((Boolean) enablePrivacyCheckDialog) {
+                Object width = valueForKey(privacyCheckDialogConfigMap, "width");
+                Object height = valueForKey(privacyCheckDialogConfigMap, "height");
+                Object offsetX = valueForKey(privacyCheckDialogConfigMap, "offsetX");
+                Object offsetY = valueForKey(privacyCheckDialogConfigMap, "offsetY");
+                Object gravity = valueForKey(privacyCheckDialogConfigMap, "gravity");
+
+                if(width !=null){
+                    builder.setPrivacyCheckDialogWidth((int) width);
+                }
+                if(height !=null) {
+                    builder.setPrivacyCheckDialogHeight((int) height);
+                }
+                if(offsetX !=null) {
+                    builder.setPrivacyCheckDialogOffsetX((int) offsetX);
+                }
+                if(offsetX !=null) {
+                    builder.setPrivacyCheckDialogOffsetY((int) offsetY);
+                }
+                if(gravity !=null) {
+                    builder.setprivacyCheckDialogGravity(getAlignmentFromString((String) gravity));
+                }
+
+                Object dialogTitle = valueForKey(privacyCheckDialogConfigMap, "title");
+                if(dialogTitle !=null) {
+                    builder.setPrivacyCheckDialogTitleText((String) dialogTitle);
+                }
+
+
+                Object titleTextSize = valueForKey(privacyCheckDialogConfigMap, "titleTextSize");
+                if(titleTextSize !=null) {
+                    builder.setPrivacyCheckDialogTitleTextSize(exchangeObject(titleTextSize));
+                }
+
+                Object titleTextColor = valueForKey(privacyCheckDialogConfigMap, "titleTextColor");
+                Object contentTextSize = valueForKey(privacyCheckDialogConfigMap, "contentTextSize");
+
+                builder.enablePrivacyCheckDialog(true);
+
+                if(titleTextColor != null){
+                    builder.setPrivacyCheckDialogTitleTextColor(exchangeObject(titleTextColor));
+                }
+                Object gravity_privacyCheckDialog = valueForKey(privacyCheckDialogConfigMap, "gravity");
+                if(gravity_privacyCheckDialog != null){
+                    builder.setPrivacyCheckDialogContentTextGravity(getAlignmentFromString((String) gravity_privacyCheckDialog));
+                }
+                if(contentTextSize != null){
+                    builder.setPrivacyCheckDialogContentTextSize(exchangeObject(contentTextSize));
+                }
+
+                Object dialogLoginBtnText = valueForKey(privacyCheckDialogConfigMap, "logBtnText");
+                Object logBtnImgPath = valueForKey(privacyCheckDialogConfigMap, "logBtnImgPath");
+                Object logBtnTextColor_dialog = valueForKey(privacyCheckDialogConfigMap, "logBtnTextColor");
+                Object logBtnMarginL = valueForKey(privacyCheckDialogConfigMap, "logBtnMarginL");
+                Object logBtnMarginR = valueForKey(privacyCheckDialogConfigMap, "logBtnMarginR");
+                Object logBtnMarginT = valueForKey(privacyCheckDialogConfigMap, "logBtnMarginT");
+                Object logBtnMarginB = valueForKey(privacyCheckDialogConfigMap, "logBtnMarginB");
+                Object dialogLogBtnWidth = valueForKey(privacyCheckDialogConfigMap, "logBtnWidth");
+                Object dialogLogBtnHeight = valueForKey(privacyCheckDialogConfigMap, "logBtnHeight");
+
+
+                if(dialogLoginBtnText !=null) {
+                    builder.setPrivacyCheckDialogLogBtnText((String) dialogLoginBtnText);
+                }
+                if(logBtnImgPath != null){
+                    int res_id_logBtnImgPath = getResourceByReflect((String) logBtnImgPath);
+                    if (res_id_logBtnImgPath > 0) {
+                        builder.setPrivacyCheckDialogLogBtnImgPath((String) logBtnImgPath);
+                    }
+                }
+                if (logBtnTextColor_dialog != null){
+                    builder.setPrivacyCheckDialoglogBtnTextColor(exchangeObject(logBtnTextColor_dialog));
+                }
+                if(logBtnMarginL !=null) {
+                    builder.setPrivacyCheckDialogLogBtnMarginL((int) logBtnMarginL);
+                }
+                if(logBtnMarginR !=null) {
+                    builder.setPrivacyCheckDialogLogBtnMarginR((int) logBtnMarginR);
+                }
+                if(logBtnMarginT !=null) {
+                    builder.setPrivacyCheckDialogLogBtnMarginT((int) logBtnMarginT);
+                }
+                if(logBtnMarginB !=null) {
+                    builder.setPrivacyCheckDialogLogBtnMarginB((int) logBtnMarginB);
+                }
+                if(dialogLogBtnWidth !=null) {
+                    builder.setPrivacyCheckDialogLogBtnWidth((int) dialogLogBtnWidth);
+                }
+                if(dialogLogBtnHeight !=null) {
+                    builder.setPrivacyCheckDialogLogBtnHeight((int) dialogLogBtnHeight);
+                }
+
+                Object widgets = valueForKey(privacyCheckDialogConfigMap,"widgets");
+                if (widgets != null) {
+                    List<Map> widgetList = (List) widgets;
+                    for (Map widgetMap : widgetList) {
+                        /// 新增自定义的控件
+                        String type = (String) widgetMap.get("type");
+                        if (type.equals("textView")) {
+                            addCustomTextWidgets(widgetMap, builder, true);
+                        } else if (type.equals("button")) {
+                            addCustomButtonWidgets(widgetMap, builder, true);
+                        } else {
+                            Log.e(TAG, "don't support widget");
+                        }
+                    }
+                }
+            }
+        }
+    
+        /************** 协议页面是否支持暗黑模式 ***************/
+        if (setIsPrivacyViewDarkMode != null) {
+            builder.setIsPrivacyViewDarkMode((Boolean)setIsPrivacyViewDarkMode);
+        }
+
+
+        /************** SMS UI配置***************/
+        Object smsUIConfig = valueForKey(uiconfig, "smsUIConfig");
+
+        if (smsUIConfig != null) {
+            Map smsUIConfigMap = (Map) smsUIConfig;
+            Object enableSMSService = valueForKey(smsUIConfigMap, "enableSMSService");
+            if (enableSMSService != null && (Boolean) enableSMSService) {
+
+                Object smsNavText = valueForKey(smsUIConfigMap, "smsNavText");
+                Object smsSloganTextSize = valueForKey(smsUIConfigMap, "smsSloganTextSize");
+                Object isSmsSloganHidden = valueForKey(smsUIConfigMap, "isSmsSloganHidden");
+                Object isSmsSloganTextBold = valueForKey(smsUIConfigMap, "isSmsSloganTextBold");
+                Object smsSloganOffsetX = valueForKey(smsUIConfigMap, "smsSloganOffsetX");
+                Object smsSloganOffsetY = valueForKey(smsUIConfigMap, "smsSloganOffsetY");
+                Object smsSloganOffsetBottomY = valueForKey(smsUIConfigMap, "smsSloganOffsetBottomY");
+                Object smsSloganTextColor = valueForKey(smsUIConfigMap, "smsSloganTextColor");
+                Object smsLogoWidth = valueForKey(smsUIConfigMap, "smsLogoWidth");
+                Object smsLogoHeight = valueForKey(smsUIConfigMap, "smsLogoHeight");
+                Object smsLogoOffsetX = valueForKey(smsUIConfigMap, "smsLogoOffsetX");
+                Object smsLogoOffsetY = valueForKey(smsUIConfigMap, "smsLogoOffsetY");
+                Object smsLogoOffsetBottomY = valueForKey(smsUIConfigMap, "smsLogoOffsetBottomY");
+                Object isSmsLogoHidden = valueForKey(smsUIConfigMap, "isSmsLogoHidden");
+                Object smsLogoResName = valueForKey(smsUIConfigMap, "smsLogoResName");
+
+                if(smsNavText !=null){
+                    builder.setSmsNavText((String) smsNavText);
+                }
+                if(smsSloganTextSize !=null){
+                    builder.setSmsSloganTextSize((Integer) smsSloganTextSize);
+                }
+                if(isSmsSloganHidden !=null){
+                    builder.setSmsSloganHidden((Boolean) isSmsSloganHidden);
+                }
+                if(isSmsSloganTextBold !=null){
+                    builder.setSmsSloganTextBold((Boolean) isSmsSloganTextBold);
+                }
+                if(smsSloganOffsetX !=null){
+                    builder.setSmsSloganOffsetX((Integer) smsSloganOffsetX);
+                }
+                if(smsSloganOffsetY !=null){
+                    builder.setSmsSloganOffsetY((Integer) smsSloganOffsetY);
+                }
+                if(smsSloganOffsetBottomY !=null){
+                    builder.setSmsSloganOffsetBottomY((Integer) smsSloganOffsetBottomY);
+                }
+                if(smsSloganTextColor !=null){
+                    builder.setSmsSloganTextColor((Integer) smsSloganTextColor);
+                }
+                if(smsLogoWidth !=null){
+                    builder.setSmsLogoWidth((Integer) smsLogoWidth);
+                }
+                if(smsLogoHeight !=null){
+                    builder.setSmsLogoHeight((Integer) smsLogoHeight);
+                }
+                if(smsLogoOffsetX !=null){
+                    builder.setSmsLogoOffsetX((Integer) smsLogoOffsetX);
+                }
+                if(smsLogoOffsetY !=null){
+                    builder.setSmsLogoOffsetY((Integer) smsLogoOffsetY);
+                }
+                if(smsLogoOffsetBottomY !=null){
+                    builder.setSmsLogoOffsetBottomY((Integer) smsLogoOffsetBottomY);
+                }
+                if(isSmsLogoHidden !=null){
+                    builder.setSmsLogoHidden((Boolean) isSmsLogoHidden);
+                }
+                if(smsLogoResName !=null){
+                    int res_id_smsLogoPath = getResourceByReflect((String) smsLogoResName);
+                    if (res_id_smsLogoPath > 0) {
+                        builder.setSmsLogoImgPath((String) smsLogoResName);
+                    }
+                }
+
+
+                Object smsPhoneTextViewOffsetX = valueForKey(smsUIConfigMap, "smsPhoneTextViewOffsetX");
+                Object smsPhoneTextViewOffsetY = valueForKey(smsUIConfigMap, "smsPhoneTextViewOffsetY");
+                Object smsPhoneTextViewTextSize = valueForKey(smsUIConfigMap, "smsPhoneTextViewTextSize");
+                Object smsPhoneTextViewTextColor = valueForKey(smsUIConfigMap, "smsPhoneTextViewTextColor");
+                Object smsPhoneInputViewOffsetX = valueForKey(smsUIConfigMap, "smsPhoneInputViewOffsetX");
+                Object smsPhoneInputViewOffsetY = valueForKey(smsUIConfigMap, "smsPhoneInputViewOffsetY");
+                Object smsPhoneInputViewWidth = valueForKey(smsUIConfigMap, "smsPhoneInputViewWidth");
+                Object smsPhoneInputViewHeight = valueForKey(smsUIConfigMap, "smsPhoneInputViewHeight");
+                Object smsPhoneInputViewTextColor = valueForKey(smsUIConfigMap, "smsPhoneInputViewTextColor");
+                Object smsPhoneInputViewTextSize = valueForKey(smsUIConfigMap, "smsPhoneInputViewTextSize");
+                Object smsVerifyCodeTextViewOffsetX = valueForKey(smsUIConfigMap, "smsVerifyCodeTextViewOffsetX");
+                Object smsVerifyCodeTextViewOffsetY = valueForKey(smsUIConfigMap, "smsVerifyCodeTextViewOffsetY");
+                Object smsVerifyCodeTextViewTextSize = valueForKey(smsUIConfigMap, "smsVerifyCodeTextViewTextSize");
+                Object smsVerifyCodeTextViewTextColor = valueForKey(smsUIConfigMap, "smsVerifyCodeTextViewTextColor");
+                Object smsVerifyCodeEditTextViewTextSize = valueForKey(smsUIConfigMap, "smsVerifyCodeEditTextViewTextSize");
+                Object smsVerifyCodeEditTextViewTextColor = valueForKey(smsUIConfigMap, "smsVerifyCodeEditTextViewTextColor");
+                Object smsVerifyCodeEditTextViewOffsetX = valueForKey(smsUIConfigMap, "smsVerifyCodeEditTextViewOffsetX");
+                Object smsVerifyCodeEditTextViewOffsetY = valueForKey(smsUIConfigMap, "smsVerifyCodeEditTextViewOffsetY");
+                Object smsVerifyCodeEditTextViewOffsetR = valueForKey(smsUIConfigMap, "smsVerifyCodeEditTextViewOffsetR");
+                Object smsVerifyCodeEditTextViewWidth = valueForKey(smsUIConfigMap, "smsVerifyCodeEditTextViewWidth");
+                Object smsVerifyCodeEditTextViewHeight = valueForKey(smsUIConfigMap, "smsVerifyCodeEditTextViewHeight");
+                Object smsGetVerifyCodeTextViewOffsetX = valueForKey(smsUIConfigMap, "smsGetVerifyCodeTextViewOffsetX");
+                Object smsGetVerifyCodeTextViewOffsetY = valueForKey(smsUIConfigMap, "smsGetVerifyCodeTextViewOffsetY");
+                Object smsGetVerifyCodeTextViewTextSize = valueForKey(smsUIConfigMap, "smsGetVerifyCodeTextViewTextSize");
+                Object smsGetVerifyCodeTextViewTextColor = valueForKey(smsUIConfigMap, "smsGetVerifyCodeTextViewTextColor");
+                Object smsGetVerifyCodeTextViewOffsetR = valueForKey(smsUIConfigMap, "smsGetVerifyCodeTextViewOffsetR");
+                Object smsGetVerifyCodeBtnBackgroundPath = valueForKey(smsUIConfigMap, "smsGetVerifyCodeBtnBackgroundPath");
+
+                if(smsPhoneTextViewOffsetX !=null){
+                    builder.setSmsPhoneTextViewOffsetX((Integer) smsPhoneTextViewOffsetX);
+                }
+                if(smsPhoneTextViewOffsetY !=null){
+                    builder.setSmsPhoneTextViewOffsetY((Integer) smsPhoneTextViewOffsetY);
+                }
+                if(smsPhoneTextViewTextSize !=null){
+                    builder.setSmsPhoneTextViewTextSize((Integer) smsPhoneTextViewTextSize);
+                }
+                if(smsPhoneTextViewTextColor !=null){
+                    builder.setSmsPhoneTextViewTextColor((Integer) smsPhoneTextViewTextColor);
+                }
+                if(smsPhoneInputViewOffsetX !=null){
+                    builder.setSmsPhoneInputViewOffsetX((Integer) smsPhoneInputViewOffsetX);
+                }
+                if(smsPhoneInputViewOffsetY !=null){
+                    builder.setSmsPhoneInputViewOffsetY((Integer) smsPhoneInputViewOffsetY);
+                }
+                if(smsPhoneInputViewWidth !=null){
+                    builder.setSmsPhoneInputViewWidth((Integer) smsPhoneInputViewWidth);
+                }
+                if(smsPhoneInputViewHeight !=null){
+                    builder.setSmsPhoneInputViewHeight((Integer) smsPhoneInputViewHeight);
+                }
+                if(smsPhoneInputViewTextColor !=null){
+                    builder.setSmsPhoneInputViewTextColor((Integer) smsPhoneInputViewTextColor);
+                }
+                if(smsPhoneInputViewTextSize !=null){
+                    builder.setSmsPhoneInputViewTextSize((Integer) smsPhoneInputViewTextSize);
+                }
+                if(smsVerifyCodeTextViewOffsetX !=null){
+                    builder.setSmsVerifyCodeTextViewOffsetX((Integer) smsVerifyCodeTextViewOffsetX);
+                }
+                if(smsVerifyCodeTextViewOffsetY !=null){
+                    builder.setSmsVerifyCodeTextViewOffsetY((Integer) smsVerifyCodeTextViewOffsetY);
+                }
+                if(smsVerifyCodeTextViewTextSize !=null){
+                    builder.setSmsVerifyCodeTextSizeTextSize((Integer) smsVerifyCodeTextViewTextSize);
+                }
+                if(smsVerifyCodeTextViewTextColor !=null){
+                    builder.setSmsVerifyCodeTextViewTextColor((Integer) smsVerifyCodeTextViewTextColor);
+                }
+                if(smsVerifyCodeEditTextViewTextSize !=null){
+                    builder.setSmsVerifyCodeEditTextViewTextSize((Integer) smsVerifyCodeEditTextViewTextSize);
+                }
+                if(smsVerifyCodeEditTextViewTextColor !=null){
+                    builder.setSmsVerifyCodeEditTextViewTextColor((Integer) smsVerifyCodeEditTextViewTextColor);
+                }
+                if(smsVerifyCodeEditTextViewOffsetX !=null){
+                    builder.setSmsVerifyCodeEditTextViewTextOffsetX((Integer) smsVerifyCodeEditTextViewOffsetX);
+                }
+                if(smsVerifyCodeEditTextViewOffsetY !=null){
+                    builder.setSmsVerifyCodeEditTextViewOffsetY((Integer) smsVerifyCodeEditTextViewOffsetY);
+                }
+                if(smsVerifyCodeEditTextViewOffsetR !=null){
+                    builder.setSmsVerifyCodeEditTextViewOffsetR((Integer) smsVerifyCodeEditTextViewOffsetR);
+                }
+                if(smsVerifyCodeEditTextViewWidth !=null){
+                    builder.setSmsVerifyCodeEditTextViewWidth((Integer) smsVerifyCodeEditTextViewWidth);
+                }
+                if(smsVerifyCodeEditTextViewHeight !=null){
+                    builder.setSmsVerifyCodeEditTextViewHeight((Integer) smsVerifyCodeEditTextViewHeight);
+                }
+                if(smsGetVerifyCodeTextViewOffsetX !=null){
+                    builder.setSmsGetVerifyCodeTextViewOffsetX((Integer) smsGetVerifyCodeTextViewOffsetX);
+                }
+                if(smsGetVerifyCodeTextViewOffsetY !=null){
+                    builder.setSmsGetVerifyCodeTextViewOffsetY((Integer) smsGetVerifyCodeTextViewOffsetY);
+                }
+                if(smsGetVerifyCodeTextViewTextSize !=null){
+                    builder.setSmsGetVerifyCodeTextSize((Integer) smsGetVerifyCodeTextViewTextSize);
+                }
+                if(smsGetVerifyCodeTextViewTextColor !=null){
+                    builder.setSmsGetVerifyCodeTextViewTextColor((Integer) smsGetVerifyCodeTextViewTextColor);
+                }
+//                if(smsGetVerifyCodeTextViewOffsetR !=null){
+//                    builder.setSmsGetVerifyCodeTextViewOffsetR((Integer) smsGetVerifyCodeTextViewOffsetR);
+//                }
+                if(smsGetVerifyCodeBtnBackgroundPath !=null){
+                    int res_id_smsGetVerifyCodeBtnBackgroundPath = getResourceByReflect((String) smsGetVerifyCodeBtnBackgroundPath);
+                    if (res_id_smsGetVerifyCodeBtnBackgroundPath > 0) {
+                        builder.setSmsGetVerifyCodeBtnBackgroundPath((String) smsGetVerifyCodeBtnBackgroundPath);
+                    }
+                }
+
+
+                Object smsLogBtnOffsetX = valueForKey(smsUIConfigMap, "smsLogBtnOffsetX");
+                Object smsLogBtnOffsetY = valueForKey(smsUIConfigMap, "smsLogBtnOffsetY");
+                Object smsLogBtnWidth = valueForKey(smsUIConfigMap, "smsLogBtnWidth");
+                Object smsLogBtnHeight = valueForKey(smsUIConfigMap, "smsLogBtnHeight");
+                Object smsLogBtnTextSize = valueForKey(smsUIConfigMap, "smsLogBtnTextSize");
+                Object smsLogBtnBottomOffsetY = valueForKey(smsUIConfigMap, "smsLogBtnBottomOffsetY");
+                Object smsLogBtnText = valueForKey(smsUIConfigMap, "smsLogBtnText");
+                Object smsLogBtnTextColor = valueForKey(smsUIConfigMap, "smsLogBtnTextColor");
+                Object isSmsLogBtnTextBold = valueForKey(smsUIConfigMap, "isSmsLogBtnTextBold");
+                Object smsLogBtnBackgroundPath = valueForKey(smsUIConfigMap, "smsLogBtnBackgroundPath");
+                Object smsFirstSeperLineOffsetX = valueForKey(smsUIConfigMap, "smsFirstSeperLineOffsetX");
+                Object smsFirstSeperLineOffsetY = valueForKey(smsUIConfigMap, "smsFirstSeperLineOffsetY");
+                Object smsFirstSeperLineOffsetR = valueForKey(smsUIConfigMap, "smsFirstSeperLineOffsetR");
+                Object smsFirstSeperLineColor = valueForKey(smsUIConfigMap, "smsFirstSeperLineColor");
+                Object smsSecondSeperLineOffsetX = valueForKey(smsUIConfigMap, "smsSecondSeperLineOffsetX");
+                Object smsSecondSeperLineOffsetY = valueForKey(smsUIConfigMap, "smsSecondSeperLineOffsetY");
+                Object smsSecondSeperLineOffsetR = valueForKey(smsUIConfigMap, "smsSecondSeperLineOffsetR");
+                Object smsSecondSeperLineColor = valueForKey(smsUIConfigMap, "smsSecondSeperLineColor");
+                Object isSmsPrivacyTextGravityCenter = valueForKey(smsUIConfigMap, "isSmsPrivacyTextGravityCenter");
+                Object smsPrivacyOffsetX = valueForKey(smsUIConfigMap, "smsPrivacyOffsetX");
+                Object smsPrivacyOffsetY = valueForKey(smsUIConfigMap, "smsPrivacyOffsetY");
+                Object smsPrivacyTopOffsetY = valueForKey(smsUIConfigMap, "smsPrivacyTopOffsetY");
+                Object smsPrivacyMarginL = valueForKey(smsUIConfigMap, "smsPrivacyMarginL");
+                Object smsPrivacyMarginR = valueForKey(smsUIConfigMap, "smsPrivacyMarginR");
+                Object smsPrivacyMarginT = valueForKey(smsUIConfigMap, "smsPrivacyMarginT");
+                Object smsPrivacyMarginB = valueForKey(smsUIConfigMap, "smsPrivacyMarginB");
+                Object smsPrivacyCheckboxSize = valueForKey(smsUIConfigMap, "smsPrivacyCheckboxSize");
+                Object isSmsPrivacyCheckboxInCenter = valueForKey(smsUIConfigMap, "isSmsPrivacyCheckboxInCenter");
+                Object smsPrivacyCheckboxMargin = valueForKey(smsUIConfigMap, "smsPrivacyCheckboxMargin");
+                Object smsPrivacyBeanList = valueForKey(smsUIConfigMap, "smsPrivacyBeanList");
+                Object smsPrivacyClauseStart = valueForKey(smsUIConfigMap, "smsPrivacyClauseStart");
+                Object smsPrivacyClauseEnd = valueForKey(smsUIConfigMap, "smsPrivacyClauseEnd");
+                Object smsPrivacyUncheckedMsg = valueForKey(smsUIConfigMap, "smsPrivacyUncheckedMsg");
+                Object smsGetCodeFailMsg = valueForKey(smsUIConfigMap, "smsGetCodeFailMsg");
+                Object smsPhoneInvalidMsg = valueForKey(smsUIConfigMap, "smsPhoneInvalidMsg");
+
+                if(smsLogBtnOffsetX !=null){
+                    builder.setSmsLogBtnOffsetX((Integer) smsLogBtnOffsetX);
+                }
+                if(smsLogBtnOffsetY !=null){
+                    builder.setSmsLogBtnOffsetY((Integer) smsLogBtnOffsetY);
+                }
+                if(smsLogBtnWidth !=null){
+                    builder.setSmsLogBtnWidth((Integer) smsLogBtnWidth);
+                }
+                if(smsLogBtnHeight !=null){
+                    builder.setSmsLogBtnHeight((Integer) smsLogBtnHeight);
+                }
+                if(smsLogBtnTextSize !=null){
+                    builder.setSmsLogBtnTextSize((Integer) smsLogBtnTextSize);
+                }
+                if(smsLogBtnBottomOffsetY !=null){
+                    builder.setSmsLogBtnBottomOffsetY((Integer) smsLogBtnBottomOffsetY);
+                }
+                if(smsLogBtnText !=null){
+                    builder.setSmsLogBtnText((String) smsLogBtnText);
+                }
+                if(smsLogBtnTextColor !=null){
+                    builder.setSmsLogBtnTextColor((Integer) smsLogBtnTextColor);
+                }
+                if(isSmsLogBtnTextBold !=null){
+                    builder.isSmsLogBtnTextBold((Boolean) isSmsLogBtnTextBold);
+                }
+                if(smsLogBtnBackgroundPath !=null){
+                    int res_id_smsLogBtnBackgroundPath = getResourceByReflect((String) smsLogBtnBackgroundPath);
+                    if (res_id_smsLogBtnBackgroundPath > 0) {
+                        builder.setSmsLogBtnBackgroundPath((String) smsLogBtnBackgroundPath);
+                    }
+                }
+                if(smsFirstSeperLineOffsetX !=null){
+                    builder.setSmsFirstSeperLineOffsetX((Integer) smsFirstSeperLineOffsetX);
+                }
+                if(smsFirstSeperLineOffsetY !=null){
+                    builder.setSmsFirstSeperLineOffsetY((Integer) smsFirstSeperLineOffsetY);
+                }
+                if(smsFirstSeperLineOffsetR !=null){
+                    builder.setSmsFirstSeperLineOffsetR((Integer) smsFirstSeperLineOffsetR);
+                }
+                if(smsFirstSeperLineColor !=null){
+                    builder.setSmsFirstSeperLineColor((Integer) smsFirstSeperLineColor);
+                }
+                if(smsSecondSeperLineOffsetX !=null){
+                    builder.setSmsSecondSeperLineOffsetX((Integer) smsSecondSeperLineOffsetX);
+                }
+                if(smsSecondSeperLineOffsetY !=null){
+                    builder.setSmsSecondSeperLineOffsetY((Integer) smsSecondSeperLineOffsetY);
+                }
+                if(smsSecondSeperLineOffsetR !=null){
+                    builder.setSmsSecondSeperLineOffsetR((Integer) smsSecondSeperLineOffsetR);
+                }
+                if(smsSecondSeperLineColor !=null){
+                    builder.setSmsSecondSeperLineColor((Integer) smsSecondSeperLineColor);
+                }
+                if(isSmsPrivacyTextGravityCenter !=null){
+                    builder.isSmsPrivacyTextGravityCenter((Boolean) isSmsPrivacyTextGravityCenter);
+                }
+                if(smsPrivacyOffsetX !=null){
+                    builder.setSmsPrivacyOffsetX((Integer) smsPrivacyOffsetX);
+                }
+                if(smsPrivacyOffsetY !=null){
+                    builder.setSmsPrivacyOffsetY((Integer) smsPrivacyOffsetY);
+                }
+                if(smsPrivacyTopOffsetY !=null){
+                    builder.setSmsPrivacyTopOffsetY((Integer) smsPrivacyTopOffsetY);
+                }
+                if(smsPrivacyMarginL !=null){
+                    builder.setSmsPrivacyMarginL((Integer) smsPrivacyMarginL);
+                }
+                if(smsPrivacyMarginR !=null){
+                    builder.setSmsPrivacyMarginR((Integer) smsPrivacyMarginR);
+                }
+                if(smsPrivacyMarginT !=null){
+                    builder.setSmsPrivacyMarginT((Integer) smsPrivacyMarginT);
+                }
+                if(smsPrivacyMarginB !=null){
+                    builder.setSmsPrivacyMarginB((Integer) smsPrivacyMarginB);
+                }
+                if(smsPrivacyCheckboxSize !=null){
+                    builder.setSmsPrivacyCheckboxSize((Integer) smsPrivacyCheckboxSize);
+                }
+                if(isSmsPrivacyCheckboxInCenter !=null){
+                    builder.isSmsPrivacyCheckboxInCenter((Boolean) isSmsPrivacyCheckboxInCenter);
+                }
+                if(smsPrivacyCheckboxMargin !=null){
+                    ArrayList<Integer> smsPrivacyCheckboxMarginArray = (ArrayList) smsPrivacyCheckboxMargin;
+                    int[] intArray = new int[smsPrivacyCheckboxMarginArray.size()];
+                    for (int i = 0; i < smsPrivacyCheckboxMarginArray.size(); i++) {
+                        intArray[i] = smsPrivacyCheckboxMarginArray.get(i);
+                    }
+                    builder.setSmsPrivacyCheckboxMargin(intArray);
+                }
+                if (smsPrivacyBeanList != null) {
+                    try {
+                        JSONArray jsonArray = new JSONArray((String) smsPrivacyBeanList);
+                        int length = jsonArray.length();
+                        JSONObject jsonObject;
+                        PrivacyBean privacyBean;
+                        ArrayList<PrivacyBean> privacyBeans = new ArrayList<>(length);
+                        for (int i = 0; i < length; i++) {
+                            jsonObject = jsonArray.optJSONObject(i);
+                            privacyBean = new PrivacyBean(jsonObject.optString("name"), jsonObject.optString("url"),
+                                    jsonObject.optString("separator"));
+
+                            privacyBeans.add(privacyBean);
+                        }
+
+                        builder.setSmsPrivacyBeanList(privacyBeans);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if(smsPrivacyClauseStart !=null){
+                    builder.setSmsPrivacyClauseStart((String) smsPrivacyClauseStart);
+                }
+                if(smsPrivacyClauseEnd !=null){
+                    builder.setSmsPrivacyClauseEnd((String) smsPrivacyClauseEnd);
+                }
+                builder.setSmsGetVerifyCodeDialog(true,Toast.makeText(context,smsPhoneInvalidMsg != null ? (String) smsPhoneInvalidMsg :"请输入正确的手机号",Toast.LENGTH_SHORT));
+
+                builder.setSmsClickActionListener(new SmsClickActionListener() {
+                    @Override
+                    public void onClicked(int Code, String msg, Context context, Activity activity, Boolean isUnchecked, List<PrivacyBean> beanArrayList, JVerifyLoginBtClickCallback jVerifyLoginBtClickCallback) {
+                        Log.d(TAG, msg);
+                        if (!isUnchecked){
+                            Toast.makeText(context, smsPrivacyUncheckedMsg != null ? (String) smsPrivacyUncheckedMsg : "请先勾选协议",Toast.LENGTH_SHORT).show();
+                        }else if(Code ==3005){
+                            Toast.makeText(context, smsGetCodeFailMsg != null ? (String) smsGetCodeFailMsg : "获取验证码失败",Toast.LENGTH_SHORT).show();
+                            jVerifyLoginBtClickCallback.login();
+                        }else {
+                            jVerifyLoginBtClickCallback.login();
+                        }
+
+                    }
+                });
+            }
+        }
+
     }
 
     /** 添加自定义 widget 到 SDK 原有的授权界面里 */
@@ -922,7 +1549,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
     /**
      * 添加自定义 TextView
      */
-    private void addCustomTextWidgets(Map para, JVerifyUIConfig.Builder builder) {
+    private void addCustomTextWidgets(Map para, JVerifyUIConfig.Builder builder, boolean isDialog) {
         Log.d(TAG, "addCustomTextView " + para);
 
         TextView customView = new TextView(context);
@@ -1005,19 +1632,31 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         final HashMap jsonMap = new HashMap();
         jsonMap.put("widgetId", widgetId);
 
-        builder.addCustomView(customView, false, new JVerifyUIClickCallback() {
-            @Override
-            public void onClicked(Context context, View view) {
-                Log.d(TAG, "onClicked text widget.");
-                channel.invokeMethod("onReceiveClickWidgetEvent", jsonMap);
-            }
-        });
+
+        if (isDialog) {
+            builder.addCustomViewToCheckDialog(customView, new JVerifyUIClickCallback() {
+                @Override
+                public void onClicked(Context context, View view) {
+                    Log.d(TAG, "onClicked dialog button widget.");
+                    runMainThread(jsonMap, null, "onReceiveClickWidgetEvent");
+                }
+            });
+        } else {
+            builder.addCustomView(customView, false, new JVerifyUIClickCallback() {
+                @Override
+                public void onClicked(Context context, View view) {
+                    Log.d(TAG, "onClicked text widget.");
+                    channel.invokeMethod("onReceiveClickWidgetEvent", jsonMap);
+                }
+            });
+        }
+
     }
 
     /**
      * 添加自定义 button
      */
-    private void addCustomButtonWidgets(Map para, JVerifyUIConfig.Builder builder) {
+    private void addCustomButtonWidgets(Map para, JVerifyUIConfig.Builder builder, boolean isDialog) {
         Log.d(TAG, "addCustomButtonWidgets: para = " + para);
 
         Button customView = new Button(context);
@@ -1059,10 +1698,12 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         // 设置背景图（只支持 button 设置）
         String btnNormalImageName = (String) para.get("btnNormalImageName");
         String btnPressedImageName = (String) para.get("btnPressedImageName");
-        if (btnPressedImageName == null) {
-            btnPressedImageName = btnNormalImageName;
+        if (btnNormalImageName != null) {
+            if (btnPressedImageName == null) {
+                btnPressedImageName = btnNormalImageName;
+            }
+            setButtonSelector(customView, btnNormalImageName, btnPressedImageName);
         }
-        setButtonSelector(customView, btnNormalImageName, btnPressedImageName);
 
         //下划线
         Boolean isShowUnderline = (Boolean) para.get("isShowUnderline");
@@ -1110,13 +1751,24 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         final HashMap jsonMap = new HashMap();
         jsonMap.put("widgetId", widgetId);
 
-        builder.addCustomView(customView, false, new JVerifyUIClickCallback() {
-            @Override
-            public void onClicked(Context context, View view) {
-                Log.d(TAG, "onClicked button widget.");
-                runMainThread(jsonMap, null, "onReceiveClickWidgetEvent");
-            }
-        });
+        if (isDialog) {
+            builder.addCustomViewToCheckDialog(customView, new JVerifyUIClickCallback() {
+                @Override
+                public void onClicked(Context context, View view) {
+                    Log.d(TAG, "onClicked dialog button widget.");
+                    runMainThread(jsonMap, null, "onReceiveClickWidgetEvent");
+                }
+            });
+        } else {
+            builder.addCustomView(customView, false, new JVerifyUIClickCallback() {
+                @Override
+                public void onClicked(Context context, View view) {
+                    Log.d(TAG, "onClicked button widget.");
+                    runMainThread(jsonMap, null, "onReceiveClickWidgetEvent");
+                }
+            });
+        }
+
     }
 
 

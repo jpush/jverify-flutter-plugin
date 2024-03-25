@@ -9,7 +9,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.2.1'
+        classpath 'com.android.tools.build:gradle:3.4.2'
     }
 }
 
@@ -34,25 +34,11 @@ android {
     lintOptions {
         disable 'InvalidPackage'
     }
-    buildTypes {
-        release {
-            minifyEnabled true
-            useProguard true
-            // library 混淆 -> 随 library 引用，自动添加到 apk 打包混淆
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'consumer-rules.pro'
-        }
-        debug {
-            minifyEnabled false
-            useProguard false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'consumer-rules.pro'
-        }
-    }
-
 
 }
 
 dependencies {
 //    implementation fileTree(include: '*.aar', dir: 'libs')
-    implementation 'cn.jiguang.sdk:jcore:2.8.2'
-    implementation 'cn.jiguang.sdk:jverification:2.7.2'
+//    implementation 'cn.jiguang.sdk:jcore:3.3.0'
+    implementation 'cn.jiguang.sdk:jverification:3.1.9'
 }

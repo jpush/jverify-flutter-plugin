@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,19 @@ typedef JVAuthPageEventListener = void Function(JVAuthPageEvent event);
 typedef JVLoginAuthCallBackListener = void Function(JVListenerEvent event);
 
 /**
+ * 短信登录接口的回调监听
+ *
+ * @param event
+ *          code     ：返回码，6000 代表loginToken获取成功，6001 代表loginToken获取失败，其他返回码详见描述
+ *          message  ：返回码的解释信息，若获取成功，内容信息代表loginToken。
+ *          phone ：手机号
+ *
+ * @discussion 调用 smsAuth 接口后，可以通过添加此监听事件来监听接口的返回结果
+ * */
+typedef JVSMSListener = void Function(JVSMSEvent event);
+
+
+/**
  * SDK 初始接口回调监听
  *
  * @param event
@@ -31,6 +45,7 @@ typedef JVLoginAuthCallBackListener = void Function(JVListenerEvent event);
  * @discussion 调用 setup 接口后，可以通过添加此监听事件来监听接口的返回结果
  * */
 typedef JVSDKSetupCallBackListener = void Function(JVSDKSetupEvent event);
+
 
 class JVEventHandlers {
   static final JVEventHandlers _instance = new JVEventHandlers._internal();
@@ -44,6 +59,13 @@ class JVEventHandlers {
   List<JVAuthPageEventListener> authPageEvents = [];
   List<JVLoginAuthCallBackListener> loginAuthCallBackEvents = [];
   JVSDKSetupCallBackListener? sdkSetupCallBackListener;
+
+  int loginAuthIndex = 0;
+  int smsAuthIndex = 0;
+  Map<int, JVAuthPageEventListener> authPageEventsMap = {};
+  Map<int, JVLoginAuthCallBackListener> loginAuthCallBackEventsMap = {};
+  Map<int, JVSMSListener> smsCallBackEventsMap = {};
+
 }
 
 class Jverify {
@@ -80,7 +102,7 @@ class Jverify {
     _eventHanders.authPageEvents.add(callback);
   }
 
-  /// loginAuth 接口回调的监听
+  /// loginAuth 接口回调的监听 （旧，用于配合旧版loginAuthSyncApi使用）
   addLoginAuthCallBackListener(JVLoginAuthCallBackListener callback) {
     _eventHanders.loginAuthCallBackEvents.add(callback);
   }
@@ -106,22 +128,57 @@ class Jverify {
         break;
       case 'onReceiveAuthPageEvent':
         {
+          Map json = call.arguments.cast<dynamic, dynamic>();
+          JVAuthPageEvent ev = JVAuthPageEvent.fromJson(json);
+          int index = json["loginAuthIndex"];
+
           for (JVAuthPageEventListener cb in _eventHanders.authPageEvents) {
-            Map json = call.arguments.cast<dynamic, dynamic>();
-            JVAuthPageEvent ev = JVAuthPageEvent.fromJson(json);
             cb(ev);
+          }
+
+          if (_eventHanders.authPageEventsMap.containsKey(index)) {
+            _eventHanders.authPageEventsMap[index]!(ev);
           }
         }
         break;
       case 'onReceiveLoginAuthCallBackEvent':
         {
+
+          Map json = call.arguments.cast<dynamic, dynamic>();
+          print(json.toString());
+
+          JVListenerEvent event = JVListenerEvent.fromJson(json);
+          if (json["loginAuthIndex"] != null) {
+            int index = json["loginAuthIndex"];
+            if (_eventHanders.loginAuthCallBackEventsMap.containsKey(index)) {
+              _eventHanders.loginAuthCallBackEventsMap[index]!(event);
+              _eventHanders.loginAuthCallBackEventsMap.remove(index);
+            }
+          }
+
+          //老版本callback
           for (JVLoginAuthCallBackListener cb
               in _eventHanders.loginAuthCallBackEvents) {
-            Map json = call.arguments.cast<dynamic, dynamic>();
-            JVListenerEvent event = JVListenerEvent.fromJson(json);
             cb(event);
             _eventHanders.loginAuthCallBackEvents.remove(cb);
           }
+
+        }
+        break;
+      case 'onReceiveSMSAuthCallBackEvent':
+        {
+
+          Map json = call.arguments.cast<dynamic, dynamic>();
+          print(json.toString());
+          JVSMSEvent event = JVSMSEvent.fromJson(json);
+          if (json["smsAuthIndex"] != null) {
+            int index = json["smsAuthIndex"];
+            if (_eventHanders.smsCallBackEventsMap.containsKey(index)) {
+              _eventHanders.smsCallBackEventsMap[index]!(event);
+              _eventHanders.smsCallBackEventsMap.remove(index);
+            }
+          }
+
         }
         break;
       case 'onReceiveSDKSetupCallBackEvent':
@@ -178,6 +235,12 @@ class Jverify {
   void setDebugMode(bool debug) {
     print("$flutter_log" + "setDebugMode");
     _channel.invokeMethod("setDebugMode", {"debug": debug});
+  }
+
+  /// 合规采集开关
+  void setCollectionAuth(bool auth) {
+    print("$flutter_log" + "setCollectionAuth");
+    _channel.invokeMethod("setCollectionAuth", {"auth": auth});
   }
 
   ///设置前后两次获取验证码的时间间隔，默认 30000ms，有效范围(0,300000)
@@ -342,7 +405,7 @@ class Jverify {
   }
 
   /*
-  * SDK请求授权一键登录（同步接口）
+  * SDK请求授权一键登录（同步接口）（旧）
   *
   * @param autoDismiss  设置登录完成后是否自动关闭授权页
   * @param timeout      设置超时时间，单位毫秒。 合法范围（0，30000],范围以外默认设置为10000
@@ -360,6 +423,89 @@ class Jverify {
     var repeatError = isRepeatRequest(method: method);
     if (repeatError == null) {
       var map = {"autoDismiss": autoDismiss, "timeout": timeout};
+      _channel.invokeMethod(method, map);
+      requestQueue.remove(method);
+    } else {
+      print("$flutter_log" + repeatError.toString());
+    }
+  }
+
+  /*
+  * SDK请求授权一键登录（同步接口）
+  *
+  * @param autoDismiss  设置登录完成后是否自动关闭授权页
+  * @param timeout      设置超时时间，单位毫秒。 合法范围（0，30000],范围以外默认设置为10000
+  * @param enableSms     是否开启短信登录切换服务，开启时在授权登录失败时拉起短信登录页面，默认为false
+  *
+  * 接口回调返回数据监听：通过添加 JVLoginAuthCallBackListener 监听，来监听接口的返回结果
+  *
+  * 授权页面点击事件监听：通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件
+  *
+  * */
+  void loginAuthSyncApi2(
+      {required bool autoDismiss,
+      int timeout = 10000,
+      bool enableSms = false,
+      JVLoginAuthCallBackListener? loginAuthcallback,
+      JVAuthPageEventListener? pageEventCallback}) {
+    print("$flutter_log" + "loginAuthSyncApi");
+
+    String method = "loginAuthSyncApi";
+    var repeatError = isRepeatRequest(method: method);
+    if (repeatError == null) {
+      _eventHanders.loginAuthIndex++;
+      var map = {
+        "autoDismiss": autoDismiss,
+        "timeout": timeout,
+        "enableSms": enableSms,
+        "loginAuthIndex": _eventHanders.loginAuthIndex
+      };
+      if (loginAuthcallback != null) {
+        _eventHanders.loginAuthCallBackEventsMap[_eventHanders.loginAuthIndex] =
+            loginAuthcallback;
+      }
+      if (pageEventCallback != null) {
+        _eventHanders.authPageEventsMap[_eventHanders.loginAuthIndex] =
+            pageEventCallback;
+      }
+      _channel.invokeMethod(method, map);
+      requestQueue.remove(method);
+    } else {
+      print("$flutter_log" + repeatError.toString());
+    }
+  }
+
+
+
+  /*
+  * 短信登录
+  *
+  * @param autoDismiss  设置登录完成后是否自动关闭授权页
+  * @param timeout      设置超时时间，单位毫秒。 合法范围（0，10000],若小于等于 0 则取默认值 5000. 大于 10000 则取 10000
+  *
+  * 接口回调返回数据监听：通过添加 JVSMSListener 监听，来监听接口的返回结果
+  *
+  *
+  * */
+  void smsAuth(
+      {required bool autoDismiss,
+        int timeout = 5000,
+        JVSMSListener? smsCallback}) {
+    print("$flutter_log" + "smsAuth");
+
+    String method = "smsAuth";
+    var repeatError = isRepeatRequest(method: method);
+    if (repeatError == null) {
+      _eventHanders.smsAuthIndex++;
+      var map = {
+        "autoDismiss": autoDismiss,
+        "timeout": timeout,
+        "smsAuthIndex": _eventHanders.smsAuthIndex
+      };
+      if (smsCallback != null) {
+        _eventHanders.smsCallBackEventsMap[_eventHanders.smsAuthIndex] =
+            smsCallback;
+      }
       _channel.invokeMethod(method, map);
       requestQueue.remove(method);
     } else {
@@ -457,6 +603,8 @@ class JVUIConfig {
   /// 授权页背景图片
   String? authBackgroundImage;
   String? authBGGifPath; // 授权界面gif图片 only android
+  String? authBGVideoPath; // 授权界面video
+  String? authBGVideoImgPath; // 授权界面video的第一频图片
 
   /// 导航栏
   int? navColor;
@@ -466,12 +614,14 @@ class JVUIConfig {
   bool navHidden = false;
   bool navReturnBtnHidden = false;
   bool navTransparent = false;
+  bool? navTextBold;
 
   /// logo
   int? logoWidth;
   int? logoHeight;
   int? logoOffsetX;
   int? logoOffsetY;
+  int? logoOffsetBottomY;
   JVIOSLayoutItem? logoVerticalLayoutItem;
   bool? logoHidden;
   String? logoImgPath;
@@ -479,32 +629,37 @@ class JVUIConfig {
   /// 号码
   int? numberColor;
   int? numberSize;
+  bool? numberTextBold;
   int? numFieldOffsetX;
   int? numFieldOffsetY;
   int? numberFieldWidth;
   int? numberFieldHeight;
   JVIOSLayoutItem? numberVerticalLayoutItem;
+  int? numberFieldOffsetBottomY;
 
   /// slogan
   int? sloganOffsetX;
   int? sloganOffsetY;
+  int? sloganBottomOffsetY;
   JVIOSLayoutItem? sloganVerticalLayoutItem;
   int? sloganTextColor;
   int? sloganTextSize;
   int? sloganWidth;
   int? sloganHeight;
-
+  bool? sloganTextBold;
   bool sloganHidden = false;
 
   /// 登录按钮
   int? logBtnOffsetX;
   int? logBtnOffsetY;
+  int? logBtnBottomOffsetY;
   int? logBtnWidth;
   int? logBtnHeight;
   JVIOSLayoutItem? logBtnVerticalLayoutItem;
   String? logBtnText;
   int? logBtnTextSize;
   int? logBtnTextColor;
+  bool? logBtnTextBold;
   String? logBtnBackgroundPath;
   String? loginBtnNormalImage; // only ios
   String? loginBtnPressedImage; // only ios
@@ -530,13 +685,20 @@ class JVUIConfig {
   int? clauseColor;
   List<String>? privacyText;
   int? privacyTextSize;
+  List<JVPrivacy>? privacyItem;
   bool privacyWithBookTitleMark = true; //设置隐私条款运营商协议名是否加书名号
   bool privacyTextCenterGravity = false; //隐私条款文字是否居中对齐（默认左对齐）
+  int? textVerAlignment = 1; //设置条款文字是否垂直居中对齐(默认居中对齐) 0是top 1是m 2是b
+  int? privacyTopOffsetY;
+  bool? privacyTextBold;
+  bool? privacyUnderlineText; //设置隐私条款文字字体是否加下划线
+  bool? isAlertPrivacyVc; //是否在未勾选隐私协议的情况下 弹窗提示窗口
 
   /// 隐私协议 web 页 UI 配置
   int? privacyNavColor; // 导航栏颜色
   int? privacyNavTitleTextColor; // 标题颜色
   int? privacyNavTitleTextSize; // 标题大小
+  bool? privacyNavTitleTextBold; // 标题字体加粗
   String? privacyNavTitleTitle; //协议0 web页面导航栏标题 only ios
   String? privacyNavTitleTitle1; // 协议1 web页面导航栏标题
   String? privacyNavTitleTitle2; // 协议2 web页面导航栏标题
@@ -569,16 +731,54 @@ class JVUIConfig {
   /// 授权页弹窗模式 配置，选填
   JVPopViewConfig? popViewConfig;
 
+  /// Android协议二次弹窗配置，选填
+  JVPrivacyCheckDialogConfig? privacyCheckDialogConfig;
+
   JVIOSUIModalTransitionStyle modelTransitionStyle = //弹出方式 only ios
       JVIOSUIModalTransitionStyle.CoverVertical;
 
+  /*** 协议二次弹窗-iOS */
+
+  /**协议二次弹窗标题文本样式*/
+  int agreementAlertViewTitleTexSize = 14;
+
+  /**协议二次弹窗标题文本颜色*/
+  int? agreementAlertViewTitleTextColor;
+
+  /**协议二次弹窗内容文本对齐方式*/
+  JVTextAlignmentType agreementAlertViewContentTextAlignment =
+      JVTextAlignmentType.center;
+
+  /**协议二次弹窗内容文本字体大小*/
+  int agreementAlertViewContentTextFontSize = 12;
+
+/**协议二次弹窗登录按钮背景图片
+ 激活状态的图片,失效状态的图片,高亮状态的图片
+ */
+  String? agreementAlertViewLoginBtnNormalImagePath;
+  String? agreementAlertViewLoginBtnPressedImagePath;
+  String? agreementAlertViewLoginBtnUnableImagePath;
+
+/**协议二次弹窗登录按钮文本颜色*/
+  int? agreementAlertViewLogBtnTextColor;
+
+/**协议页面是否支持暗黑模式*/
+  bool setIsPrivacyViewDarkMode = true;
+
+  /** sms UI**/
+  JVSMSUIConfig? smsUIConfig;
+
   Map toJsonMap() {
     return {
+      "privacyItem": privacyItem != null ? json.encode(privacyItem) : null,
       "authBackgroundImage": authBackgroundImage ??= null,
       "authBGGifPath": authBGGifPath ??= null,
+      "authBGVideoPath": authBGVideoPath ??= null,
+      "authBGVideoImgPath": authBGVideoImgPath ??= null,
       "navColor": navColor ??= null,
       "navText": navText ??= null,
       "navTextColor": navTextColor ??= null,
+      "navTextBold": navTextBold ??= null,
       "navReturnImgPath": navReturnImgPath ??= null,
       "navHidden": navHidden,
       "navReturnBtnHidden": navReturnBtnHidden,
@@ -588,23 +788,28 @@ class JVUIConfig {
       "logoHeight": logoHeight ??= null,
       "logoOffsetY": logoOffsetY ??= null,
       "logoOffsetX": logoOffsetX ??= null,
+      "logoOffsetBottomY": logoOffsetBottomY ??= null,
       "logoVerticalLayoutItem": getStringFromEnum(logoVerticalLayoutItem),
       "logoHidden": logoHidden ??= null,
       "numberColor": numberColor ??= null,
       "numberSize": numberSize ??= null,
+      "numberTextBold": numberTextBold ??= null,
       "numFieldOffsetY": numFieldOffsetY ??= null,
       "numFieldOffsetX": numFieldOffsetX ??= null,
+      "numberFieldOffsetBottomY": numberFieldOffsetBottomY ??= null,
       "numberFieldWidth": numberFieldWidth ??= null,
       "numberFieldHeight": numberFieldHeight ??= null,
       "numberVerticalLayoutItem": getStringFromEnum(numberVerticalLayoutItem),
       "logBtnText": logBtnText ??= null,
       "logBtnOffsetY": logBtnOffsetY ??= null,
       "logBtnOffsetX": logBtnOffsetX ??= null,
+      "logBtnBottomOffsetY": logBtnBottomOffsetY ??= null,
       "logBtnWidth": logBtnWidth ??= null,
       "logBtnHeight": logBtnHeight ??= null,
       "logBtnVerticalLayoutItem": getStringFromEnum(logBtnVerticalLayoutItem),
       "logBtnTextSize": logBtnTextSize ??= null,
       "logBtnTextColor": logBtnTextColor ??= null,
+      "logBtnTextBold": logBtnTextBold ??= null,
       "logBtnBackgroundPath": logBtnBackgroundPath ??= null,
       "loginBtnNormalImage": loginBtnNormalImage ??= null,
       "loginBtnPressedImage": loginBtnPressedImage ??= null,
@@ -615,9 +820,13 @@ class JVUIConfig {
       "privacyHintToast": privacyHintToast,
       "privacyOffsetY": privacyOffsetY ??= null,
       "privacyOffsetX": privacyOffsetX ??= null,
+      "privacyTopOffsetY": privacyTopOffsetY ??= null,
       "privacyVerticalLayoutItem": getStringFromEnum(privacyVerticalLayoutItem),
       "privacyText": privacyText ??= null,
       "privacyTextSize": privacyTextSize ??= null,
+      "privacyTextBold": privacyTextBold ??= null,
+      "privacyUnderlineText": privacyUnderlineText ??= null,
+      "isAlertPrivacyVc": isAlertPrivacyVc ??= null,
       "clauseName": clauseName ??= null,
       "clauseUrl": clauseUrl ??= null,
       "clauseBaseColor": clauseBaseColor ??= null,
@@ -627,11 +836,13 @@ class JVUIConfig {
       "sloganOffsetY": sloganOffsetY ??= null,
       "sloganTextColor": sloganTextColor ??= null,
       "sloganOffsetX": sloganOffsetX ??= null,
+      "sloganBottomOffsetY": sloganBottomOffsetY ??= null,
       "sloganVerticalLayoutItem": getStringFromEnum(sloganVerticalLayoutItem),
       "sloganTextSize": sloganTextSize ??= null,
       "sloganWidth": sloganWidth ??= null,
       "sloganHeight": sloganHeight ??= null,
       "sloganHidden": sloganHidden,
+      "sloganTextBold": sloganTextBold ??= null,
       "privacyState": privacyState,
       "privacyCheckboxInCenter": privacyCheckboxInCenter,
       "privacyTextCenterGravity": privacyTextCenterGravity,
@@ -640,6 +851,7 @@ class JVUIConfig {
       "privacyNavColor": privacyNavColor ??= null,
       "privacyNavTitleTextColor": privacyNavTitleTextColor ??= null,
       "privacyNavTitleTextSize": privacyNavTitleTextSize ??= null,
+      "privacyNavTitleTextBold": privacyNavTitleTextBold ??= null,
       "privacyNavTitleTitle1": privacyNavTitleTitle1 ??= null,
       "privacyNavTitleTitle2": privacyNavTitleTitle2 ??= null,
       "privacyNavReturnBtnImage": privacyNavReturnBtnImage ??= null,
@@ -663,6 +875,28 @@ class JVUIConfig {
       "enterAnim": enterAnim,
       "exitAnim": exitAnim,
       "privacyNavTitleTitle": privacyNavTitleTitle ??= null,
+      "textVerAlignment": textVerAlignment,
+      //ios-协议的二次弹窗
+      "agreementAlertViewTitleTexSize": agreementAlertViewTitleTexSize,
+      "agreementAlertViewTitleTextColor": agreementAlertViewTitleTextColor ??=
+          Colors.black.value,
+      "agreementAlertViewContentTextAlignment":
+          getStringFromEnum(agreementAlertViewContentTextAlignment),
+      "agreementAlertViewContentTextFontSize":
+          agreementAlertViewContentTextFontSize,
+      "agreementAlertViewLoginBtnNormalImagePath":
+          agreementAlertViewLoginBtnNormalImagePath ??= null,
+      "agreementAlertViewLoginBtnPressedImagePath":
+          agreementAlertViewLoginBtnPressedImagePath ??= null,
+      "agreementAlertViewLoginBtnUnableImagePath":
+          agreementAlertViewLoginBtnUnableImagePath ??= null,
+      "agreementAlertViewLogBtnTextColor": agreementAlertViewLogBtnTextColor ??=
+          Colors.black.value,
+      "privacyCheckDialogConfig": privacyCheckDialogConfig != null
+          ? privacyCheckDialogConfig?.toJsonMap()
+          : null,
+      "setIsPrivacyViewDarkMode": setIsPrivacyViewDarkMode,
+      "smsUIConfig": smsUIConfig != null ? smsUIConfig?.toJsonMap() : null
     }..removeWhere((key, value) => value == null);
   }
 }
@@ -698,6 +932,323 @@ class JVPopViewConfig {
       "isBottom": isBottom,
       "popViewCornerRadius": popViewCornerRadius,
       "backgroundAlpha": backgroundAlpha,
+    }..removeWhere((key, value) => value == null);
+  }
+}
+
+/*
+ * 未勾选协议时的二次弹窗提示页面配置
+ *
+ * */
+class JVPrivacyCheckDialogConfig {
+  int? width; //协议⼆次弹窗本身的宽
+  int? height; //协议⼆次弹窗本身的⾼
+  int? offsetX; // 窗口相对屏幕中心的x轴偏移量
+  int? offsetY; // 窗口相对屏幕中心的y轴偏移量
+  String? title; //弹窗标题
+  int? titleTextSize; // 弹窗标题字体大小
+  int? titleTextColor; // 弹窗标题字体颜色
+  String? contentTextGravity; //协议⼆次弹窗协议内容对⻬⽅式
+  int? contentTextSize; //协议⼆次弹窗协议内容字体⼤⼩
+  String? gravity; //弹窗对齐方式
+  bool? enablePrivacyCheckDialog;
+  List<JVCustomWidget>? widgets;
+
+  String? logBtnText; //弹窗登录按钮
+  String? logBtnImgPath; //协议⼆次弹窗登录按钮的背景图⽚
+  int? logBtnTextColor; //协议⼆次弹窗登录按钮的字体颜⾊
+  int? logBtnMarginL; //协议⼆次弹窗登录按钮左边距
+  int? logBtnMarginR; //协议⼆次弹窗登录按钮右边距
+  int? logBtnMarginT; //协议⼆次弹窗登录按钮上边距
+  int? logBtnMarginB; //协议⼆次弹窗登录按钮下边距
+  int? logBtnWidth; //协议⼆次弹窗登录按钮宽
+  int? logBtnHeight; //协议⼆次弹窗登录按高
+
+  JVPrivacyCheckDialogConfig() {
+    this.enablePrivacyCheckDialog = true;
+  }
+
+  Map toJsonMap() {
+
+    var widgetList = [];
+
+    if (widgets != null) {
+      for (JVCustomWidget widget in widgets!) {
+        var para2 = widget.toJsonMap();
+        para2.removeWhere((key, value) => value == null);
+        widgetList.add(para2);
+      }
+    }
+
+
+    return {
+      "width": width,
+      "height": height,
+      "offsetX": offsetX,
+      "offsetY": offsetY,
+      "gravity": gravity,
+      "title": title,
+      "titleTextSize": titleTextSize,
+      "titleTextColor": titleTextColor,
+      "contentTextGravity": contentTextGravity,
+      "contentTextSize": contentTextSize,
+      "enablePrivacyCheckDialog": enablePrivacyCheckDialog,
+      "widgets": widgetList,
+      "logBtnText": logBtnText,
+      "logBtnImgPath": logBtnImgPath,
+      "logBtnTextColor": logBtnTextColor,
+      "logBtnMarginL": logBtnMarginL,
+      "logBtnMarginR": logBtnMarginR,
+      "logBtnMarginT": logBtnMarginT,
+      "logBtnMarginB": logBtnMarginB,
+      "logBtnWidth": logBtnWidth,
+      "logBtnHeight": logBtnHeight,
+    }..removeWhere((key, value) => value == null);
+  }
+}
+
+/*
+ * 短信页面的配置
+ *
+ * */
+class JVSMSUIConfig {
+  String? smsAuthPageBackgroundImagePath; // 登录界面背景图片
+  String? smsNavText; //导航栏标题文字
+  int? smsNavTextColor; //导航栏标题颜色 only iOS
+  bool? smsNavTextBold; // 导航栏标题 是否加粗 only iOS
+  int? smsNavTextSize; //导航栏标题大小 only iOS
+  int? smsSloganTextSize; //设置 slogan 字体大小
+  bool? isSmsSloganHidden; //设置 slogan 字体是否隐藏  only android
+  bool? isSmsSloganTextBold; //设置 slogan 字体是否加粗 only android
+  int? smsSloganOffsetX; //设置 slogan 相对于屏幕左边 x 轴偏移
+  int? smsSloganOffsetY; //设置 slogan 相对于标题栏下边缘 y 偏移
+  int? smsSloganOffsetBottomY; //设置 slogan 相对于屏幕底部下边缘 y 轴偏移
+  int? smsSloganWidth; //设置 slogan 宽度  only iOS
+  int? smsSloganHeight; //设置 slogan 高度 only iOS
+  int? smsSloganTextColor; //设置移动 slogan 文字颜色
+  int? smsLogoWidth; //设置 logo 宽度（单位：dp）
+  int? smsLogoHeight; //设置 logo 高度（单位：dp）
+  int? smsLogoOffsetX; //设置 logo 相对于屏幕左边 x 轴偏移
+  int? smsLogoOffsetY; //设置 logo 相对于标题栏下边缘 y 偏移
+  int? smsLogoOffsetBottomY; //	设置 logo 相对于屏幕底部 y 轴偏移
+  bool? isSmsLogoHidden; //隐藏 logo
+  String? smsLogoResName; //设置 logo 图片
+  int? smsPhoneTextViewOffsetX; //设置号码标题相对于屏幕左边 x 轴偏移  only android
+  int? smsPhoneTextViewOffsetY; //设置号码标题相对于相对于标题栏下边缘 y 偏移 only android
+  int? smsPhoneTextViewTextSize; //设置号码标题字体大小  only android
+  int? smsPhoneTextViewTextColor; //设置号码标题文字颜色  only android
+  int? smsPhoneInputViewOffsetX; //设置号码输入框相对于屏幕左边 x 轴偏移
+  int? smsPhoneInputViewOffsetY; //设置号码输入框相对于屏幕底部 y 轴偏移
+  int? smsPhoneInputViewWidth; //设置号码输入框宽度
+  int? smsPhoneInputViewHeight; //设置号码输入框高度
+  int? smsPhoneInputViewTextColor; //设置手机号码输入框字体颜色
+  int? smsPhoneInputViewTextSize; //设置手机号码输入框字体大小
+  String? smsPhoneInputViewPlaceholderText; // 设置手机号码输入框提示词 only iOS
+  JVIOSTextBorderStyle? smsPhoneInputViewBorderStyle; //设置手机号码输入框样式 only iOS
+  int? smsVerifyCodeTextViewOffsetX; //设置验证码标题相对于屏幕左边 x 轴偏移  only android
+  int? smsVerifyCodeTextViewOffsetY; //设置验证码标题相对于相对于标题栏下边缘 y 偏移  only android
+  int? smsVerifyCodeTextViewTextSize; //设置验证码标题字体大小  only android
+  int? smsVerifyCodeTextViewTextColor; //设置验证码标题文字颜色  only android
+  int? smsVerifyCodeEditTextViewTextSize; //设置验证码输入框字体大小
+  int? smsVerifyCodeEditTextViewTextColor; //设置验证码输入框字体颜色
+  String? smsVerifyCodeEditTextViewPlaceholderText; // 设置验证码输入框提示词 only iOS
+  int? smsVerifyCodeEditTextViewOffsetX; //设置验证码输入框相对于屏幕左边 x 轴偏移
+  int? smsVerifyCodeEditTextViewOffsetY; //设置验证码输入框相对于标题栏下边缘 y 偏移
+  int? smsVerifyCodeEditTextViewOffsetR; //设置验证码输入框相对于屏幕右边偏移
+  int? smsVerifyCodeEditTextViewWidth; //设置验证码输入框宽度
+  int? smsVerifyCodeEditTextViewHeight; //设置验证码输入框高度
+  JVIOSTextBorderStyle?
+      smsVerifyCodeEditTextViewBorderStyle; //设置验证码输入框样式 only iOS
+  int? smsGetVerifyCodeTextViewOffsetX; //设置获取验证码按钮相对于屏幕左边 x 轴偏移
+  int? smsGetVerifyCodeTextViewOffsetY; //设置获取验证码按钮相对于标题栏下边缘 y 偏移
+  int? smsGetVerifyCodeTextViewTextSize; //设置获取验证码按钮字体大小
+  int? smsGetVerifyCodeTextViewTextColor; //设置获取验证码按钮文字颜色
+  int? smsGetVerifyCodeTextViewOffsetR; //设置获取验证码按钮相对于屏幕右边偏移
+  int? smsGetVerifyCodeBtnWidth; //设置获取验证码按钮宽度 only iOS
+  int? smsGetVerifyCodeBtnHeight; //设置获取验证码按钮高度 only iOS
+  int? smsGetVerifyCodeBtnCornerRadius; // 设置获取验证码按钮圆角度数 only iOS
+  String? smsGetVerifyCodeBtnBackgroundPath; //设置获取验证码按钮图片
+  List<String>?
+      smsGetVerifyCodeBtnBackgroundPaths; //设置获取验证码按钮图片 [激活状态的图片,失效状态的图片,高亮状态的图片] only iOS
+  String? smsGetVerifyCodeBtnText; //设置获取验证码按钮文字  only iOS
+  //enableSmsGetVerifyCodeDialog;
+  //smsGetVerifyCodeDialog
+  int? smsLogBtnOffsetX; //设置登录按钮相对于屏幕左边 x 轴偏移
+  int? smsLogBtnOffsetY; //设置登录按钮相对于标题栏下边缘 y 偏移
+  int? smsLogBtnWidth; //设置登录按钮宽度
+  int? smsLogBtnHeight; //设置登录按钮高度
+  int? smsLogBtnTextSize; //设置登录按钮字体大小
+  int? smsLogBtnBottomOffsetY; //	设置登录按钮相对屏幕底部 y 轴偏移
+  String? smsLogBtnText; //设置登录按钮文字
+  int? smsLogBtnTextColor; //设置登录按钮文字颜色
+  bool? isSmsLogBtnTextBold; //	设置登录按钮字体是否加粗
+  String? smsLogBtnBackgroundPath; //设置授权登录按钮图片
+  String?
+      smsLogBtnBackgroundPaths; //设置授权登录按钮图片 @[激活状态的图片,失效状态的图片,高亮状态的图片] only iOS
+  int? smsFirstSeperLineOffsetX; //第一分割线相对于屏幕左边 x 轴偏移 only android
+  int? smsFirstSeperLineOffsetY; //第一分割线相对于标题栏下边缘 y 偏移 only android
+  int? smsFirstSeperLineOffsetR; //第一分割线相对于屏幕右边偏移 only android
+  int? smsFirstSeperLineColor; //第一分割线颜色 only android
+  int? smsSecondSeperLineOffsetX; //第二分割线相对于屏幕左边 x 轴偏移 only android
+  int? smsSecondSeperLineOffsetY; //第二分割线相对于标题栏下边缘 y 偏移 only android
+  int? smsSecondSeperLineOffsetR; //第二分割线相对于屏幕右边偏移 only android
+  int? smsSecondSeperLineColor; //第二分割线颜色 only android
+  bool? isSmsPrivacyTextGravityCenter; //设置隐私条款文字是否居中对齐（默认左对齐）
+  List<int>? smsPrivacyColor; // 设置隐私条款名称颜色 [基础文字颜色，协议文字颜色] only iOS
+  int?
+      smsPrivacyTextVerAlignment; // 设置隐私条款垂直对齐方式 0:top 1:middle 2:bottom only iOS
+  int? smsPrivacyOffsetX; //协议相对于屏幕左边 x 轴偏移
+  int? smsPrivacyOffsetY; //协议相对于底部 y 偏移
+  int? smsPrivacyTopOffsetY; //协议相对于标题栏下边缘 y 偏移
+  int? smsPrivacyWidth; //协议宽度 only iOS
+  int? smsPrivacyHeight; //协议高度 only iOS
+  int? smsPrivacyMarginL; //设置协议相对于登录页左边的间距 only android
+  int? smsPrivacyMarginR; //设置协议相对于登录页右边的间距 only android
+  int? smsPrivacyMarginT; //设置协议相对于登录页顶部的间距 only android
+  int? smsPrivacyMarginB; //设置协议相对于登录页底部的间距 only android
+  int? smsPrivacyCheckboxSize; //设置隐私条款 checkbox 尺寸
+  int? smsPrivacyCheckboxOffsetX; //设置隐私条款 checkbox 相对于屏幕左边 x 轴偏移 only iOS
+  bool? isSmsPrivacyCheckboxInCenter; //设置隐私条款 checkbox 是否相对协议文字纵向居中
+  bool? smsPrivacyCheckboxState; //设置隐私条款 checkbox 默认状态 : 是否选择 默认:NO
+  List<int>? smsPrivacyCheckboxMargin; //设置协议相对于登录页的间距 only android
+  String? smsPrivacyCheckboxUncheckedImgPath; // 设置隐私条款 checkbox 未选中时图片 only iOS
+  String? smsPrivacyCheckboxCheckedImgPath; // 设置隐私条款 checkbox 选中时图片 only iOS
+  List<JVPrivacy>? smsPrivacyBeanList; //设置协议内容
+  String? smsPrivacyClauseStart; //设置协议条款开头文本
+  String? smsPrivacyClauseEnd; //设置协议条款结尾文本
+  // List<VerifyCustomView> smsCustomViews
+  bool? enableSMSService; //如果开启了短信服务，在认证服务失败时，短信服务又可用的情况下拉起短信服务
+
+  //android独占
+  String? smsPrivacyUncheckedMsg; //短信协议没有被勾选的提示
+  String? smsGetCodeFailMsg; //短信获取失败提示
+  String? smsPhoneInvalidMsg; //手机号无效提示
+
+  Map toJsonMap() {
+    return {
+      "smsAuthPageBackgroundImagePath": smsAuthPageBackgroundImagePath ??= null,
+      "smsNavText": smsNavText ??= null,
+      "smsNavTextColor": smsNavTextColor ??= null,
+      "smsNavTextBold": smsNavTextBold ??= null,
+      "smsNavTextSize": smsNavTextSize ??= null,
+      "smsSloganTextSize": smsSloganTextSize ??= null,
+      "isSmsSloganHidden": isSmsSloganHidden ??= null,
+      "isSmsSloganTextBold": isSmsSloganTextBold ??= null,
+      "smsSloganOffsetX": smsSloganOffsetX ??= null,
+      "smsSloganOffsetY": smsSloganOffsetY ??= null,
+      "smsSloganOffsetBottomY": smsSloganOffsetBottomY ??= null,
+      "smsSloganWidth": smsSloganWidth ??= null,
+      "smsSloganHeight": smsSloganHeight ??= null,
+      "smsSloganTextColor": smsSloganTextColor ??= null,
+      "smsLogoWidth": smsLogoWidth ??= null,
+      "smsLogoHeight": smsLogoHeight ??= null,
+      "smsLogoOffsetX": smsLogoOffsetX ??= null,
+      "smsLogoOffsetY": smsLogoOffsetY ??= null,
+      "smsLogoOffsetBottomY": smsLogoOffsetBottomY ??= null,
+      "isSmsLogoHidden": isSmsLogoHidden ??= null,
+      "smsLogoResName": smsLogoResName ??= null,
+      "smsPhoneTextViewOffsetX": smsPhoneTextViewOffsetX ??= null,
+      "smsPhoneTextViewOffsetY": smsPhoneTextViewOffsetY ??= null,
+      "smsPhoneTextViewTextSize": smsPhoneTextViewTextSize ??= null,
+      "smsPhoneTextViewTextColor": smsPhoneTextViewTextColor ??= null,
+      "smsPhoneInputViewOffsetX": smsPhoneInputViewOffsetX ??= null,
+      "smsPhoneInputViewOffsetY": smsPhoneInputViewOffsetY ??= null,
+      "smsPhoneInputViewWidth": smsPhoneInputViewWidth ??= null,
+      "smsPhoneInputViewHeight": smsPhoneInputViewHeight ??= null,
+      "smsPhoneInputViewTextColor": smsPhoneInputViewTextColor ??= null,
+      "smsPhoneInputViewTextSize": smsPhoneInputViewTextSize ??= null,
+      "smsPhoneInputViewPlaceholderText": smsPhoneInputViewPlaceholderText ??=
+          null,
+      "smsPhoneInputViewBorderStyle":
+          getStringFromEnum(smsPhoneInputViewBorderStyle),
+      "smsVerifyCodeTextViewOffsetX": smsVerifyCodeTextViewOffsetX ??= null,
+      "smsVerifyCodeTextViewOffsetY": smsVerifyCodeTextViewOffsetY ??= null,
+      "smsVerifyCodeTextViewTextSize": smsVerifyCodeTextViewTextSize ??= null,
+      "smsVerifyCodeTextViewTextColor": smsVerifyCodeTextViewTextColor ??= null,
+      "smsVerifyCodeEditTextViewTextSize": smsVerifyCodeEditTextViewTextSize ??=
+          null,
+      "smsVerifyCodeEditTextViewTextColor":
+          smsVerifyCodeEditTextViewTextColor ??= null,
+      "smsVerifyCodeEditTextViewPlaceholderText":
+          smsVerifyCodeEditTextViewPlaceholderText ??= null,
+      "smsVerifyCodeEditTextViewOffsetX": smsVerifyCodeEditTextViewOffsetX ??=
+          null,
+      "smsVerifyCodeEditTextViewOffsetY": smsVerifyCodeEditTextViewOffsetY ??=
+          null,
+      "smsVerifyCodeEditTextViewOffsetR": smsVerifyCodeEditTextViewOffsetR ??=
+          null,
+      "smsVerifyCodeEditTextViewWidth": smsVerifyCodeEditTextViewWidth ??= null,
+      "smsVerifyCodeEditTextViewHeight": smsVerifyCodeEditTextViewHeight ??=
+          null,
+      "smsVerifyCodeEditTextViewBorderStyle":
+          getStringFromEnum(smsVerifyCodeEditTextViewBorderStyle),
+      "smsGetVerifyCodeTextViewOffsetX": smsGetVerifyCodeTextViewOffsetX ??=
+          null,
+      "smsGetVerifyCodeTextViewOffsetY": smsGetVerifyCodeTextViewOffsetY ??=
+          null,
+      "smsGetVerifyCodeTextViewTextSize": smsGetVerifyCodeTextViewTextSize ??=
+          null,
+      "smsGetVerifyCodeTextViewTextColor": smsGetVerifyCodeTextViewTextColor ??=
+          null,
+      "smsGetVerifyCodeTextViewOffsetR": smsGetVerifyCodeTextViewOffsetR ??=
+          null,
+      "smsGetVerifyCodeBtnWidth": smsGetVerifyCodeBtnWidth ??= null,
+      "smsGetVerifyCodeBtnHeight": smsGetVerifyCodeBtnHeight ??= null,
+      "smsGetVerifyCodeBtnCornerRadius": smsGetVerifyCodeBtnCornerRadius ??=
+          null,
+      "smsGetVerifyCodeBtnBackgroundPath": smsGetVerifyCodeBtnBackgroundPath ??=
+          null,
+      "smsGetVerifyCodeBtnBackgroundPaths":
+          smsGetVerifyCodeBtnBackgroundPaths ??= null,
+      "smsGetVerifyCodeBtnText": smsGetVerifyCodeBtnText ??= null,
+      "smsLogBtnOffsetX": smsLogBtnOffsetX ??= null,
+      "smsLogBtnOffsetY": smsLogBtnOffsetY ??= null,
+      "smsLogBtnWidth": smsLogBtnWidth ??= null,
+      "smsLogBtnHeight": smsLogBtnHeight ??= null,
+      "smsLogBtnTextSize": smsLogBtnTextSize ??= null,
+      "smsLogBtnBottomOffsetY": smsLogBtnBottomOffsetY ??= null,
+      "smsLogBtnText": smsLogBtnText ??= null,
+      "smsLogBtnTextColor": smsLogBtnTextColor ??= null,
+      "isSmsLogBtnTextBold": isSmsLogBtnTextBold ??= null,
+      "smsLogBtnBackgroundPath": smsLogBtnBackgroundPath ??= null,
+      "smsLogBtnBackgroundPaths": smsLogBtnBackgroundPaths ??= null,
+      "smsFirstSeperLineOffsetX": smsFirstSeperLineOffsetX ??= null,
+      "smsFirstSeperLineOffsetY": smsFirstSeperLineOffsetY ??= null,
+      "smsFirstSeperLineOffsetR": smsFirstSeperLineOffsetR ??= null,
+      "smsSecondSeperLineOffsetX": smsSecondSeperLineOffsetX ??= null,
+      "smsSecondSeperLineOffsetY": smsSecondSeperLineOffsetY ??= null,
+      "smsSecondSeperLineOffsetR": smsSecondSeperLineOffsetR ??= null,
+      "smsFirstSeperLineColor": smsFirstSeperLineColor ??= null,
+      "smsSecondSeperLineColor": smsSecondSeperLineColor ??= null,
+      "isSmsPrivacyTextGravityCenter": isSmsPrivacyTextGravityCenter ??= null,
+      "smsPrivacyColor": smsPrivacyColor ??= null,
+      "smsPrivacyTextVerAlignment": smsPrivacyTextVerAlignment ??= null,
+      "smsPrivacyOffsetX": smsPrivacyOffsetX ??= null,
+      "smsPrivacyOffsetY": smsPrivacyOffsetY ??= null,
+      "smsPrivacyTopOffsetY": smsPrivacyTopOffsetY ??= null,
+      "smsPrivacyWidth": smsPrivacyWidth ??= null,
+      "smsPrivacyHeight": smsPrivacyHeight ??= null,
+      "smsPrivacyMarginL": smsPrivacyMarginL ??= null,
+      "smsPrivacyMarginR": smsPrivacyMarginR ??= null,
+      "smsPrivacyMarginT": smsPrivacyMarginT ??= null,
+      "smsPrivacyMarginB": smsPrivacyMarginB ??= null,
+      "smsPrivacyCheckboxSize": smsPrivacyCheckboxSize ??= null,
+      "smsPrivacyCheckboxOffsetX": smsPrivacyCheckboxOffsetX ??= null,
+      "isSmsPrivacyCheckboxInCenter": isSmsPrivacyCheckboxInCenter ??= null,
+      "smsPrivacyCheckboxState": smsPrivacyCheckboxState ??= null,
+      "smsPrivacyCheckboxMargin": smsPrivacyCheckboxMargin ??= null,
+      "smsPrivacyCheckboxUncheckedImgPath":
+          smsPrivacyCheckboxUncheckedImgPath ??= null,
+      "smsPrivacyCheckboxCheckedImgPath": smsPrivacyCheckboxCheckedImgPath ??=
+          null,
+      "smsPrivacyBeanList":
+          smsPrivacyBeanList != null ? json.encode(smsPrivacyBeanList) : null,
+      "smsPrivacyClauseStart": smsPrivacyClauseStart ??= null,
+      "smsPrivacyClauseEnd": smsPrivacyClauseEnd ??= null,
+      "smsPrivacyUncheckedMsg": smsPrivacyUncheckedMsg ??= null,
+      "smsGetCodeFailMsg": smsGetCodeFailMsg ??= null,
+      "smsPhoneInvalidMsg": smsPhoneInvalidMsg ??= null,
+      "enableSMSService": enableSMSService ??= null,
     }..removeWhere((key, value) => value == null);
   }
 }
@@ -774,11 +1325,29 @@ enum JVCustomWidgetType { textView, button }
 /// 文本对齐方式
 enum JVTextAlignmentType { left, right, center }
 
+/// SMS监听返回类
+class JVSMSEvent {
+  int?
+  code; //返回码，具体事件返回码请查看（https://docs.jiguang.cn/jverification/client/android_api/）
+  String? message; //事件描述、事件返回值等
+  String? phone; //电话号
+
+  JVSMSEvent.fromJson(Map<dynamic, dynamic> json)
+      : code = json['code'],
+        message = json['message'],
+        phone = json['phone'];
+
+  Map toMap() {
+    return {'code': code, 'message': message, 'phone': phone};
+  }
+}
+
 /// 监听返回类
 class JVListenerEvent {
-  int code; //返回码，具体事件返回码请查看（https://docs.jiguang.cn/jverification/client/android_api/）
-  String message; //事件描述、事件返回值等
-  String operator; //成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为null
+  int?
+      code; //返回码，具体事件返回码请查看（https://docs.jiguang.cn/jverification/client/android_api/）
+  String? message; //事件描述、事件返回值等
+  String? operator; //成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为null
 
   JVListenerEvent.fromJson(Map<dynamic, dynamic> json)
       : code = json['code'],
@@ -846,6 +1415,7 @@ enum JVIOSUIModalTransitionStyle {
   CrossDissolve,
   PartialCurl
 }
+
 /*
 *
 * iOS状态栏设置，需要设置info.plist文件中
@@ -859,10 +1429,53 @@ enum JVIOSBarStyle {
   StatusBarStyleDarkContent // Dark content, for use on light backgrounds  iOS 13 以上
 }
 
+/*
+*
+* iOS 输入框边框样式
+*
+* */
+enum JVIOSTextBorderStyle {
+  BorderStyleNone,
+  BorderStyleLine,
+  BorderStyleBezel,
+  BorderStyleRoundedRect
+}
+
 String getStringFromEnum<T>(T) {
   if (T == null) {
     return "";
   }
 
   return T.toString().split('.').last;
+}
+
+class JVPrivacy {
+  String? name;
+  String? url;
+  String? beforeName;
+  String? afterName;
+  String? separator; //ios分隔符专属
+
+  JVPrivacy(this.name, this.url,
+      {this.beforeName, this.afterName, this.separator});
+
+  Map toMap() {
+    return {
+      'name': name,
+      'url': url,
+      'beforeName': beforeName,
+      'afterName': afterName,
+      'separator': separator
+    };
+  }
+
+  Map toJson() {
+    Map map = new Map();
+    map["name"] = this.name;
+    map["url"] = this.url;
+    map["beforeName"] = this.beforeName;
+    map["afterName"] = this.afterName;
+    map["separator"] = this.separator;
+    return map..removeWhere((key, value) => value == null);
+  }
 }
