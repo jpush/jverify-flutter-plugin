@@ -381,6 +381,56 @@ uiConfig.privacyNavTitleTextSize = 16;
 uiConfig.privacyNavTitleTitle = "协议0 web页标题";//仅ios
 uiConfig.privacyNavTitleTitle1 = "协议1 web页标题";
 uiConfig.privacyNavTitleTitle2 = "协议2 web页标题";
+
+//协议二次弹窗内容设置 -Android
+JVPrivacyCheckDialogConfig privacyCheckDialogConfig =
+JVPrivacyCheckDialogConfig();
+// privacyCheckDialogConfig.width = 250;//协议⼆次弹窗本身的宽
+// privacyCheckDialogConfig.height = 100;//协议⼆次弹窗本身的⾼
+privacyCheckDialogConfig.title = "测试协议标题"; //弹窗标题
+privacyCheckDialogConfig.offsetX = 0;// 窗口相对屏幕中心的x轴偏移量
+privacyCheckDialogConfig.offsetY = 0;// 窗口相对屏幕中心的y轴偏移量
+privacyCheckDialogConfig.logBtnText = "同11意";//弹窗登录按钮
+privacyCheckDialogConfig.titleTextSize = 22;// 弹窗标题字体大小
+privacyCheckDialogConfig.gravity = "center";//弹窗对齐方式
+privacyCheckDialogConfig.titleTextColor = Colors.black.value;// 弹窗标题字体颜色
+privacyCheckDialogConfig.contentTextGravity = "left";//协议⼆次弹窗协议内容对⻬⽅式
+privacyCheckDialogConfig.contentTextSize = 14;//协议⼆次弹窗协议内容字体⼤⼩
+privacyCheckDialogConfig.logBtnImgPath = "login_btn_normal";//协议⼆次弹窗登录按钮的背景图⽚
+privacyCheckDialogConfig.logBtnTextColor = Colors.black.value;//协议⼆次弹窗登录按钮的字体颜⾊
+privacyCheckDialogConfig.logBtnMarginT = 20;//协议⼆次弹窗登录按钮上边距
+privacyCheckDialogConfig.logBtnMarginB = 20;//协议⼆次弹窗登录按钮下边距
+privacyCheckDialogConfig.logBtnMarginL = 10;//协议⼆次弹窗登录按钮左边距
+privacyCheckDialogConfig.logBtnWidth = 140;//协议⼆次弹窗登录按钮宽
+privacyCheckDialogConfig.logBtnHeight = 40;//协议⼆次弹窗登录按高
+/// 添加自定义的 控件 到dialog
+List<JVCustomWidget> dialogWidgetList = [];
+final String btn_dialog_widgetId = "jv_add_custom_dialog_button"; // 标识控件 id
+JVCustomWidget buttonDialogWidget =
+JVCustomWidget(btn_dialog_widgetId, JVCustomWidgetType.button);
+buttonDialogWidget.title = "取消";
+buttonDialogWidget.left = 163;
+buttonDialogWidget.top = 142;
+buttonDialogWidget.width = 140;
+buttonDialogWidget.height = 40;
+buttonDialogWidget.textAlignment = JVTextAlignmentType.center;
+buttonDialogWidget.btnNormalImageName = "main_btn_other";
+buttonDialogWidget.btnPressedImageName = "main_btn_other";
+// buttonDialogWidget.backgroundColor = Colors.yellow.value;
+//buttonWidget.textAlignment = JVTextAlignmentType.left;
+
+// 添加点击事件监听
+jverify.addClikWidgetEventListener(btn_dialog_widgetId, (eventId) {
+print("receive listener - click dialog widget event :$eventId");
+if (btn_dialog_widgetId == eventId) {
+print("receive listener - 点击【新加 dialog button】");
+}
+});
+dialogWidgetList.add(buttonDialogWidget);
+privacyCheckDialogConfig.widgets = dialogWidgetList;
+uiConfig.privacyCheckDialogConfig = privacyCheckDialogConfig;
+
+
 Jverify jverify = new Jverify();
 
 ```
@@ -467,6 +517,21 @@ jverify.getSMSCode(phone,{signId:signId,tempId:tempId}).then((map){
 });
 ```
 
+#### smsAuth
+
+短信登录接口，主动拉起短信验证码登录页面
+
+设置短信登录页面相关UI同设置一键登录页面相关UI
+参考API接口中JVUIConfig的smsUIConfig参数即可
+在接口setCustomAuthorizationView中一同设置
+
+```dart
+Jverify jverify = new Jverify();
+jverify.smsAuth(autoDismiss: true, smsCallback: (event) {
+
+});
+
+```
 
 |参数名	|参数类型	|说明|
 |:----:|:-----:|:-----:|

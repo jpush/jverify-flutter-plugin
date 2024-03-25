@@ -950,7 +950,7 @@ class JVPrivacyCheckDialogConfig {
   int? titleTextColor; // 弹窗标题字体颜色
   String? contentTextGravity; //协议⼆次弹窗协议内容对⻬⽅式
   int? contentTextSize; //协议⼆次弹窗协议内容字体⼤⼩
-  String? gravity; //
+  String? gravity; //弹窗对齐方式
   bool? enablePrivacyCheckDialog;
   List<JVCustomWidget>? widgets;
 
