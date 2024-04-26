@@ -1,7 +1,6 @@
-package com.jiguang.jverify_example;
+package com.example.ttt;
 
 import io.flutter.embedding.android.FlutterActivity;
 
 public class MainActivity extends FlutterActivity {
 }
-

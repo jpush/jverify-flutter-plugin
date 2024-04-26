@@ -104,9 +104,9 @@
       <excludeFolder url="file://$MODULE_DIR$/example/ios/Pods/JCore/packages" />
       <excludeFolder url="file://$MODULE_DIR$/example/ios/Pods/JVerification/EAccountApiSDK.framework/Headers/packages" />
       <excludeFolder url="file://$MODULE_DIR$/example/ios/Pods/JVerification/EAccountApiSDK.framework/packages" />
-      <excludeFolder url="file://$MODULE_DIR$/example/ios/Pods/JVerification/TYRZSDK.framework/Headers/packages" />
-      <excludeFolder url="file://$MODULE_DIR$/example/ios/Pods/JVerification/TYRZSDK.framework/Modules/packages" />
-      <excludeFolder url="file://$MODULE_DIR$/example/ios/Pods/JVerification/TYRZSDK.framework/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/Pods/JVerification/TYRZSDK.xcframework/Headers/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/Pods/JVerification/TYRZSDK.xcframework/Modules/packages" />
+      <excludeFolder url="file://$MODULE_DIR$/example/ios/Pods/JVerification/TYRZSDK.xcframework/packages" />
       <excludeFolder url="file://$MODULE_DIR$/example/ios/Pods/JVerification/account_login_sdk_noui_core.framework/Headers/packages" />
       <excludeFolder url="file://$MODULE_DIR$/example/ios/Pods/JVerification/account_login_sdk_noui_core.framework/Modules/packages" />
       <excludeFolder url="file://$MODULE_DIR$/example/ios/Pods/JVerification/account_login_sdk_noui_core.framework/packages" />
