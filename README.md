@@ -5,21 +5,21 @@
 
 在工程 pubspec.yaml 中加入 dependencies
 
-+ github 集成 
++ github 集成
 
 ``` 
 dependencies:
   jverify:
     git:
       url: git://github.com/jpush/jverify-flutter-plugin.git
-      ref: master
+      ref: dev-3.0.1
 ```
 
 + pub 集成
 
 ```
 dependencies:
-  jverify: 2.1.2
+  jverify: 3.0.1 
 ```
 
 ### 配置
@@ -31,21 +31,16 @@ dependencies:
 ```groovy
 android: {
   ....
-  defaultConfig {
-    applicationId "替换成自己应用 ID"
-    ...
-    ndk {
-	//选择要添加的对应 cpu 类型的 .so 库。
-	abiFilters 'armeabi', 'armeabi-v7a', 'x86', 'x86_64', 'mips', 'mips64', 'arm64-v8a',        
-    }
 
     manifestPlaceholders = [
-        JPUSH_PKGNAME : applicationId,
-        JPUSH_APPKEY : "appkey", // NOTE: JPush 上注册的包名对应的 Appkey.
-        JPUSH_CHANNEL : "developer-default", //暂时填写默认值即可.
+            // 设置manifest.xml中的变量
+            JPUSH_PKGNAME: applicationId,
+            JPUSH_APPKEY : "1b5965ba23557bcf384e0b08",  //  JPush 上注册的包名对应的 AppKey.
+            JPUSH_CHANNEL: "default_developer", // 默认值即可.
     ]
-  }    
-}
+ 
+  }
+
 ```
 
 ### 使用
@@ -58,5 +53,4 @@ import 'package:jverify/jverify.dart';
 
 **注意** : 需要先调用 Jverify.setup 来初始化插件，才能保证其他功能正常工作。
 
- [参考](./documents/APIs.md)
-
+[参考](./documents/APIs.md)

@@ -20,28 +20,28 @@ class DialogRouter extends PageRouteBuilder {
 
   DialogRouter(this.page)
       : super(
-          opaque: false,
-          pageBuilder: (context, animation, secondaryAnimation) => page,
-        );
+    opaque: false,
+    pageBuilder: (context, animation, secondaryAnimation) => page,
+  );
 }
 
 class _LoadingDialog extends Dialog {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: new Material(
+      child: Material(
         ///背景透明
         color: Colors.black54,
 
         ///保证控件居中效果
-        child: new Center(
+        child: Center(
           ///弹框大小
-          child: new SizedBox(
+          child: SizedBox(
             width: 120.0,
             height: 120.0,
-            child: new Container(
+            child: Container(
               ///弹框背景和圆角
-              decoration: ShapeDecoration(
+              decoration: const ShapeDecoration(
                 color: Color(0xffffffff),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.all(
@@ -49,18 +49,18 @@ class _LoadingDialog extends Dialog {
                   ),
                 ),
               ),
-              child: new Column(
+              child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  new CircularProgressIndicator(),
-                  new Padding(
-                    padding: const EdgeInsets.only(
+                  CircularProgressIndicator(),
+                  Padding(
+                    padding: EdgeInsets.only(
                       top: 20.0,
                     ),
-                    child: new Text(
+                    child: Text(
                       "加载中",
-                      style: new TextStyle(fontSize: 16.0),
+                      style: TextStyle(fontSize: 16.0),
                     ),
                   ),
                 ],
