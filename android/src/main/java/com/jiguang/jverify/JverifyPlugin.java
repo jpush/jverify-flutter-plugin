@@ -23,7 +23,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1900,21 +1899,21 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
      */
     private int getResourceByReflect(String imageName) {
 
-        Class drawable = R.drawable.class;
-        Field field = null;
+//        Class drawable = R.drawable.class;
+//        Field field = null;
         int r_id = 0;
 
-        if (imageName == null) {
-            return r_id;
-        }
-
-        try {
-            field = drawable.getField(imageName);
-            r_id = field.getInt(field.getName());
-        } catch (Exception e) {
-            r_id = 0;
-            //Log.d(TAG, "image【"+imageName + "】field no found!");
-        }
+//        if (imageName == null) {
+//            return r_id;
+//        }
+//
+//        try {
+//            field = drawable.getField(imageName);
+//            r_id = field.getInt(field.getName());
+//        } catch (Exception e) {
+//            r_id = 0;
+//            //Log.d(TAG, "image【"+imageName + "】field no found!");
+//        }
 
         if (r_id == 0) {
             r_id = context.getResources().getIdentifier(imageName, "drawable", context.getPackageName());
