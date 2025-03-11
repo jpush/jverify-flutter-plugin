@@ -679,9 +679,14 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     if(logBtnText){
         uiconfig.logBtnText  = logBtnText;
     }
+    NSNumber *isLogBtnTextBold = [self getValue:config key:@"logBtnTextBold"];
     NSNumber *logBtnTextSize = [self getValue:config key:@"logBtnTextSize"];
     if (logBtnTextSize) {
-        uiconfig.logBtnFont = [UIFont systemFontOfSize:[logBtnTextSize floatValue]];
+        if (isLogBtnTextBold) {
+            uiconfig.logBtnFont = [UIFont boldSystemFontOfSize:[logBtnTextSize floatValue]];
+        }else {
+            uiconfig.logBtnFont = [UIFont systemFontOfSize:[logBtnTextSize floatValue]];
+        }
     }
     NSNumber *logBtnTextColor = [self getValue:config key:@"logBtnTextColor"];
     if(logBtnTextColor){
