@@ -983,6 +983,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     NSAttributedString *privayAttr = [[NSAttributedString alloc]initWithString:privacyNavText attributes:privayNavTextAttr];
     uiconfig.agreementNavText = privayAttr;
     uiconfig.agreementNavTextColor = privacyNavTitleTextColor;
+    uiconfig.agreementNavTextFont = [UIFont systemFontOfSize:[privacyNavTitleTextSize floatValue]];
     
     NSString *privacyNavReturnBtnImage =[self getValue:config key:@"privacyNavReturnBtnImage"];
     if(privacyNavReturnBtnImage){
