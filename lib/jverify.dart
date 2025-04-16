@@ -295,6 +295,19 @@ class Jverify {
   }
 
   /*
+   * SDK判断网络环境是否支持 (支持中国移动香港卡)（仅支持iOS）
+   * iOS如果需要支持中国移动香港卡，需要在一键登录、预取号、号码认证行为之前先调用该方法判断是否支持。支持再进行下一步操作。
+   *
+   * return Map
+   *          key = "result", vlue = bool,是否支持
+   *          key = "operator", value: CM代表中国移动，CU代表中国联通，CT代表中国电信, CMHK代表中国移动香港
+   * */
+  Future<Map<dynamic, dynamic>> checkVerifyEnableNew() async {
+    print("$flutter_log" + "checkVerifyEnableNew");
+    return await _channel.invokeMethod("checkVerifyEnableNew");
+  }
+
+  /*
    * SDK 获取号码认证token
    *
    * return Map

@@ -1,3 +1,6 @@
+## 3.0.5
++ 更新：iOS 升级到3.2.7版本
++ 新增：iOS 新增checkVerifyEnableNew接口判断是否支持认证（支持中国移动香港卡）
 ## 3.0.4
 + 优化：修复iOS privacyNavTitleTextSize 字段对自定义协议隐私协议页面不生效的问题
 ## 3.0.3

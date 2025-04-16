@@ -54,6 +54,8 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
         [self isSetupClient:result];
     }else if([methodName isEqualToString:@"checkVerifyEnable"]){
         [self checkVerifyEnable:call result:result];
+    }else if([methodName isEqualToString:@"checkVerifyEnableNew"]){
+        [self checkVerifyEnableNew:call result:result];
     }else if([methodName isEqualToString:@"getToken"]){
         [self getToken:call result:result];
     }else if([methodName isEqualToString:@"verifyNumber"]){
@@ -251,6 +253,17 @@ NSObject<FlutterPluginRegistrar>* _jv_registrar;
     //继续获取token操作
     //...
     return isEnable;
+}
+
+- (void)checkVerifyEnableNew:(FlutterMethodCall*)call result:(FlutterResult)result{
+    [JVERIFICATIONService checkVerifyEnable:^(BOOL isSupport, NSString * _Nonnull operatorType) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            result(@{
+                j_result_key:[NSNumber numberWithBool:isSupport],
+                j_opr_key: operatorType?:@""
+            });
+        });
+    }];
 }
 
 #pragma mark - 获取号码认证token
