@@ -21,6 +21,8 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   /// 统一 key
   final String f_result_key = "result";
+  /// 额外信息
+  final String f_extra_key = "extra";
 
   /// 错误码
   final String f_code_key = "code";
@@ -124,6 +126,18 @@ class _MyAppState extends State<MyApp> {
             child: SizedBox(
               child: new CustomButton(
                 onPressed: () {
+                  checkPreLoginCache();
+                },
+                title: "是否存在预取号缓存",
+              ),
+              width: double.infinity,
+            ),
+            margin: EdgeInsets.fromLTRB(40, 5, 40, 5),
+          ),
+          new Container(
+            child: SizedBox(
+              child: new CustomButton(
+                onPressed: () {
                   loginAuth(false);
                 },
                 title: "一键登录",
@@ -180,11 +194,12 @@ class _MyAppState extends State<MyApp> {
   void checkVerifyEnable() {
     jverify.checkVerifyEnable().then((map) {
       bool result = map[f_result_key];
+      Map extra = map[f_extra_key];
       setState(() {
         if (result) {
-          _result = "当前网络环境【支持认证】！";
+          _result = "当前网络环境【支持认证】！"  + extra.toString();
         } else {
-          _result = "当前网络环境【不支持认证】！";
+          _result = "当前网络环境【不支持认证】！" + extra.toString();
         }
       });
     });
@@ -250,7 +265,20 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  /// 登录预取号
+  /// 预取号缓存
+  void checkPreLoginCache() {
+    jverify.validPreloginCache().then((map) {
+      bool result = map[f_result_key];
+      setState(() {
+        if (result) {
+          _result = "预取号缓存有效";
+        } else {
+          _result = "预取号缓存无效";
+        }
+      });
+    });
+  }
+
   void preLogin() {
     setState(() {
       _showLoading(context);
@@ -258,7 +286,7 @@ class _MyAppState extends State<MyApp> {
     jverify.checkVerifyEnable().then((map) {
       bool result = map[f_result_key];
       if (result) {
-        jverify.preLogin().then((map) {
+        jverify.preLogin(enableSms: true).then((map) {
           print("预取号接口回调：${map.toString()}");
           int code = map[f_code_key];
           String message = map[f_msg_key];
@@ -307,8 +335,8 @@ class _MyAppState extends State<MyApp> {
         JVUIConfig uiConfig = JVUIConfig();
         // uiConfig.authBGGifPath = "main_gif";
         // uiConfig.authBGVideoPath="main_vi";
-        uiConfig.authBGVideoPath =
-            "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
+        // uiConfig.authBGVideoPath =
+        //     "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
         uiConfig.authBGVideoImgPath = "main_v_bg";
 
         uiConfig.navHidden = !isiOS;
@@ -358,6 +386,7 @@ class _MyAppState extends State<MyApp> {
 
         uiConfig.privacyState = false; //设置默认勾选
         uiConfig.privacyCheckboxSize = 20;
+        uiConfig.privacyCheckboxOffsetY = 5;
         uiConfig.checkedImgPath = "check_image"; //图片必须存在
         uiConfig.uncheckedImgPath = "uncheck_image"; //图片必须存在
         uiConfig.privacyCheckboxInCenter = true;
@@ -365,7 +394,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.isAlertPrivacyVc = true;
 
         //uiConfig.privacyOffsetX = isiOS ? (20 + uiConfig.privacyCheckboxSize) : null;
-        uiConfig.privacyOffsetY = 15; // 距离底部距离
+        uiConfig.privacyOffsetY = 50; // 距离底部距离
         uiConfig.privacyVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
         uiConfig.clauseName = "协议1";
         uiConfig.clauseUrl = "http://www.baidu.com";
@@ -408,7 +437,7 @@ class _MyAppState extends State<MyApp> {
         uiConfig.privacyNavTitleTextSize = 16;
 
         uiConfig.privacyNavTitleTitle = "ios lai le"; //only ios
-        uiConfig.privacyNavReturnBtnImage = "back"; //图片必须存在;
+        uiConfig.privacyNavReturnBtnImage = "umcsdk_return_bg"; //图片必须存在;
 
         //协议二次弹窗内容设置 -iOS
         uiConfig.isAlertPrivacyVc = true;
@@ -436,6 +465,17 @@ class _MyAppState extends State<MyApp> {
         uiConfig.agreementAlertViewLogBtnTextColor =
             const Color.fromARGB(255, 128, 120, 89).value;
 
+        uiConfig.appLanguageType = "1";
+        uiConfig.navReturnBtnOffsetX = 10;
+        uiConfig.navReturnBtnOffsetY = 10;
+        uiConfig.navReturnBtnHidden = false;
+        uiConfig.navReturnImgPath = "umcsdk_return_bg"; //图片必须存在
+        uiConfig.navHidden = false;
+        uiConfig.navTransparent = false;
+        uiConfig.statusBarTransparent = true;
+        uiConfig.navText = "";
+        // uiConfig.openPrivacyInBrowser = true;
+
         //协议二次弹窗内容设置 -Android
         JVPrivacyCheckDialogConfig privacyCheckDialogConfig =
             JVPrivacyCheckDialogConfig();
@@ -457,6 +497,7 @@ class _MyAppState extends State<MyApp> {
         privacyCheckDialogConfig.logBtnMarginL = 10;
         privacyCheckDialogConfig.logBtnWidth = 140;
         privacyCheckDialogConfig.logBtnHeight = 40;
+        privacyCheckDialogConfig.contentTextPaddingL = 10;
 
         /// 添加自定义的 控件 到dialog
         List<JVCustomWidget> dialogWidgetList = [];
@@ -489,10 +530,13 @@ class _MyAppState extends State<MyApp> {
 
         //sms
         JVSMSUIConfig smsConfig = JVSMSUIConfig();
+        smsConfig.smsLogBtnBackgroundPath = "main_btn_other";
         smsConfig.smsPrivacyBeanList = [
           JVPrivacy("自定义协议1", "http://www.baidu.com",
               beforeName: "==", afterName: "++", separator: "*")
         ];
+        smsConfig.smsPrivacyClauseStart = "开头";
+        smsConfig.smsPrivacyClauseEnd = "结尾";
         smsConfig.enableSMSService = true;
         uiConfig.smsUIConfig = smsConfig;
 

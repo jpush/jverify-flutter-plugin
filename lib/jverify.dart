@@ -45,6 +45,9 @@ typedef JVSMSListener = void Function(JVSMSEvent event);
  * */
 typedef JVSDKSetupCallBackListener = void Function(JVSDKSetupEvent event);
 
+class s{
+  s._interna();
+}
 class JVEventHandlers {
   static final JVEventHandlers _instance = new JVEventHandlers._internal();
 
@@ -63,6 +66,8 @@ class JVEventHandlers {
   Map<int, JVAuthPageEventListener> authPageEventsMap = {};
   Map<int, JVLoginAuthCallBackListener> loginAuthCallBackEventsMap = {};
   Map<int, JVSMSListener> smsCallBackEventsMap = {};
+  Map<int, JVAuthPageEventListener> smsAuthPageEventsMap = {};
+
 }
 
 class Jverify {
@@ -157,6 +162,17 @@ class Jverify {
               in _eventHanders.loginAuthCallBackEvents) {
             cb(event);
             _eventHanders.loginAuthCallBackEvents.remove(cb);
+          }
+        }
+        break;
+      case 'onReceiveSMSAuthPageEvent':
+        {
+          Map json = call.arguments.cast<dynamic, dynamic>();
+          JVAuthPageEvent ev = JVAuthPageEvent.fromJson(json);
+          int index = json["smsAuthIndex"];
+
+          if (_eventHanders.smsAuthPageEventsMap.containsKey(index)) {
+            _eventHanders.smsAuthPageEventsMap[index]!(ev);
           }
         }
         break;
@@ -287,7 +303,10 @@ class Jverify {
    *
    * return Map
    *          key = "result"
-   *          vlue = bool,是否支持
+   *          value = bool,是否支持
+   *
+   *          key = "extra"
+   *          value = {"operatorType":""}  //operatorType：UNKNOW-未知；CM-移动；CU-联通；CT- 电信；CMHK-中国移动香港
    * */
   Future<Map<dynamic, dynamic>> checkVerifyEnable() async {
     print("$flutter_log" + "checkVerifyEnable");
@@ -307,7 +326,9 @@ class Jverify {
     String method = "getToken";
     var repeatError = isRepeatRequest(method: method);
     if (repeatError == null) {
-      var para = {"timeOut": timeOut};
+      var para = {
+        "timeOut": timeOut,
+      };
       para.remove((key, value) => value == null);
       var result = await _channel.invokeMethod(method, para);
       requestQueue.remove(method);
@@ -336,13 +357,12 @@ class Jverify {
    *        key = "code", vlaue = 状态码，7000代表获取成功
    *        key = "message", value = 结果信息描述
    * */
-  Future<Map<dynamic, dynamic>> preLogin({int timeOut = 10000}) async {
+  Future<Map<dynamic, dynamic>> preLogin({int timeOut = 10000, bool enableSms = false}) async {
     var para = new Map();
-    if (timeOut != null) {
-      if (timeOut >= 3000 && timeOut <= 10000) {
-        para["timeOut"] = timeOut;
-      }
+    if (timeOut >= 3000 && timeOut <= 10000) {
+      para["timeOut"] = timeOut;
     }
+    para["enableSms"] = enableSms;
     print("$flutter_log" + "preLogin" + "$para");
 
     String method = "preLogin";
@@ -354,6 +374,18 @@ class Jverify {
     } else {
       return repeatError;
     }
+  }
+
+  /*
+   * 获取 预取号缓存状态
+   *
+   * return Map
+   *          key = "result"
+   *          value = bool,是否有效
+   * */
+  Future<Map<dynamic, dynamic>> validPreloginCache() async {
+    print("$flutter_log" + "validPreloginCache");
+    return await _channel.invokeMethod("validPreloginCache");
   }
 
   /*
@@ -475,13 +507,14 @@ class Jverify {
   * @param timeout      设置超时时间，单位毫秒。 合法范围（0，10000],若小于等于 0 则取默认值 5000. 大于 10000 则取 10000
   *
   * 接口回调返回数据监听：通过添加 JVSMSListener 监听，来监听接口的返回结果
-  *
+  * pageEventCallback 事件监听 iOS only
   *
   * */
   void smsAuth(
       {required bool autoDismiss,
       int timeout = 5000,
-      JVSMSListener? smsCallback}) {
+      JVSMSListener? smsCallback,
+      JVAuthPageEventListener? pageEventCallback}) {
     print("$flutter_log" + "smsAuth");
 
     String method = "smsAuth";
@@ -496,6 +529,10 @@ class Jverify {
       if (smsCallback != null) {
         _eventHanders.smsCallBackEventsMap[_eventHanders.smsAuthIndex] =
             smsCallback;
+      }
+      if (pageEventCallback != null) {
+        _eventHanders.smsAuthPageEventsMap[_eventHanders.smsAuthIndex] =
+            pageEventCallback;
       }
       _channel.invokeMethod(method, map);
       requestQueue.remove(method);
@@ -591,6 +628,10 @@ class Jverify {
 *     Android   以屏幕左侧为 0 作为起点，往右侧则加，如果不传或者传 null，则默认屏幕居中
 * */
 class JVUIConfig {
+  ///语言
+  ///0.中文简体（默认） 1.中文繁体 目前只有中国移动香港支持 2.英文 目前只有中国移动香港支持
+  String? appLanguageType;
+
   /// 授权页背景图片
   String? authBackgroundImage;
   String? authBGGifPath; // 授权界面gif图片 only android
@@ -602,10 +643,14 @@ class JVUIConfig {
   String? navText;
   int? navTextColor;
   String? navReturnImgPath;
+  int? navReturnBtnOffsetX;
+  int? navReturnBtnOffsetY;
+
   bool navHidden = false;
   bool navReturnBtnHidden = false;
   bool navTransparent = false;
   bool? navTextBold;
+  bool? navBarDarkMode;//Android only
 
   /// logo
   int? logoWidth;
@@ -659,11 +704,14 @@ class JVUIConfig {
   /// 隐私协议栏
   String? uncheckedImgPath;
   String? checkedImgPath;
-  int? privacyCheckboxSize;
+  int? privacyCheckboxOffsetX; // 隐私同意框 左偏移
+  int? privacyCheckboxOffsetY; // 隐私同意框 上偏移
+  int? privacyCheckboxSize; //隐私同意框尺寸
   bool privacyHintToast = true; //设置隐私条款不选中时点击登录按钮默认弹出toast。
   bool privacyState = false; //设置隐私条款默认选中状态，默认不选中
   bool privacyCheckboxHidden = false; //设置隐私条款checkbox是否隐藏
   bool privacyCheckboxInCenter = false; //设置隐私条款checkbox是否相对协议文字纵向居中
+  bool openPrivacyInBrowser = false; /*隐私协议点击 是否用浏览器打开*/
 
   int? privacyOffsetY; // 隐私条款相对于授权页面底部下边缘 y 偏移
   int? privacyOffsetX; // 隐私条款相对于屏幕左边 x 轴偏移
@@ -702,6 +750,7 @@ class JVUIConfig {
   bool privacyStatusBarTransparent = false; //隐私页web页状态栏是否透明 only android
   bool privacyStatusBarHidden = false; //隐私页web页状态栏是否隐藏 only android
   bool privacyVirtualButtonTransparent = false; //隐私页web页虚拟按键背景是否透明 only android
+  int? privacyVirtualButtonColor; //设置隐私界面底部虚拟导航栏背景 only android
 
   ///授权页
   bool statusBarColorWithNav = false; //授权页状态栏是否跟导航栏同色 only android
@@ -709,6 +758,9 @@ class JVUIConfig {
   bool statusBarTransparent = false; //授权页栏状态栏是否透明 only android
   bool statusBarHidden = false; //授权页状态栏是否隐藏 only android
   bool virtualButtonTransparent = false; //授权页虚拟按键背景是否透明 only android
+  int? virtualButtonColor; //设置授权页底部虚拟导航栏背景 only android
+  bool? virtualButtonHidden; //设置授权页底部虚拟导航栏是否隐藏 only android
+
 
   JVIOSBarStyle authStatusBarStyle =
       JVIOSBarStyle.StatusBarStyleDefault; //授权页状态栏样式设置 only iOS
@@ -767,6 +819,7 @@ class JVUIConfig {
 
     return {
       "privacyItem": privacyItem != null ? json.encode(privacyItem) : null,
+      "appLanguageType": appLanguageType ??= null,
       "authBackgroundImage": authBackgroundImage ??= null,
       "authBGGifPath": authBGGifPath ??= null,
       "authBGVideoPath": authBGVideoPath ??= null,
@@ -775,7 +828,10 @@ class JVUIConfig {
       "navText": navText ??= null,
       "navTextColor": navTextColor ??= null,
       "navTextBold": navTextBold ??= null,
+      "navBarDarkMode": navBarDarkMode ??= null,
       "navReturnImgPath": navReturnImgPath ??= null,
+      "navReturnBtnOffsetX": navReturnBtnOffsetX ??= null,
+      "navReturnBtnOffsetY": navReturnBtnOffsetY ??= null,
       "navHidden": navHidden,
       "navReturnBtnHidden": navReturnBtnHidden,
       "navTransparent": navTransparent,
@@ -812,6 +868,8 @@ class JVUIConfig {
       "loginBtnUnableImage": loginBtnUnableImage ??= null,
       "uncheckedImgPath": uncheckedImgPath ??= null,
       "checkedImgPath": checkedImgPath ??= null,
+      "privacyCheckboxOffsetX": privacyCheckboxOffsetX ??= null,
+      "privacyCheckboxOffsetY": privacyCheckboxOffsetY ??= null,
       "privacyCheckboxSize": privacyCheckboxSize ??= null,
       "privacyHintToast": privacyHintToast,
       "privacyOffsetY": privacyOffsetY ??= null,
@@ -823,6 +881,7 @@ class JVUIConfig {
       "privacyTextBold": privacyTextBold ??= null,
       "privacyUnderlineText": privacyUnderlineText ??= null,
       "isAlertPrivacyVc": isAlertPrivacyVc ??= null,
+      "openPrivacyInBrowser": openPrivacyInBrowser,
       "clauseName": clauseName ??= null,
       "clauseUrl": clauseUrl ??= null,
       "clauseBaseColor": clauseBaseColor ??= null,
@@ -858,11 +917,15 @@ class JVUIConfig {
       "privacyStatusBarTransparent": privacyStatusBarTransparent,
       "privacyStatusBarHidden": privacyStatusBarHidden,
       "privacyVirtualButtonTransparent": privacyVirtualButtonTransparent,
+      "privacyVirtualButtonColor": privacyVirtualButtonColor,
       "statusBarColorWithNav": statusBarColorWithNav,
       "statusBarDarkMode": statusBarDarkMode,
       "statusBarTransparent": statusBarTransparent,
       "statusBarHidden": statusBarHidden,
       "virtualButtonTransparent": virtualButtonTransparent,
+      "virtualButtonHidden": virtualButtonHidden,
+      "virtualButtonColor": virtualButtonColor,
+
       "authStatusBarStyle": getStringFromEnum(authStatusBarStyle),
       "privacyStatusBarStyle": getStringFromEnum(privacyStatusBarStyle),
       "modelTransitionStyle": getStringFromEnum(modelTransitionStyle),
@@ -956,6 +1019,10 @@ class JVPrivacyCheckDialogConfig {
   int? titleTextColor; // 弹窗标题字体颜色
   String? contentTextGravity; //协议⼆次弹窗协议内容对⻬⽅式
   int? contentTextSize; //协议⼆次弹窗协议内容字体⼤⼩
+  int? contentTextPaddingL; //协议二次弹窗协议内容左边距
+  int? contentTextPaddingT; //协议二次弹窗协议内容上边距
+  int? contentTextPaddingR; //协议二次弹窗协议内容右边距
+  int? contentTextPaddingB; //协议二次弹窗协议内容下边距
   String? gravity; //弹窗对齐方式
   bool? enablePrivacyCheckDialog;
   List<JVCustomWidget>? widgets;
@@ -998,6 +1065,10 @@ class JVPrivacyCheckDialogConfig {
       "titleTextColor": titleTextColor,
       "contentTextGravity": contentTextGravity,
       "contentTextSize": contentTextSize,
+      "contentTextPaddingL": contentTextPaddingL,
+      "contentTextPaddingT": contentTextPaddingT,
+      "contentTextPaddingR": contentTextPaddingR,
+      "contentTextPaddingB": contentTextPaddingB,
       "enablePrivacyCheckDialog": enablePrivacyCheckDialog,
       "widgets": widgetList,
       "logBtnText": logBtnText,
@@ -1114,8 +1185,10 @@ class JVSMSUIConfig {
   int? smsPrivacyMarginR; //设置协议相对于登录页右边的间距 only android
   int? smsPrivacyMarginT; //设置协议相对于登录页顶部的间距 only android
   int? smsPrivacyMarginB; //设置协议相对于登录页底部的间距 only android
+
   int? smsPrivacyCheckboxSize; //设置隐私条款 checkbox 尺寸
-  int? smsPrivacyCheckboxOffsetX; //设置隐私条款 checkbox 相对于屏幕左边 x 轴偏移 only iOS
+  int? smsPrivacyCheckboxOffsetX; //设置隐私条款 checkbox 相对于屏幕左边 x 轴偏移
+  int? smsPrivacyCheckboxOffsetY; //设置隐私条款 checkbox 相对于屏幕 y 轴偏移
   bool? isSmsPrivacyCheckboxInCenter; //设置隐私条款 checkbox 是否相对协议文字纵向居中
   bool? smsPrivacyCheckboxState; //设置隐私条款 checkbox 默认状态 : 是否选择 默认:NO
   List<int>? smsPrivacyCheckboxMargin; //设置协议相对于登录页的间距 only android
@@ -1242,6 +1315,7 @@ class JVSMSUIConfig {
       "smsPrivacyMarginB": smsPrivacyMarginB ??= null,
       "smsPrivacyCheckboxSize": smsPrivacyCheckboxSize ??= null,
       "smsPrivacyCheckboxOffsetX": smsPrivacyCheckboxOffsetX ??= null,
+      "smsPrivacyCheckboxOffsetY": smsPrivacyCheckboxOffsetY ??= null,
       "isSmsPrivacyCheckboxInCenter": isSmsPrivacyCheckboxInCenter ??= null,
       "smsPrivacyCheckboxState": smsPrivacyCheckboxState ??= null,
       "smsPrivacyCheckboxMargin": smsPrivacyCheckboxMargin ??= null,

@@ -61,6 +61,8 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
     /// 统一 key
     private static String j_result_key = "result";
+    ///额外返回数据
+    private static String j_extra_key = "extra";
     /// 错误码
     private static String j_code_key = "code";
     /// 回调的提示信息，统一返回 flutter 为 message
@@ -114,7 +116,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             verifyNumber(call, result);
         } else if (call.method.equals("preLogin")) {
             preLogin(call, result);
-        } else if (call.method.equals("loginAuth")) {
+        } else if (call.method.equals("validPreloginCache")) {
+            validPreloginCache(call, result);
+        }  else if (call.method.equals("loginAuth")) {
             loginAuth(call, result);
         } else if (call.method.equals("loginAuthSyncApi")) {
             loginAuthSyncApi(call, result);
@@ -290,9 +294,13 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (!verifyEnable) {
             Log.d(TAG, "当前网络环境不支持");
         }
+        String ot = JVerificationInterface.operatorType(context);
 
         Map<String, Object> map = new HashMap<>();
         map.put(j_result_key, verifyEnable);
+        Map<String, Object> emap = new HashMap<>();
+        emap.put("operatorType", ot);
+        map.put(j_extra_key, emap);
         runMainThread(map, result, null);
 
         return verifyEnable;
@@ -353,8 +361,13 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (call.hasArgument("timeOut")) {
             timeOut = call.argument("timeOut");
         }
+        Object enableSMSService =  getValueByKey(call, "enableSms");
+        boolean enableSMS = false;
+        if (enableSMSService != null) {
+            enableSMS = (Boolean)enableSMSService;
+        }
 
-        JVerificationInterface.preLogin(context, timeOut, new PreLoginListener() {
+        JVerificationInterface.preLogin(enableSMS, context, timeOut, new PreLoginListener() {
             @Override
             public void onResult(final int code, final String content, final JSONObject operatorReturn) {
 
@@ -370,6 +383,21 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 runMainThread(map, result, null);
             }
         });
+    }
+
+
+    /**
+     * 获取 SDK 初始化是否成功标识
+     */
+    private boolean validPreloginCache(MethodCall call, Result result) {
+        Log.d(TAG, "Action - validPreloginCache:");
+        boolean isValid = JVerificationInterface.isValidePreloginCache(context);
+
+        Map<String, Object> map = new HashMap<>();
+        map.put(j_result_key, isValid);
+        runMainThread(map, result, null);
+
+        return isValid;
     }
 
 
@@ -598,7 +626,12 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object navText = valueForKey(uiconfig, "navText");
         Object navTextColor = valueForKey(uiconfig, "navTextColor");
         Object navTextBold = valueForKey(uiconfig, "navTextBold");
+        Object navBarDarkMode = valueForKey(uiconfig, "navBarDarkMode");
+
         Object navReturnImgPath = valueForKey(uiconfig, "navReturnImgPath");
+        Object navReturnBtnOffsetX = valueForKey(uiconfig, "navReturnBtnOffsetX");
+        Object navReturnBtnOffsetY = valueForKey(uiconfig, "navReturnBtnOffsetY");
+
         Object navHidden = valueForKey(uiconfig, "navHidden");
         Object navReturnBtnHidden = valueForKey(uiconfig, "navReturnBtnHidden");
         Object navTransparent = valueForKey(uiconfig, "navTransparent");
@@ -635,6 +668,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object uncheckedImgPath = valueForKey(uiconfig, "uncheckedImgPath");
         Object checkedImgPath = valueForKey(uiconfig, "checkedImgPath");
 
+        Object openPrivacyInBrowser = valueForKey(uiconfig, "openPrivacyInBrowser");
         Object privacyTopOffsetY = valueForKey(uiconfig, "privacyTopOffsetY");
         Object privacyOffsetY = valueForKey(uiconfig, "privacyOffsetY");
         Object privacyOffsetX = valueForKey(uiconfig, "privacyOffsetX");
@@ -650,6 +684,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object privacyTextBold = valueForKey(uiconfig, "privacyTextBold");
         Object privacyCheckboxHidden = valueForKey(uiconfig, "privacyCheckboxHidden");
         Object privacyCheckboxSize = valueForKey(uiconfig, "privacyCheckboxSize");
+        Object privacyCheckboxOffsetX = valueForKey(uiconfig, "privacyCheckboxOffsetX");
+        Object privacyCheckboxOffsetY = valueForKey(uiconfig, "privacyCheckboxOffsetY");
+
         Object privacyWithBookTitleMark = valueForKey(uiconfig, "privacyWithBookTitleMark");
         Object privacyCheckboxInCenter = valueForKey(uiconfig, "privacyCheckboxInCenter");
         Object privacyState = valueForKey(uiconfig, "privacyState");
@@ -676,12 +713,16 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object statusBarTransparent = valueForKey(uiconfig, "statusBarTransparent");
         Object statusBarHidden = valueForKey(uiconfig, "statusBarHidden");
         Object virtualButtonTransparent = valueForKey(uiconfig, "virtualButtonTransparent");
+        Object virtualButtonHidden = valueForKey(uiconfig, "virtualButtonHidden");
+        Object virtualButtonColor = valueForKey(uiconfig, "virtualButtonColor");
 
         Object privacyStatusBarColorWithNav = valueForKey(uiconfig, "privacyStatusBarColorWithNav");
         Object privacyStatusBarDarkMode = valueForKey(uiconfig, "privacyStatusBarDarkMode");
         Object privacyStatusBarTransparent = valueForKey(uiconfig, "privacyStatusBarTransparent");
         Object privacyStatusBarHidden = valueForKey(uiconfig, "privacyStatusBarHidden");
         Object privacyVirtualButtonTransparent = valueForKey(uiconfig, "privacyVirtualButtonTransparent");
+        Object privacyVirtualButtonColor = valueForKey(uiconfig, "privacyVirtualButtonColor");
+
 
         Object needStartAnim = valueForKey(uiconfig, "needStartAnim");
         Object needCloseAnim = valueForKey(uiconfig, "needCloseAnim");
@@ -694,6 +735,12 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
         Object setIsPrivacyViewDarkMode = valueForKey(uiconfig, "setIsPrivacyViewDarkMode");
 
+        Object appLanguageType = valueForKey(uiconfig, "appLanguageType");
+
+        /************* 语言 ***************/
+        if (appLanguageType != null) {
+            builder.setAppLanguageType(Integer.parseInt((String)appLanguageType));
+        }
 
         /************* 状态栏 ***************/
         if (statusBarColorWithNav != null) {
@@ -716,6 +763,14 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             builder.setVirtualButtonTransparent((Boolean) virtualButtonTransparent);
         }
 
+        if (virtualButtonHidden != null) {
+            builder.setVirtualButtonHidden((Boolean) virtualButtonHidden);
+        }
+
+        if (virtualButtonColor != null) {
+            builder.setVirtualButtonColor(exchangeObject(virtualButtonColor));
+        }
+
         /************** web页 ***************/
         if (privacyStatusBarColorWithNav != null) {
             builder.setPrivacyStatusBarColorWithNav((Boolean) privacyStatusBarColorWithNav);
@@ -735,6 +790,10 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
 
         if (privacyVirtualButtonTransparent != null) {
             builder.setPrivacyVirtualButtonTransparent((Boolean) privacyVirtualButtonTransparent);
+        }
+
+        if (privacyVirtualButtonColor != null) {
+            builder.setPrivacyVirtualButtonColor(exchangeObject(privacyVirtualButtonColor));
         }
 
         /************** 动画支持 ***************/
@@ -799,8 +858,17 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (navTextBold != null) {
             builder.setNavTextBold((Boolean) navTextBold);
         }
+        if (navBarDarkMode != null) {
+            builder.setNavBarDarkMode((Boolean) navBarDarkMode);
+        }
         if (navReturnImgPath != null) {
             builder.setNavReturnImgPath((String) navReturnImgPath);
+        }
+        if (navReturnBtnOffsetX != null) {
+            builder.setNavReturnBtnOffsetX((Integer) navReturnBtnOffsetX);
+        }
+        if (navReturnBtnOffsetY != null) {
+            builder.setNavReturnBtnOffsetY((Integer) navReturnBtnOffsetY);
         }
 
         /************** logo ***************/
@@ -921,6 +989,12 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (privacyCheckboxSize != null) {
             builder.setPrivacyCheckboxSize((Integer) privacyCheckboxSize);
         }
+        builder.setPrivacyCheckboxMargin(
+                privacyCheckboxOffsetX !=null ? (Integer)privacyCheckboxOffsetX : 3,
+                privacyCheckboxOffsetY !=null ? (Integer)privacyCheckboxOffsetY : 3,
+                3,3);
+
+
         if (uncheckedImgPath != null) {
             int res_id = getResourceByReflect((String) uncheckedImgPath);
             if (res_id > 0) {
@@ -935,9 +1009,13 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         }
 
         /************** privacy ***************/
+        if (openPrivacyInBrowser != null) {
+            //设置隐私协议打开模式
+            builder.setOpenPrivacyInBrowser((Boolean) openPrivacyInBrowser);
+        }
         if (privacyOffsetY != null) {
             //设置隐私条款相对于授权页面底部下边缘y偏移
-            builder.setPrivacyOffsetY((Integer) privacyOffsetY);
+            builder.setPrivacyMarginB((Integer) privacyOffsetY);
         } else {
             if (privacyTopOffsetY != null) {
                 //设置隐私条款相对导航栏下端y轴偏移。since 2.4.8
@@ -945,7 +1023,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             }
         }
         if (privacyOffsetX != null) {
-            builder.setPrivacyOffsetX((Integer) privacyOffsetX);
+            builder.setPrivacyMarginL((Integer) privacyOffsetX);
         }
         if (privacyCheckboxSize != null) {
             builder.setPrivacyCheckboxSize((Integer) privacyCheckboxSize);
@@ -1102,12 +1180,29 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 if(titleTextColor != null){
                     builder.setPrivacyCheckDialogTitleTextColor(exchangeObject(titleTextColor));
                 }
-                Object gravity_privacyCheckDialog = valueForKey(privacyCheckDialogConfigMap, "gravity");
+                Object gravity_privacyCheckDialog = valueForKey(privacyCheckDialogConfigMap, "contentTextGravity");
                 if(gravity_privacyCheckDialog != null){
                     builder.setPrivacyCheckDialogContentTextGravity(getAlignmentFromString((String) gravity_privacyCheckDialog));
                 }
                 if(contentTextSize != null){
                     builder.setPrivacyCheckDialogContentTextSize(exchangeObject(contentTextSize));
+                }
+
+                Object contentTextPaddingL = valueForKey(privacyCheckDialogConfigMap, "contentTextPaddingL");
+                Object contentTextPaddingT = valueForKey(privacyCheckDialogConfigMap, "contentTextPaddingT");
+                Object contentTextPaddingR = valueForKey(privacyCheckDialogConfigMap, "contentTextPaddingR");
+                Object contentTextPaddingB = valueForKey(privacyCheckDialogConfigMap, "contentTextPaddingB");
+                if(contentTextPaddingL !=null) {
+                    builder.setPrivacyCheckDialogContentTextPaddingL((int) contentTextPaddingL);
+                }
+                if(contentTextPaddingT !=null) {
+                    builder.setPrivacyCheckDialogContentTextPaddingT((int) contentTextPaddingT);
+                }
+                if(contentTextPaddingR !=null) {
+                    builder.setPrivacyCheckDialogContentTextPaddingR((int) contentTextPaddingR);
+                }
+                if(contentTextPaddingB !=null) {
+                    builder.setPrivacyCheckDialogContentTextPaddingB((int) contentTextPaddingB);
                 }
 
                 Object dialogLoginBtnText = valueForKey(privacyCheckDialogConfigMap, "logBtnText");
@@ -1197,7 +1292,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             Map smsUIConfigMap = (Map) smsUIConfig;
             Object enableSMSService = valueForKey(smsUIConfigMap, "enableSMSService");
             if (enableSMSService != null && (Boolean) enableSMSService) {
-
+                builder.enableSMSService(true);
                 Object smsNavText = valueForKey(smsUIConfigMap, "smsNavText");
                 Object smsSloganTextSize = valueForKey(smsUIConfigMap, "smsSloganTextSize");
                 Object isSmsSloganHidden = valueForKey(smsUIConfigMap, "isSmsSloganHidden");
@@ -1405,6 +1500,8 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 Object smsPrivacyMarginT = valueForKey(smsUIConfigMap, "smsPrivacyMarginT");
                 Object smsPrivacyMarginB = valueForKey(smsUIConfigMap, "smsPrivacyMarginB");
                 Object smsPrivacyCheckboxSize = valueForKey(smsUIConfigMap, "smsPrivacyCheckboxSize");
+                Object smsPrivacyCheckboxOffsetX = valueForKey(smsUIConfigMap, "smsPrivacyCheckboxOffsetX");
+                Object smsPrivacyCheckboxOffsetY = valueForKey(smsUIConfigMap, "smsPrivacyCheckboxOffsetY");
                 Object isSmsPrivacyCheckboxInCenter = valueForKey(smsUIConfigMap, "isSmsPrivacyCheckboxInCenter");
                 Object smsPrivacyCheckboxMargin = valueForKey(smsUIConfigMap, "smsPrivacyCheckboxMargin");
                 Object smsPrivacyBeanList = valueForKey(smsUIConfigMap, "smsPrivacyBeanList");
@@ -1498,6 +1595,13 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                 if(smsPrivacyCheckboxSize !=null){
                     builder.setSmsPrivacyCheckboxSize((Integer) smsPrivacyCheckboxSize);
                 }
+
+                int [] smscbmargin = {
+                        smsPrivacyCheckboxOffsetX !=null ? (Integer)smsPrivacyCheckboxOffsetX : 3,
+                        smsPrivacyCheckboxOffsetY !=null ? (Integer)smsPrivacyCheckboxOffsetY : 3,
+                        3,3};
+                builder.setSmsPrivacyCheckboxMargin(smscbmargin);
+
                 if(isSmsPrivacyCheckboxInCenter !=null){
                     builder.isSmsPrivacyCheckboxInCenter((Boolean) isSmsPrivacyCheckboxInCenter);
                 }
@@ -1654,8 +1758,17 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
                     runMainThread(jsonMap, null, "onReceiveClickWidgetEvent");
                 }
             });
+
         } else {
             builder.addCustomView(customView, false, new JVerifyUIClickCallback() {
+                @Override
+                public void onClicked(Context context, View view) {
+                    Log.d(TAG, "onClicked text widget.");
+                    channel.invokeMethod("onReceiveClickWidgetEvent", jsonMap);
+                }
+            });
+
+            builder.addSmsCustomView(customView, false, new JVerifyUIClickCallback() {
                 @Override
                 public void onClicked(Context context, View view) {
                     Log.d(TAG, "onClicked text widget.");
