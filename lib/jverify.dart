@@ -634,7 +634,7 @@ class JVUIConfig {
 
   /// 授权页背景图片
   String? authBackgroundImage;
-  String? authBGGifPath; // 授权界面gif图片 only android
+  String? authBGGifPath; // 授权界面gif图片
   String? authBGVideoPath; // 授权界面video
   String? authBGVideoImgPath; // 授权界面video的第一频图片
 

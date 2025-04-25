@@ -498,6 +498,7 @@ class _MyAppState extends State<MyApp> {
         privacyCheckDialogConfig.logBtnWidth = 140;
         privacyCheckDialogConfig.logBtnHeight = 40;
         privacyCheckDialogConfig.contentTextPaddingL = 10;
+        privacyCheckDialogConfig.privacyBackgroundColor = Colors.red.value;
 
         /// 添加自定义的 控件 到dialog
         List<JVCustomWidget> dialogWidgetList = [];
