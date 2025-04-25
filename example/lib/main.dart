@@ -538,6 +538,8 @@ class _MyAppState extends State<MyApp> {
         smsConfig.smsPrivacyClauseStart = "开头";
         smsConfig.smsPrivacyClauseEnd = "结尾";
         smsConfig.enableSMSService = true;
+        smsConfig.smsPrivacyOffsetY = 50;
+        smsConfig.smsPrivacyOffsetX = 20;
         uiConfig.smsUIConfig = smsConfig;
 
         uiConfig.setIsPrivacyViewDarkMode = false; //协议页面是否支持暗黑模式

@@ -1,3 +1,7 @@
+## 3.0.6
++ 更新：Android 升级到3.4.0版本
++ 新增：同步iOS&Andoid UI配置至最新版
++ 更新：iOS 升级到3.2.7版本
 ## 3.0.4
 + 优化：修复iOS privacyNavTitleTextSize 字段对自定义协议隐私协议页面不生效的问题
 ## 3.0.3
