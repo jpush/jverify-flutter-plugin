@@ -13,7 +13,7 @@ typedef JVAuthPageEventListener = void Function(JVAuthPageEvent event);
 /**
  * 一键登录接口的回调监听
  *
- * @param event
+ * @param event 
  *          code     ：返回码，6000 代表loginToken获取成功，6001 代表loginToken获取失败，其他返回码详见描述
  *          message  ：返回码的解释信息，若获取成功，内容信息代表loginToken。
  *          operator ：成功时为对应运营商，CM代表中国移动，CU代表中国联通，CT代表中国电信。失败时可能为 null
@@ -629,7 +629,7 @@ class Jverify {
 * */
 class JVUIConfig {
   ///语言
-  ///0.中文简体（默认） 1.中文繁体 目前只有中国移动香港支持 2.英文 目前只有中国移动香港支持
+  ///0.中文简体（默认） 1.中文繁体 2.英文
   String? appLanguageType;
 
   /// 授权页背景图片
@@ -727,7 +727,7 @@ class JVUIConfig {
   List<JVPrivacy>? privacyItem;
   bool privacyWithBookTitleMark = true; //设置隐私条款运营商协议名是否加书名号
   bool privacyTextCenterGravity = false; //隐私条款文字是否居中对齐（默认左对齐）
-  int? textVerAlignment = 1; //设置条款文字是否垂直居中对齐(默认居中对齐) 0是top 1是m 2是b
+  int? textVerAlignment = 1; //设置条款文字是否垂直居中对齐(默认居中对齐) 0是top 1是m 2是b  only ios
   int? privacyTopOffsetY;
   bool? privacyTextBold;
   bool? privacyUnderlineText; //设置隐私条款文字字体是否加下划线
