@@ -1,3 +1,7 @@
+## 3.0.8
++ 优化：增加iOS UI属性agreementAlertViewShowWindow
+## 3.0.7
++  优化：Android 使用jcore暂时固定使用4.9.1
 ## 3.0.6
 + 更新：Android 升级到3.4.0版本
 + 新增：同步iOS&Andoid UI配置至最新版

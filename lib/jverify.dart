@@ -800,8 +800,9 @@ class JVUIConfig {
   List<JVCustomWidget>? agreementAlertViewWidgets; //协议二次弹窗自定义视图
   Map<String, List<int>>?
       agreementAlertViewUIFrames; // 协议二次弹窗各控件的frame设置 { "superViewFrame": [left, top, width, height],"alertViewFrame": [left, top, width, height],"titleFrame": [left, top, width, height],"contentFrame": [left, top, width, height],"buttonFrame": [left, top, width, height]};
-
   bool setIsPrivacyViewDarkMode = true; //协议页面是否支持暗黑模式
+  /// 是否在 window 中间显示协议弹窗
+  bool agreementAlertViewShowWindow = true;
 
   /// sms UI
   JVSMSUIConfig? smsUIConfig;
@@ -965,7 +966,8 @@ class JVUIConfig {
           ? privacyCheckDialogConfig?.toJsonMap()
           : null,
       "setIsPrivacyViewDarkMode": setIsPrivacyViewDarkMode,
-      "smsUIConfig": smsUIConfig != null ? smsUIConfig?.toJsonMap() : null
+      "smsUIConfig": smsUIConfig != null ? smsUIConfig?.toJsonMap() : null,
+      "agreementAlertViewShowWindow": agreementAlertViewShowWindow,
     }..removeWhere((key, value) => value == null);
   }
 }

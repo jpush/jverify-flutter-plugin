@@ -817,7 +817,11 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     //隐私弹窗
     BOOL isAlertPrivacyVc = [[self getValue:config key:@"isAlertPrivacyVc"] boolValue];
     uiconfig.isAlertPrivacyVC = isAlertPrivacyVc;
-    uiconfig.agreementAlertViewShowWindow = YES;
+    
+    // 是否在window上显示协议弹窗
+    BOOL agreementAlertViewShowWindow = [[self getValue:config key:@"agreementAlertViewShowWindow"] boolValue];
+    uiconfig.agreementAlertViewShowWindow = agreementAlertViewShowWindow;
+    uiconfig.smsAgreementAlertViewShowWindow = agreementAlertViewShowWindow;
     
     //自定义协议
     NSString *tempSting = @"";
@@ -1708,9 +1712,7 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     /************** 协议二次弹窗样式 先用一键登录页面的二次弹窗设置设置 ***************/
     BOOL isAlertPrivacyVc = [[self getValue:config key:@"isAlertPrivacyVc"] boolValue];
     uiConfig.isSmsAlertPrivacyVC = isAlertPrivacyVc;
-    
-    uiConfig.smsAgreementAlertViewShowWindow = YES;
-    
+        
     NSString *agreementAlertViewTitleText = [self getValue:config key:@"agreementAlertViewTitleText"];
     uiConfig.smsAgreementAlertViewTitleText = agreementAlertViewTitleText;
     
