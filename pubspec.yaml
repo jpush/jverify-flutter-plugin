@@ -1,8 +1,8 @@
 name: jverify
 description: JIGUANG Official Jverifycation SDK flutter plugin project.
-version: 3.0.8
+version: 3.0.9
 homepage: https://www.jiguang.cn
-
+#flutter pub publish --server=https://pub.dartlang.org
 environment:
   sdk: '>=3.0.3 <4.0.0'
   flutter: ">=1.20.0"
