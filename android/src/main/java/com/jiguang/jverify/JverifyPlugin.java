@@ -471,7 +471,7 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             }
         };
 
-        if (enableSMSService != null) {
+        if (enableSMSService != null && (Boolean)enableSMSService) {
             JVerificationInterface.loginAuth((Boolean)enableSMSService, context, (Boolean) autoFinish, listener, eventListener);
         } else {
             LoginSettings settings = new LoginSettings();
@@ -672,6 +672,9 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object privacyTopOffsetY = valueForKey(uiconfig, "privacyTopOffsetY");
         Object privacyOffsetY = valueForKey(uiconfig, "privacyOffsetY");
         Object privacyOffsetX = valueForKey(uiconfig, "privacyOffsetX");
+
+        Object privacyMarginT = valueForKey(uiconfig, "privacyMarginT");
+        Object privacyMarginR = valueForKey(uiconfig, "privacyMarginR");
 //        Object CLAUSE_NAME = valueForKey(uiconfig, "clauseName");
 //        Object CLAUSE_URL = valueForKey(uiconfig, "clauseUrl");
         Object CLAUSE_BASE_COLOR = valueForKey(uiconfig, "clauseBaseColor");
@@ -1025,6 +1028,14 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         if (privacyOffsetX != null) {
             builder.setPrivacyMarginL((Integer) privacyOffsetX);
         }
+
+        if (privacyMarginR != null) {
+            builder.setPrivacyMarginR((Integer) privacyMarginR);
+        }
+        if (privacyMarginT != null) {
+            builder.setPrivacyMarginT((Integer) privacyMarginT);
+        }
+
         if (privacyCheckboxSize != null) {
             builder.setPrivacyCheckboxSize((Integer) privacyCheckboxSize);
         }

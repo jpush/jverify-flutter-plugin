@@ -697,9 +697,9 @@ class JVUIConfig {
   int? logBtnTextColor;
   bool? logBtnTextBold;
   String? logBtnBackgroundPath;
-  String? loginBtnNormalImage; // only ios
-  String? loginBtnPressedImage; // only ios
-  String? loginBtnUnableImage; // only ios
+  String? loginBtnNormalImage; // ios only
+  String? loginBtnPressedImage; // ios only
+  String? loginBtnUnableImage; // ios only
 
   /// 隐私协议栏
   String? uncheckedImgPath;
@@ -715,6 +715,10 @@ class JVUIConfig {
 
   int? privacyOffsetY; // 隐私条款相对于授权页面底部下边缘 y 偏移
   int? privacyOffsetX; // 隐私条款相对于屏幕左边 x 轴偏移
+
+  int? privacyMarginR; // 设置协议相对于授权页右边的间距 android only
+  int? privacyMarginT; // 设置协议相对于授权页顶部的间距 android only
+
   JVIOSLayoutItem privacyVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
   String? clauseName; // 协议1 名字
   String? clauseUrl; // 协议1 URL
@@ -727,7 +731,7 @@ class JVUIConfig {
   List<JVPrivacy>? privacyItem;
   bool privacyWithBookTitleMark = true; //设置隐私条款运营商协议名是否加书名号
   bool privacyTextCenterGravity = false; //隐私条款文字是否居中对齐（默认左对齐）
-  int? textVerAlignment = 1; //设置条款文字是否垂直居中对齐(默认居中对齐) 0是top 1是m 2是b  only ios
+  int? textVerAlignment = 1; //设置条款文字是否垂直居中对齐(默认居中对齐) 0是top 1是m 2是b  ios only
   int? privacyTopOffsetY;
   bool? privacyTextBold;
   bool? privacyUnderlineText; //设置隐私条款文字字体是否加下划线
@@ -738,38 +742,38 @@ class JVUIConfig {
   int? privacyNavTitleTextColor; // 标题颜色
   int? privacyNavTitleTextSize; // 标题大小
   bool? privacyNavTitleTextBold; // 标题字体加粗
-  String? privacyNavTitleTitle; //协议0 web页面导航栏标题 only ios
+  String? privacyNavTitleTitle; //协议0 web页面导航栏标题 ios only
   String? privacyNavTitleTitle1; // 协议1 web页面导航栏标题
   String? privacyNavTitleTitle2; // 协议2 web页面导航栏标题
   String? privacyNavReturnBtnImage;
-  JVIOSBarStyle? privacyStatusBarStyle; //隐私协议web页 状态栏样式设置 only iOS
+  JVIOSBarStyle? privacyStatusBarStyle; //隐私协议web页 状态栏样式设置 ios only
 
   ///隐私页
-  bool privacyStatusBarColorWithNav = false; //隐私页web状态栏是否与导航栏同色 only android
-  bool privacyStatusBarDarkMode = false; //隐私页web状态栏是否暗色 only android
-  bool privacyStatusBarTransparent = false; //隐私页web页状态栏是否透明 only android
-  bool privacyStatusBarHidden = false; //隐私页web页状态栏是否隐藏 only android
-  bool privacyVirtualButtonTransparent = false; //隐私页web页虚拟按键背景是否透明 only android
-  int? privacyVirtualButtonColor; //设置隐私界面底部虚拟导航栏背景 only android
+  bool privacyStatusBarColorWithNav = false; //隐私页web状态栏是否与导航栏同色 android only
+  bool privacyStatusBarDarkMode = false; //隐私页web状态栏是否暗色 android only
+  bool privacyStatusBarTransparent = false; //隐私页web页状态栏是否透明 android only
+  bool privacyStatusBarHidden = false; //隐私页web页状态栏是否隐藏 android only
+  bool privacyVirtualButtonTransparent = false; //隐私页web页虚拟按键背景是否透明 android only
+  int? privacyVirtualButtonColor; //设置隐私界面底部虚拟导航栏背景 android only
 
   ///授权页
-  bool statusBarColorWithNav = false; //授权页状态栏是否跟导航栏同色 only android
-  bool statusBarDarkMode = false; //授权页状态栏是否为暗色 only android
-  bool statusBarTransparent = false; //授权页栏状态栏是否透明 only android
-  bool statusBarHidden = false; //授权页状态栏是否隐藏 only android
-  bool virtualButtonTransparent = false; //授权页虚拟按键背景是否透明 only android
-  int? virtualButtonColor; //设置授权页底部虚拟导航栏背景 only android
-  bool? virtualButtonHidden; //设置授权页底部虚拟导航栏是否隐藏 only android
+  bool statusBarColorWithNav = false; //授权页状态栏是否跟导航栏同色 android only
+  bool statusBarDarkMode = false; //授权页状态栏是否为暗色 android only
+  bool statusBarTransparent = false; //授权页栏状态栏是否透明 android only
+  bool statusBarHidden = false; //授权页状态栏是否隐藏 android only
+  bool virtualButtonTransparent = false; //授权页虚拟按键背景是否透明 android only
+  int? virtualButtonColor; //设置授权页底部虚拟导航栏背景 android only
+  bool? virtualButtonHidden; //设置授权页底部虚拟导航栏是否隐藏 android only
 
 
   JVIOSBarStyle authStatusBarStyle =
-      JVIOSBarStyle.StatusBarStyleDefault; //授权页状态栏样式设置 only iOS
+      JVIOSBarStyle.StatusBarStyleDefault; //授权页状态栏样式设置 ios only
 
   ///是否需要动画
   bool needStartAnim = false; //设置拉起授权页时是否需要显示默认动画
   bool needCloseAnim = false; //设置关闭授权页时是否需要显示默认动画
-  String? enterAnim; // 拉起授权页时进入动画 only android
-  String? exitAnim; // 退出授权页时动画 only android
+  String? enterAnim; // 拉起授权页时进入动画 android only
+  String? exitAnim; // 退出授权页时动画 android only
 
   /// 授权页弹窗模式 配置，选填
   JVPopViewConfig? popViewConfig;
@@ -777,7 +781,7 @@ class JVUIConfig {
   /// Android协议二次弹窗配置，选填
   JVPrivacyCheckDialogConfig? privacyCheckDialogConfig;
 
-  JVIOSUIModalTransitionStyle modelTransitionStyle = //弹出方式 only ios
+  JVIOSUIModalTransitionStyle modelTransitionStyle = //弹出方式 ios only
       JVIOSUIModalTransitionStyle.CoverVertical;
 
   /// 协议二次弹窗-iOS
@@ -982,11 +986,11 @@ class JVPopViewConfig {
   int? height;
   int offsetCenterX = 0; // 窗口相对屏幕中心的x轴偏移量
   int offsetCenterY = 0; // 窗口相对屏幕中心的y轴偏移量
-  bool isBottom = false; // only Android，窗口是否居屏幕底部。设置后 offsetCenterY 将失效，
+  bool isBottom = false; // android only，窗口是否居屏幕底部。设置后 offsetCenterY 将失效，
   double popViewCornerRadius =
-      5.0; // only ios，弹窗圆角大小，Android 从 AndroidManifest 配置中读取
+      5.0; // ios only，弹窗圆角大小，Android 从 AndroidManifest 配置中读取
   double backgroundAlpha =
-      0.3; // only ios，背景的透明度，Android 从 AndroidManifest 配置中读取
+      0.3; // ios only，背景的透明度，Android 从 AndroidManifest 配置中读取
 
   bool? isPopViewTheme; // 是否支持弹窗模式
   JVPopViewConfig() {
@@ -1095,17 +1099,17 @@ class JVPrivacyCheckDialogConfig {
 class JVSMSUIConfig {
   String? smsAuthPageBackgroundImagePath; // 登录界面背景图片
   String? smsNavText; //导航栏标题文字
-  int? smsNavTextColor; //导航栏标题颜色 only iOS
-  bool? smsNavTextBold; // 导航栏标题 是否加粗 only iOS
-  int? smsNavTextSize; //导航栏标题大小 only iOS
+  int? smsNavTextColor; //导航栏标题颜色 ios only
+  bool? smsNavTextBold; // 导航栏标题 是否加粗 ios only
+  int? smsNavTextSize; //导航栏标题大小 ios only
   int? smsSloganTextSize; //设置 slogan 字体大小
-  bool? isSmsSloganHidden; //设置 slogan 字体是否隐藏  only android
-  bool? isSmsSloganTextBold; //设置 slogan 字体是否加粗 only android
+  bool? isSmsSloganHidden; //设置 slogan 字体是否隐藏  android only
+  bool? isSmsSloganTextBold; //设置 slogan 字体是否加粗 android only
   int? smsSloganOffsetX; //设置 slogan 相对于屏幕左边 x 轴偏移
   int? smsSloganOffsetY; //设置 slogan 相对于标题栏下边缘 y 偏移
   int? smsSloganOffsetBottomY; //设置 slogan 相对于屏幕底部下边缘 y 轴偏移
-  int? smsSloganWidth; //设置 slogan 宽度  only iOS
-  int? smsSloganHeight; //设置 slogan 高度 only iOS
+  int? smsSloganWidth; //设置 slogan 宽度  ios only
+  int? smsSloganHeight; //设置 slogan 高度 ios only
   int? smsSloganTextColor; //设置移动 slogan 文字颜色
   int? smsLogoWidth; //设置 logo 宽度（单位：dp）
   int? smsLogoHeight; //设置 logo 高度（单位：dp）
@@ -1114,44 +1118,44 @@ class JVSMSUIConfig {
   int? smsLogoOffsetBottomY; //	设置 logo 相对于屏幕底部 y 轴偏移
   bool? isSmsLogoHidden; //隐藏 logo
   String? smsLogoResName; //设置 logo 图片
-  int? smsPhoneTextViewOffsetX; //设置号码标题相对于屏幕左边 x 轴偏移  only android
-  int? smsPhoneTextViewOffsetY; //设置号码标题相对于相对于标题栏下边缘 y 偏移 only android
-  int? smsPhoneTextViewTextSize; //设置号码标题字体大小  only android
-  int? smsPhoneTextViewTextColor; //设置号码标题文字颜色  only android
+  int? smsPhoneTextViewOffsetX; //设置号码标题相对于屏幕左边 x 轴偏移  android only
+  int? smsPhoneTextViewOffsetY; //设置号码标题相对于相对于标题栏下边缘 y 偏移 android only
+  int? smsPhoneTextViewTextSize; //设置号码标题字体大小  android only
+  int? smsPhoneTextViewTextColor; //设置号码标题文字颜色  android only
   int? smsPhoneInputViewOffsetX; //设置号码输入框相对于屏幕左边 x 轴偏移
   int? smsPhoneInputViewOffsetY; //设置号码输入框相对于屏幕底部 y 轴偏移
   int? smsPhoneInputViewWidth; //设置号码输入框宽度
   int? smsPhoneInputViewHeight; //设置号码输入框高度
   int? smsPhoneInputViewTextColor; //设置手机号码输入框字体颜色
   int? smsPhoneInputViewTextSize; //设置手机号码输入框字体大小
-  String? smsPhoneInputViewPlaceholderText; // 设置手机号码输入框提示词 only iOS
-  JVIOSTextBorderStyle? smsPhoneInputViewBorderStyle; //设置手机号码输入框样式 only iOS
-  int? smsVerifyCodeTextViewOffsetX; //设置验证码标题相对于屏幕左边 x 轴偏移  only android
-  int? smsVerifyCodeTextViewOffsetY; //设置验证码标题相对于相对于标题栏下边缘 y 偏移  only android
-  int? smsVerifyCodeTextViewTextSize; //设置验证码标题字体大小  only android
-  int? smsVerifyCodeTextViewTextColor; //设置验证码标题文字颜色  only android
+  String? smsPhoneInputViewPlaceholderText; // 设置手机号码输入框提示词 ios only
+  JVIOSTextBorderStyle? smsPhoneInputViewBorderStyle; //设置手机号码输入框样式 ios only
+  int? smsVerifyCodeTextViewOffsetX; //设置验证码标题相对于屏幕左边 x 轴偏移  android only
+  int? smsVerifyCodeTextViewOffsetY; //设置验证码标题相对于相对于标题栏下边缘 y 偏移  android only
+  int? smsVerifyCodeTextViewTextSize; //设置验证码标题字体大小  android only
+  int? smsVerifyCodeTextViewTextColor; //设置验证码标题文字颜色  android only
   int? smsVerifyCodeEditTextViewTextSize; //设置验证码输入框字体大小
   int? smsVerifyCodeEditTextViewTextColor; //设置验证码输入框字体颜色
-  String? smsVerifyCodeEditTextViewPlaceholderText; // 设置验证码输入框提示词 only iOS
+  String? smsVerifyCodeEditTextViewPlaceholderText; // 设置验证码输入框提示词 ios only
   int? smsVerifyCodeEditTextViewOffsetX; //设置验证码输入框相对于屏幕左边 x 轴偏移
   int? smsVerifyCodeEditTextViewOffsetY; //设置验证码输入框相对于标题栏下边缘 y 偏移
   int? smsVerifyCodeEditTextViewOffsetR; //设置验证码输入框相对于屏幕右边偏移
   int? smsVerifyCodeEditTextViewWidth; //设置验证码输入框宽度
   int? smsVerifyCodeEditTextViewHeight; //设置验证码输入框高度
   JVIOSTextBorderStyle?
-      smsVerifyCodeEditTextViewBorderStyle; //设置验证码输入框样式 only iOS
+      smsVerifyCodeEditTextViewBorderStyle; //设置验证码输入框样式 ios only
   int? smsGetVerifyCodeTextViewOffsetX; //设置获取验证码按钮相对于屏幕左边 x 轴偏移
   int? smsGetVerifyCodeTextViewOffsetY; //设置获取验证码按钮相对于标题栏下边缘 y 偏移
   int? smsGetVerifyCodeTextViewTextSize; //设置获取验证码按钮字体大小
   int? smsGetVerifyCodeTextViewTextColor; //设置获取验证码按钮文字颜色
   int? smsGetVerifyCodeTextViewOffsetR; //设置获取验证码按钮相对于屏幕右边偏移
-  int? smsGetVerifyCodeBtnWidth; //设置获取验证码按钮宽度 only iOS
-  int? smsGetVerifyCodeBtnHeight; //设置获取验证码按钮高度 only iOS
-  int? smsGetVerifyCodeBtnCornerRadius; // 设置获取验证码按钮圆角度数 only iOS
+  int? smsGetVerifyCodeBtnWidth; //设置获取验证码按钮宽度 ios only
+  int? smsGetVerifyCodeBtnHeight; //设置获取验证码按钮高度 ios only
+  int? smsGetVerifyCodeBtnCornerRadius; // 设置获取验证码按钮圆角度数 ios only
   String? smsGetVerifyCodeBtnBackgroundPath; //设置获取验证码按钮图片
   List<String>?
-      smsGetVerifyCodeBtnBackgroundPaths; //设置获取验证码按钮图片 [激活状态的图片,失效状态的图片,高亮状态的图片] only iOS
-  String? smsGetVerifyCodeBtnText; //设置获取验证码按钮文字  only iOS
+      smsGetVerifyCodeBtnBackgroundPaths; //设置获取验证码按钮图片 [激活状态的图片,失效状态的图片,高亮状态的图片] ios only
+  String? smsGetVerifyCodeBtnText; //设置获取验证码按钮文字  ios only
   //enableSmsGetVerifyCodeDialog;
   //smsGetVerifyCodeDialog
   int? smsLogBtnOffsetX; //设置登录按钮相对于屏幕左边 x 轴偏移
@@ -1165,37 +1169,37 @@ class JVSMSUIConfig {
   bool? isSmsLogBtnTextBold; //	设置登录按钮字体是否加粗
   String? smsLogBtnBackgroundPath; //设置授权登录按钮图片
   String?
-      smsLogBtnBackgroundPaths; //设置授权登录按钮图片 @[激活状态的图片,失效状态的图片,高亮状态的图片] only iOS
-  int? smsFirstSeperLineOffsetX; //第一分割线相对于屏幕左边 x 轴偏移 only android
-  int? smsFirstSeperLineOffsetY; //第一分割线相对于标题栏下边缘 y 偏移 only android
-  int? smsFirstSeperLineOffsetR; //第一分割线相对于屏幕右边偏移 only android
-  int? smsFirstSeperLineColor; //第一分割线颜色 only android
-  int? smsSecondSeperLineOffsetX; //第二分割线相对于屏幕左边 x 轴偏移 only android
-  int? smsSecondSeperLineOffsetY; //第二分割线相对于标题栏下边缘 y 偏移 only android
-  int? smsSecondSeperLineOffsetR; //第二分割线相对于屏幕右边偏移 only android
-  int? smsSecondSeperLineColor; //第二分割线颜色 only android
+      smsLogBtnBackgroundPaths; //设置授权登录按钮图片 @[激活状态的图片,失效状态的图片,高亮状态的图片] ios only
+  int? smsFirstSeperLineOffsetX; //第一分割线相对于屏幕左边 x 轴偏移 android only
+  int? smsFirstSeperLineOffsetY; //第一分割线相对于标题栏下边缘 y 偏移 android only
+  int? smsFirstSeperLineOffsetR; //第一分割线相对于屏幕右边偏移 android only
+  int? smsFirstSeperLineColor; //第一分割线颜色 android only
+  int? smsSecondSeperLineOffsetX; //第二分割线相对于屏幕左边 x 轴偏移 android only
+  int? smsSecondSeperLineOffsetY; //第二分割线相对于标题栏下边缘 y 偏移 android only
+  int? smsSecondSeperLineOffsetR; //第二分割线相对于屏幕右边偏移 android only
+  int? smsSecondSeperLineColor; //第二分割线颜色 android only
   bool? isSmsPrivacyTextGravityCenter; //设置隐私条款文字是否居中对齐（默认左对齐）
-  List<int>? smsPrivacyColor; // 设置隐私条款名称颜色 [基础文字颜色，协议文字颜色] only iOS
+  List<int>? smsPrivacyColor; // 设置隐私条款名称颜色 [基础文字颜色，协议文字颜色] ios only
   int?
-      smsPrivacyTextVerAlignment; // 设置隐私条款垂直对齐方式 0:top 1:middle 2:bottom only iOS
+      smsPrivacyTextVerAlignment; // 设置隐私条款垂直对齐方式 0:top 1:middle 2:bottom ios only
   int? smsPrivacyOffsetX; //协议相对于屏幕左边 x 轴偏移
   int? smsPrivacyOffsetY; //协议相对于底部 y 偏移
   int? smsPrivacyTopOffsetY; //协议相对于标题栏下边缘 y 偏移
-  int? smsPrivacyWidth; //协议宽度 only iOS
-  int? smsPrivacyHeight; //协议高度 only iOS
-  int? smsPrivacyMarginL; //设置协议相对于登录页左边的间距 only android
-  int? smsPrivacyMarginR; //设置协议相对于登录页右边的间距 only android
-  int? smsPrivacyMarginT; //设置协议相对于登录页顶部的间距 only android
-  int? smsPrivacyMarginB; //设置协议相对于登录页底部的间距 only android
+  int? smsPrivacyWidth; //协议宽度 ios only
+  int? smsPrivacyHeight; //协议高度 ios only
+  int? smsPrivacyMarginL; //设置协议相对于登录页左边的间距 android only
+  int? smsPrivacyMarginR; //设置协议相对于登录页右边的间距 android only
+  int? smsPrivacyMarginT; //设置协议相对于登录页顶部的间距 android only
+  int? smsPrivacyMarginB; //设置协议相对于登录页底部的间距 android only
 
   int? smsPrivacyCheckboxSize; //设置隐私条款 checkbox 尺寸
   int? smsPrivacyCheckboxOffsetX; //设置隐私条款 checkbox 相对于屏幕左边 x 轴偏移
   int? smsPrivacyCheckboxOffsetY; //设置隐私条款 checkbox 相对于屏幕 y 轴偏移
   bool? isSmsPrivacyCheckboxInCenter; //设置隐私条款 checkbox 是否相对协议文字纵向居中
   bool? smsPrivacyCheckboxState; //设置隐私条款 checkbox 默认状态 : 是否选择 默认:NO
-  List<int>? smsPrivacyCheckboxMargin; //设置协议相对于登录页的间距 only android
-  String? smsPrivacyCheckboxUncheckedImgPath; // 设置隐私条款 checkbox 未选中时图片 only iOS
-  String? smsPrivacyCheckboxCheckedImgPath; // 设置隐私条款 checkbox 选中时图片 only iOS
+  List<int>? smsPrivacyCheckboxMargin; //设置协议相对于登录页的间距 android only
+  String? smsPrivacyCheckboxUncheckedImgPath; // 设置隐私条款 checkbox 未选中时图片 ios only
+  String? smsPrivacyCheckboxCheckedImgPath; // 设置隐私条款 checkbox 选中时图片 ios only
   List<JVPrivacy>? smsPrivacyBeanList; //设置协议内容
   String? smsPrivacyClauseStart; //设置协议条款开头文本
   String? smsPrivacyClauseEnd; //设置协议条款结尾文本
@@ -1378,7 +1382,7 @@ class JVCustomWidget {
   ///是否显示下划线，默认：不显示
   bool isClickEnable = false;
 
-  //隐私协议二次弹窗专用  only android
+  //隐私协议二次弹窗专用  android only
   bool belowTheDialogContent = false;
 
   ///是否可点击，默认：不可点击
