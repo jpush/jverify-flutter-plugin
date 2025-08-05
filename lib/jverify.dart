@@ -879,6 +879,8 @@ class JVUIConfig {
       "privacyHintToast": privacyHintToast,
       "privacyOffsetY": privacyOffsetY ??= null,
       "privacyOffsetX": privacyOffsetX ??= null,
+      "privacyMarginR": privacyMarginR ??= null,
+      "privacyMarginT": privacyMarginT ??= null,
       "privacyTopOffsetY": privacyTopOffsetY ??= null,
       "privacyVerticalLayoutItem": getStringFromEnum(privacyVerticalLayoutItem),
       "privacyText": privacyText ??= null,
