@@ -556,9 +556,35 @@ JVLayoutConstraint *JVLayoutHeight(CGFloat height) {
     }
     
     if ([[config allKeys] containsObject:@"authBGVideoPath"] && [[config allKeys] containsObject:@"authBGVideoImgPath"]) {
-        [uiconfig setVideoBackgroudResource:[config objectForKey:@"authBGVideoPath"] placeHolder:[config objectForKey:@"authBGVideoImgPath"]];
-        uiconfig.smsAuthPageVideoPath = [config objectForKey:@"authBGVideoPath"];
-        uiconfig.smsAuthPageVideoPlaceHolderImageName = [config objectForKey:@"authBGVideoImgPath"];
+        NSString *videoPath = [config objectForKey:@"authBGVideoPath"];
+        NSString *placeHolderPath = [config objectForKey:@"authBGVideoImgPath"];
+        
+        // 判断是否为网络视频URL
+        if ([videoPath hasPrefix:@"http://"] || [videoPath hasPrefix:@"https://"]) {
+            // 网络视频，直接使用URL
+            [uiconfig setVideoBackgroudResource:videoPath placeHolder:placeHolderPath];
+            uiconfig.smsAuthPageVideoPath = videoPath;
+            uiconfig.smsAuthPageVideoPlaceHolderImageName = placeHolderPath;
+        } else {
+            // 本地视频，需要获取完整路径
+            NSString *localVideoPath = [[NSBundle mainBundle] pathForResource:videoPath ofType:nil];
+            if (!localVideoPath) {
+                // 如果没有找到，尝试添加常见视频扩展名
+                NSArray *videoExtensions = @[@"mp4", @"mov", @"m4v", @"avi"];
+                for (NSString *ext in videoExtensions) {
+                    localVideoPath = [[NSBundle mainBundle] pathForResource:videoPath ofType:ext];
+                    if (localVideoPath) break;
+                }
+            }
+            
+            if (localVideoPath) {
+                [uiconfig setVideoBackgroudResource:localVideoPath placeHolder:placeHolderPath];
+                uiconfig.smsAuthPageVideoPath = localVideoPath;
+                uiconfig.smsAuthPageVideoPlaceHolderImageName = placeHolderPath;
+            } else {
+                JVLog(@"Warning: Local video file not found: %@", videoPath);
+            }
+        }
     }
     if ([[config allKeys] containsObject:@"authBGGifPath"]) {
         NSString *gifPath = [[NSBundle mainBundle] pathForResource:[config objectForKey:@"authBGGifPath"] ofType:@"gif"];
