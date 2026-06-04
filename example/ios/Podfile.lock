@@ -1,12 +1,12 @@
 PODS:
   - Flutter (1.0.0)
-  - JCore (5.0.1)
-  - JVerification (3.2.7):
+  - JCore (5.2.0)
+  - JVerification (3.4.7):
     - JCore (>= 2.1.6)
   - jverify (0.0.1):
     - Flutter
     - JCore (>= 5.0.1)
-    - JVerification (= 3.2.7)
+    - JVerification (= 3.4.7)
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
@@ -25,10 +25,10 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
-  JCore: 1c42bfa3905a0edb7edacf7e776b4bee0698bacf
-  JVerification: 524102d86fdbb056348873405d8950bcd634dd28
-  jverify: f00c582d5b2d6aad24e8a25e127b4e6eef2561d9
+  JCore: 20b9087c597650a5abe71a63304b78a676a3c41e
+  JVerification: b59df3fbdfc48b67706141b8539e1ba41b3eb840
+  jverify: 91434629305b9d3350b94e96087d4a9bfb37c938
 
 PODFILE CHECKSUM: c4c93c5f6502fe2754f48404d3594bf779584011
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.16.2

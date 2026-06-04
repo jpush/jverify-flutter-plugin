@@ -577,6 +577,10 @@ jverify.smsAuth(autoDismiss: true, smsCallback: (event) {
 |enterAnim	|String	|拉起授权页时进入动画(android)|
 |exitAnim	|String	|退出授权页时动画(android)|
 |authBGGifPath	|String	|授权界面gif背景(android)|
+|authBGVideoPath	|String	|授权界面 video 背景路径(android)。支持本地 raw 文件名；原生 SDK 支持 https 网络路径，但建议下载到本地后使用，避免网络卡顿|
+|authBGVideoImgPath	|String	|授权界面 video 第一帧占位图片(android)|
+|authBGVideoScaleType	|JVAuthBGVideoScaleType	|授权界面 video 缩放模式(android)：fitXY 非等比铺满，fitCenter 等比完整显示，centerCrop 等比铺满裁剪|
+|authPageBackPressedListener	|JVAuthPageBackPressedListener	|授权页系统返回键监听(android)|
 |authBackgroundImage	|String	|授权界面背景|
 |StatusBarStyleDefault	|enum	|Automatically chooses light or dark content based on the user interface style|
 |StatusBarStyleLightContent	|enum	|Light content, for use on dark backgrounds iOS 7 以上|
@@ -636,4 +640,3 @@ ios项目存放在 Assets.xcassets。
 |-994	|   |网络连接超时	|
 |-996	|   |网络连接断开	|
 |-997	|  注册失败/登录失败	|（一般是由于没有网络造成的）如果确保设备网络正常，还是一直遇到此问题，则还有另外一个原因：JPush 服务器端拒绝注册。而这个的原因一般是：你当前 App 的 Android 包名以及 AppKey，与你在 Portal 上注册的应用的 Android 包名与 AppKey 不相同。|
-

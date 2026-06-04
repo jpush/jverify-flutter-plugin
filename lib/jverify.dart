@@ -10,6 +10,9 @@ typedef JVClickWidgetEventListener = void Function(String widgetId);
 
 /// 授权页事件回调 @since 2.4.0
 typedef JVAuthPageEventListener = void Function(JVAuthPageEvent event);
+
+/// Android 授权页系统返回键事件回调 @since Android SDK 3.4.8
+typedef JVAuthPageBackPressedListener = void Function();
 /**
  * 一键登录接口的回调监听
  *
@@ -59,6 +62,7 @@ class JVEventHandlers {
       Map<String, JVClickWidgetEventListener>();
   List<JVAuthPageEventListener> authPageEvents = [];
   List<JVLoginAuthCallBackListener> loginAuthCallBackEvents = [];
+  JVAuthPageBackPressedListener? authPageBackPressedListener;
   JVSDKSetupCallBackListener? sdkSetupCallBackListener;
 
   int loginAuthIndex = 0;
@@ -141,6 +145,11 @@ class Jverify {
           if (_eventHanders.authPageEventsMap.containsKey(index)) {
             _eventHanders.authPageEventsMap[index]!(ev);
           }
+        }
+        break;
+      case 'onReceiveAuthPageBackPressedEvent':
+        {
+          _eventHanders.authPageBackPressedListener?.call();
         }
         break;
       case 'onReceiveLoginAuthCallBackEvent':
@@ -572,11 +581,19 @@ class Jverify {
     var para1 = portraitConfig.toJsonMap();
     para1.removeWhere((key, value) => value == null);
     para["portraitConfig"] = para1;
+    if (portraitConfig.authPageBackPressedListener != null) {
+      _eventHanders.authPageBackPressedListener =
+          portraitConfig.authPageBackPressedListener;
+    }
 
     if (landscapeConfig != null) {
       var para2 = landscapeConfig.toJsonMap();
       para2.removeWhere((key, value) => value == null);
       para["landscapeConfig"] = para2;
+      if (landscapeConfig.authPageBackPressedListener != null) {
+        _eventHanders.authPageBackPressedListener =
+            landscapeConfig.authPageBackPressedListener;
+      }
     }
 
     if (widgets != null) {
@@ -601,6 +618,10 @@ class Jverify {
     var para1 = uiConfig.toJsonMap();
     para1.removeWhere((key, value) => value == null);
     para["uiconfig"] = para1;
+    if (uiConfig.authPageBackPressedListener != null) {
+      _eventHanders.authPageBackPressedListener =
+          uiConfig.authPageBackPressedListener;
+    }
 
     if (widgets != null) {
       var widgetList = [];
@@ -637,6 +658,7 @@ class JVUIConfig {
   String? authBGGifPath; // 授权界面gif图片
   String? authBGVideoPath; // 授权界面video
   String? authBGVideoImgPath; // 授权界面video的第一频图片
+  JVAuthBGVideoScaleType? authBGVideoScaleType; // Android 授权界面video缩放模式
 
   /// 导航栏
   int? navColor;
@@ -808,7 +830,10 @@ class JVUIConfig {
   /// 是否在 window 中间显示协议弹窗
   bool agreementAlertViewShowWindow = true;
 
-  /// sms UI
+  /// Android 授权页系统返回键监听
+  JVAuthPageBackPressedListener? authPageBackPressedListener;
+
+  /// sms UI  
   JVSMSUIConfig? smsUIConfig;
 
   Map toJsonMap() {
@@ -829,6 +854,10 @@ class JVUIConfig {
       "authBGGifPath": authBGGifPath ??= null,
       "authBGVideoPath": authBGVideoPath ??= null,
       "authBGVideoImgPath": authBGVideoImgPath ??= null,
+      "authBGVideoScaleType":
+          getValueFromAuthBGVideoScaleType(authBGVideoScaleType),
+      "authPageBackPressedListener":
+          authPageBackPressedListener != null ? true : null,
       "navColor": navColor ??= null,
       "navText": navText ??= null,
       "navTextColor": navTextColor ??= null,
@@ -1416,6 +1445,13 @@ class JVCustomWidget {
 /// 添加自定义控件类型，目前只支持 textView
 enum JVCustomWidgetType { textView, button }
 
+/// Android 授权页背景视频缩放模式
+enum JVAuthBGVideoScaleType {
+  fitXY,
+  fitCenter,
+  centerCrop,
+}
+
 /// 文本对齐方式
 enum JVTextAlignmentType { left, right, center }
 
@@ -1541,6 +1577,19 @@ String getStringFromEnum<T>(T) {
   }
 
   return T.toString().split('.').last;
+}
+
+int? getValueFromAuthBGVideoScaleType(JVAuthBGVideoScaleType? type) {
+  switch (type) {
+    case JVAuthBGVideoScaleType.fitXY:
+      return 0;
+    case JVAuthBGVideoScaleType.fitCenter:
+      return 1;
+    case JVAuthBGVideoScaleType.centerCrop:
+      return 2;
+    case null:
+      return null;
+  }
 }
 
 class JVPrivacy {

@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import cn.jiguang.api.utils.JCollectionAuth;
+import cn.jiguang.verifysdk.api.AuthPageBackPressedListener;
 import cn.jiguang.verifysdk.api.AuthPageEventListener;
 import cn.jiguang.verifysdk.api.JVerificationInterface;
 import cn.jiguang.verifysdk.api.JVerifyLoginBtClickCallback;
@@ -621,6 +622,8 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
         Object authBackgroundImage = valueForKey(uiconfig, "authBackgroundImage");
         Object authBGVideoPath = valueForKey(uiconfig, "authBGVideoPath");
         Object authBGVideoImgPath = valueForKey(uiconfig, "authBGVideoImgPath");
+        Object authBGVideoScaleType = valueForKey(uiconfig, "authBGVideoScaleType");
+        Object authPageBackPressedListener = valueForKey(uiconfig, "authPageBackPressedListener");
 
         Object navColor = valueForKey(uiconfig, "navColor");
         Object navText = valueForKey(uiconfig, "navText");
@@ -837,6 +840,17 @@ public class JverifyPlugin implements FlutterPlugin, MethodCallHandler {
             if (!((String)authBGVideoPath).startsWith("http"))
                 authBGVideoPath = "android.resource://"+context.getPackageName()+"/raw/"+authBGVideoPath;
             builder.setAuthBGVideoPath((String) authBGVideoPath, (String) authBGVideoImgPath);
+        }
+        if (authBGVideoScaleType != null) {
+            builder.setAuthBGVideoScaleType((Integer) authBGVideoScaleType);
+        }
+        if (authPageBackPressedListener != null && (Boolean) authPageBackPressedListener) {
+            builder.setAuthPageBackPressedListener(new AuthPageBackPressedListener() {
+                @Override
+                public void onBackPressed() {
+                    runMainThread(new HashMap<String, Object>(), null, "onReceiveAuthPageBackPressedEvent");
+                }
+            });
         }
 
         /************** nav ***************/
