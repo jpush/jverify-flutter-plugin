@@ -1,0 +1,22 @@
+{
+  "pins" : [
+    {
+      "identity" : "jcore-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jpush/jcore-sdk.git",
+      "state" : {
+        "revision" : "99e4beed3a17653ed43154332942ee1ed02a2204",
+        "version" : "5.5.0"
+      }
+    },
+    {
+      "identity" : "jverification-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jpush/jverification-sdk.git",
+      "state" : {
+        "revision" : "7ac501dd898d69a2d004d93a28d0d11f91e7ad3e"
+      }
+    }
+  ],
+  "version" : 2
+}

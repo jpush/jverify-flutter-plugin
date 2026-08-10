@@ -30,9 +30,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-#  jverify: 3.0.0
   jverify:
-     path: ../
+    git:
+      url: https://github.com/jpush/jverify-flutter-plugin.git
+      ref: c4d4dfdd168f1cb2766887561acd08c963ad78f7
   
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
