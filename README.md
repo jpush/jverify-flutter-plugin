@@ -12,7 +12,7 @@ dependencies:
   jverify:
     git:
       url: git://github.com/jpush/jverify-flutter-plugin.git
-      ref: master
+      ref: dev-3.x
 ```
 
 + pub 集成
@@ -50,9 +50,9 @@ android: {
 
 ##### iOS:
 
-- Starting with `3.1.9`, the plugin supports Swift Package Manager (SwiftPM) in response to Flutter's dependency-management update. Flutter 3.44 and later use SwiftPM by default.
-- `3.1.9` and later support iOS 15.0 or later only, whether the project uses SwiftPM or CocoaPods. Set the app's iOS deployment target to 15.0 or later before integrating.
-- The plugin resolves and links `JCore` and `JVerification` automatically. Do not add either SDK through another package manager in the same iOS target.
+- 自 `3.1.9` 起，为适配 Flutter 的依赖管理更新，插件支持 Swift Package Manager（SwiftPM）集成；Flutter 3.44 及以上版本默认使用 SwiftPM。
+- `3.1.9` 及以上版本无论使用 SwiftPM 还是 CocoaPods，均仅支持 iOS 15.0 及以上版本。集成前请将 App 的 iOS 最低部署版本设为 15.0 或更高。
+- 插件会自动解析并链接 `JCore` 和 `JVerification`；同一 iOS Target 中请勿再通过其他包管理方式重复引入这两个 SDK。
 
 ### 使用
 
