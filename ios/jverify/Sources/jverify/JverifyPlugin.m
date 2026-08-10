@@ -1,4 +1,4 @@
-#import "JverifyPlugin.h"
+#import "./include/jverify/JverifyPlugin.h"
 #import "JVERIFICATIONService.h"
 #import "JGInforCollectionAuth.h"
 // 如果需要使用 idfa 功能所需要引入的头文件（可选）

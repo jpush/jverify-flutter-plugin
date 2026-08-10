@@ -12,11 +12,12 @@ A new flutter plugin project.
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'xudong.rao' => 'xudong.rao@outlook.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
-  s.public_header_files = 'Classes/**/*.h'
+  s.source_files = 'jverify/Sources/jverify/**/*.{h,m}'
+  s.public_header_files = 'jverify/Sources/jverify/include/jverify/**/*.h'
   s.dependency 'Flutter'
-  s.dependency 'JCore', '>= 5.0.1'
+  s.dependency 'JCore', '>= 5.4.0'
   s.dependency 'JVerification', '3.4.7'
+  s.frameworks = 'AdSupport'
   s.ios.deployment_target = '11.0'
   s.static_framework = true
 end

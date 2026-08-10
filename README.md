@@ -48,6 +48,12 @@ android: {
 }
 ```
 
+##### iOS:
+
+- CocoaPods remains supported for Flutter projects that use it, with an iOS 11.0 deployment target.
+- Flutter 3.44 and later use Swift Package Manager by default. The upstream JVerification Swift package requires iOS 15.0, so SwiftPM consumers must set their app deployment target to iOS 15.0 or later.
+- The plugin resolves and links `JCore` and `JVerification` automatically. Do not add either SDK through another package manager in the same iOS target.
+
 ### 使用
 
 ```dart
@@ -59,4 +65,3 @@ import 'package:jverify/jverify.dart';
 **注意** : 需要先调用 Jverify.setup 来初始化插件，才能保证其他功能正常工作。
 
  [参考](./documents/APIs.md)
-
