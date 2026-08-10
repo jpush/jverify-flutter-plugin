@@ -1,6 +1,11 @@
 #import "./include/jverify/JverifyPlugin.h"
 #import "JVERIFICATIONService.h"
 #import "JGInforCollectionAuth.h"
+// The verification SDK discovers carrier SDKs at runtime. Keep strong
+// references here so SwiftPM links their frameworks into the app executable.
+#import <EAccountApiSDK/EAccountSDK.h>
+#import <OAuth/OAuth.h>
+#import <TYRZUISDK/TYRZUISDK.h>
 // 如果需要使用 idfa 功能所需要引入的头文件（可选）
 #import <AdSupport/AdSupport.h>
 #define UIColorFromRGB(rgbValue)  ([UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0])
@@ -26,6 +31,15 @@ static long j_default_timeout = 5000;
 static BOOL needStartAnim = FALSE;
 static BOOL needCloseAnim = FALSE;
 
+static void JVerifyLinkCarrierSDKs(void) {
+    // JVerification locates these SDKs through reflection. Referencing their
+    // classes from this linked plugin target prevents SwiftPM/Xcode from
+    // discarding the carrier framework link entries.
+    (void)[EAccountSDK class];
+    (void)[ZUOAuthManager class];
+    (void)[UAFSDKLogin class];
+}
+
 @interface JverifyPlugin ()
 @property (nonatomic, copy) void(^hidAgreementAlertView)(void);
 @end
@@ -35,6 +49,7 @@ static BOOL needCloseAnim = FALSE;
 NSObject<FlutterPluginRegistrar>* _jv_registrar;
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar>*)registrar {
+    JVerifyLinkCarrierSDKs();
     FlutterMethodChannel* channel = [FlutterMethodChannel methodChannelWithName:@"jverify"
                                                                 binaryMessenger:[registrar messenger]];
     _jv_registrar = registrar;
