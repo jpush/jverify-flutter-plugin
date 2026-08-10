@@ -50,8 +50,8 @@ android: {
 
 ##### iOS:
 
-- CocoaPods remains supported for Flutter projects that use it, with an iOS 11.0 deployment target.
-- Flutter 3.44 and later use Swift Package Manager by default. The upstream JVerification Swift package requires iOS 15.0, so SwiftPM consumers must set their app deployment target to iOS 15.0 or later.
+- Starting with `3.1.9`, the plugin supports Swift Package Manager (SwiftPM) in response to Flutter's dependency-management update. Flutter 3.44 and later use SwiftPM by default.
+- `3.1.9` and later support iOS 15.0 or later only, whether the project uses SwiftPM or CocoaPods. Set the app's iOS deployment target to 15.0 or later before integrating.
 - The plugin resolves and links `JCore` and `JVerification` automatically. Do not add either SDK through another package manager in the same iOS target.
 
 ### 使用

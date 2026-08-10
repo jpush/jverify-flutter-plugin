@@ -1,3 +1,7 @@
+## 3.1.9
++ 新增：适配 Flutter 的依赖管理更新，支持 iOS Swift Package Manager（SwiftPM）集成。
++ 变更：自 3.1.9 起，iOS（SwiftPM 和 CocoaPods）仅支持 iOS 15.0 及以上版本。
+
 ## 3.0.8
 + 优化：增加iOS UI属性agreementAlertViewShowWindow
 ## 3.0.7
