@@ -34,7 +34,6 @@ class _MyAppState extends State<MyApp> {
   final String f_opr_key = "operator";
 
   String _result = "token=";
-  var controllerPHone = new TextEditingController();
   final Jverify jverify = new Jverify();
   String? _token;
 
@@ -101,16 +100,6 @@ class _MyAppState extends State<MyApp> {
             margin: EdgeInsets.fromLTRB(40, 5, 40, 5),
           ),
           new Container(
-            child: TextField(
-              autofocus: false,
-              style: TextStyle(color: Colors.black),
-              decoration: InputDecoration(
-                  hintText: "手机号码", hintStyle: TextStyle(color: Colors.black)),
-              controller: controllerPHone,
-            ),
-            margin: EdgeInsets.fromLTRB(40, 5, 40, 5),
-          ),
-          new Container(
             child: SizedBox(
               child: new CustomButton(
                 onPressed: () {
@@ -138,33 +127,9 @@ class _MyAppState extends State<MyApp> {
             child: SizedBox(
               child: new CustomButton(
                 onPressed: () {
-                  loginAuth(false);
+                  loginAuth();
                 },
                 title: "一键登录",
-              ),
-              width: double.infinity,
-            ),
-            margin: EdgeInsets.fromLTRB(40, 5, 40, 5),
-          ),
-          new Container(
-            child: SizedBox(
-              child: new CustomButton(
-                onPressed: () {
-                  loginAuth(true);
-                },
-                title: "短信登录",
-              ),
-              width: double.infinity,
-            ),
-            margin: EdgeInsets.fromLTRB(40, 5, 40, 5),
-          ),
-          new Container(
-            child: SizedBox(
-              child: new CustomButton(
-                onPressed: () {
-                  getSMSCode();
-                },
-                title: "获取验证码",
               ),
               width: double.infinity,
             ),
@@ -231,40 +196,6 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  /// 获取短信验证码
-  void getSMSCode() {
-    setState(() {
-      _showLoading(context);
-    });
-    String phoneNum = controllerPHone.text;
-    if (phoneNum.isEmpty) {
-      setState(() {
-        _hideLoading();
-        _result = "[3002],msg = 没有输入手机号码";
-      });
-      return;
-    }
-    jverify.checkVerifyEnable().then((map) {
-      bool result = map[f_result_key];
-      if (result) {
-        jverify.getSMSCode(phoneNum: phoneNum).then((map) {
-          print("获取短信验证码：${map.toString()}");
-          int code = map[f_code_key];
-          String message = map[f_msg_key];
-          setState(() {
-            _hideLoading();
-            _result = "[$code] message = $message";
-          });
-        });
-      } else {
-        setState(() {
-          _hideLoading();
-          _result = "[3004],msg = 获取短信验证码异常";
-        });
-      }
-    });
-  }
-
   /// 预取号缓存
   void checkPreLoginCache() {
     jverify.validPreloginCache().then((map) {
@@ -286,7 +217,7 @@ class _MyAppState extends State<MyApp> {
     jverify.checkVerifyEnable().then((map) {
       bool result = map[f_result_key];
       if (result) {
-        jverify.preLogin(enableSms: true).then((map) {
+        jverify.preLogin(enableSms: false).then((map) {
           print("预取号接口回调：${map.toString()}");
           int code = map[f_code_key];
           String message = map[f_msg_key];
@@ -313,14 +244,13 @@ class _MyAppState extends State<MyApp> {
   }
 
   /// SDK 请求授权一键登录
-  void loginAuth(bool isSms) {
+  void loginAuth() {
     setState(() {
       _showLoading(context);
     });
     jverify.checkVerifyEnable().then((map) {
       bool result = map[f_result_key];
       print("checkVerifyEnable $map");
-      //需要使用sms的时候不检查result
       // if (result) {
       if (true) {
         final screenSize = MediaQuery.of(context).size;
@@ -529,20 +459,6 @@ class _MyAppState extends State<MyApp> {
         privacyCheckDialogConfig.widgets = dialogWidgetList;
         uiConfig.privacyCheckDialogConfig = privacyCheckDialogConfig;
 
-        //sms
-        JVSMSUIConfig smsConfig = JVSMSUIConfig();
-        smsConfig.smsLogBtnBackgroundPath = "main_btn_other";
-        smsConfig.smsPrivacyBeanList = [
-          JVPrivacy("自定义协议1", "http://www.baidu.com",
-              beforeName: "==", afterName: "++", separator: "*")
-        ];
-        smsConfig.smsPrivacyClauseStart = "开头";
-        smsConfig.smsPrivacyClauseEnd = "结尾";
-        smsConfig.enableSMSService = true;
-        smsConfig.smsPrivacyOffsetY = 50;
-        smsConfig.smsPrivacyOffsetX = 20;
-        uiConfig.smsUIConfig = smsConfig;
-
         uiConfig.setIsPrivacyViewDarkMode = false; //协议页面是否支持暗黑模式
 
         //弹框模式
@@ -618,32 +534,18 @@ class _MyAppState extends State<MyApp> {
         /// 步骤 1：调用接口设置 UI
         jverify.setCustomAuthorizationView(true, uiConfig,
             landscapeConfig: uiConfig, widgets: widgetList);
-        if (!isSms) {
-          /// 步骤 2：调用一键登录接口
-          jverify.loginAuthSyncApi2(
-              autoDismiss: true,
-              enableSms: true,
-              loginAuthcallback: (event) {
-                setState(() {
-                  _hideLoading();
-                  _result = "获取返回数据：[${event.code}] message = ${event.message}";
-                });
-                print(
-                    "获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
+        /// 步骤 2：调用一键登录接口
+        jverify.loginAuthSyncApi2(
+            autoDismiss: true,
+            enableSms: false,
+            loginAuthcallback: (event) {
+              setState(() {
+                _hideLoading();
+                _result = "获取返回数据：[${event.code}] message = ${event.message}";
               });
-        } else {
-          /// 步骤 2：调用短信登录接口
-          jverify.smsAuth(
-              autoDismiss: true,
-              smsCallback: (event) {
-                setState(() {
-                  _hideLoading();
-                  _result = "获取返回数据：[${event.code}] message = ${event.message}";
-                });
-                print(
-                    "获取到 smsAuth 接口返回数据，code=${event.code},message = ${event.message},phone = ${event.phone}");
-              });
-        }
+              print(
+                  "获取到 loginAuthSyncApi 接口返回数据，code=${event.code},message = ${event.message},operator = ${event.operator}");
+            });
       } else {
         setState(() {
           _hideLoading();
