@@ -1,0 +1,10 @@
+{
+  "module": {
+    "name": "jverify",
+    "type": "har",
+    "deviceTypes": [
+      "default",
+      "tablet"
+    ]
+  }
+}

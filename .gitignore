@@ -12,3 +12,26 @@ build/
 pubspec.lock
 .last_build_id
 example/ios/Flutter/flutter_export_environment.sh
+example/macos/Flutter/ephemeral/
+
+# HarmonyOS / Flutter-OH generated files
+**/oh_modules/
+**/.hvigor/
+**/oh-package-lock.json5
+**/BuildProfile.ets
+**/local.properties
+**/src/main/resources/rawfile/flutter_assets/
+**/libs/arm64-v8a/libapp.so
+**/libs/arm64-v8a/libflutter.so
+**/libs/arm64-v8a/libvmservice_snapshot.so
+**/har/*.har
+*.har
+*.hap
+*.app
+flutter_*.log
+*.p12
+*.p7b
+*.cer
+*.pem
+*.jks
+*.keystore

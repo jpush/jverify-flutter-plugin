@@ -1,0 +1,12 @@
+{
+  "name": "jverify",
+  "version": "3.2.0",
+  "description": "JIGUANG JVerification Flutter plugin for HarmonyOS.",
+  "main": "index.ets",
+  "author": "JIGUANG",
+  "license": "MIT",
+  "dependencies": {
+    "@ohos/flutter_ohos": "file:./har/flutter.har",
+    "@jg/verify": "1.2.2"
+  }
+}

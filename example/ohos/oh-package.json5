@@ -1,0 +1,20 @@
+{
+  "modelVersion": "5.0.0",
+  "name": "jverify_example",
+  "version": "1.0.0",
+  "description": "JVerification Flutter HarmonyOS example.",
+  "main": "",
+  "author": "JIGUANG",
+  "license": "MIT",
+  "dependencies": {
+    "@ohos/flutter_ohos": "file:./har/flutter.har"
+  },
+  "devDependencies": {
+    "@ohos/hypium": "1.0.6"
+  },
+  "overrides": {
+    "@ohos/flutter_ohos": "file:./har/flutter.har",
+    "jverify": "file:./har/jverify.har",
+    "@ohos/flutter_module": "file:./entry"
+  }
+}

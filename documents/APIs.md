@@ -10,11 +10,25 @@
 - [getSMSCode](#getSMSCode)
 - [clearPreLoginCache](#clearPreLoginCache)
 
+## 平台支持
+
+| 能力 | Android | iOS | HarmonyOS |
+| --- | --- | --- | --- |
+| setup / debug / 初始化状态 | 支持 | 支持 | 支持 |
+| 网络检查 / getToken | 支持 | 支持 | 支持 |
+| preLogin / 缓存管理 | 支持 | 支持 | 支持 |
+| loginAuth / 关闭授权页 | 支持 | 支持 | 支持，需要宿主挂载 `NavPathStack` |
+| 授权页 UI | 支持 | 支持 | 部分字段支持；中国移动使用独立 Builder |
+| 短信验证码 / smsAuth | 支持 | 支持 | 不支持，返回 `code=-2`/warning |
+| setCollectionAuth | 支持 | 支持 | 不支持，仅 warning |
+
+HarmonyOS 使用 `@jg/verify` 1.2.2。Future/callback 类型的不支持接口返回 `code=-2` 和 `<method> is not supported on HarmonyOS`；void 类型接口输出 warning 后结束调用。
+
 #### setup
 
 添加初始化方法，调用 setup 方法初始化 Jverify SDK
 
-**注意：** 插件版本 >= 0.0.1 android 端仅支持在 gradle 中配置 appKey 和 channel。参数 appKey、channel 只对 IOS 生效。
+**注意：** Android 仍从 Gradle manifestPlaceholders 读取 AppKey；iOS 和 HarmonyOS 使用 `setup(appKey:)`。HarmonyOS 的 channel、useIDFA、setControlWifiSwitch 没有原生对应能力。
 
 ```dart
 
@@ -72,6 +86,8 @@ jverify.getToken().then((map){
 
 调起一键登录授权页面，在用户授权后获取loginToken
 **说明：** ios在拉起授权页面之前，必须先setCustomUI 。
+
+HarmonyOS 1.2.2 的移动认证页要求宿主将同一个 `NavPathStack` 同时挂载到 `Navigation(navPathStack)` 并通过 `JverifyNavigation.attachNavPathStack` 提供给插件。缺失时返回错误，不会在插件内部创建未挂载的假栈。参考 `example/ohos/entry/src/main/ets/pages/Index.ets`。
 
 ```dart
 ///具体使用可以查看 example 样例
@@ -285,6 +301,90 @@ jverify.setCustomAuthorizationView(false,uiConfig,widgets: widgetList);
 **JVUIConfig 和 JVCustomWidget 配置如下：**
 
 ##### JVUIConfig
+
+HarmonyOS UI 按运营商使用两套 Builder：联通/电信使用通用 Builder，中国移动使用独立 Builder。相同字段是否覆盖三家运营商应以字段注释为准；以下为 HarmonyOS 新增字段：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
+| `harmonyAuthPageFontFollowSystem` | `bool?` | 联通/电信：授权页字体是否跟随系统字体 |
+| `harmonyTopSafeAreaHeight` / `harmonyBottomSafeAreaHeight` | `int?` | 联通/电信：上下安全区高度，vp；未设置时插件读取系统避让区，读取失败顶部兜底 44 vp |
+| `harmonyStackLayout` | `bool?` | 联通/电信：是否使用 Stack 布局 |
+| `harmonyReturnBtnWidth` / `harmonyReturnBtnHeight` | `int?` | 联通/电信：返回按钮尺寸，vp |
+| `harmonyLogBtnBackgroundColor` | `int?` | 三运营商：登录按钮 ARGB 颜色 |
+| `harmonyLogBtnBorderRadius` | `int?` | 三运营商：登录按钮圆角，vp |
+| `harmonyPrivacyHintToastText` | `String?` | 三运营商：未勾选隐私协议提示文案 |
+| `harmonyPrivacyClauseStart` / `harmonyPrivacyClauseEnd` | `String?` | 三运营商：隐私条款首尾文本 |
+
+`JVHarmonyCMUIConfig` 仅对中国移动生效，覆盖系统栏、灰度、号码/登录按钮/checkbox/协议对齐与边距、disabled 登录按钮、Web DOM Storage、协议页关闭按钮、窗口模式、自定义登录页和登录确认弹窗：
+
+```dart
+uiConfig.harmonyCmUIConfig = JVHarmonyCMUIConfig()
+  ..authPageGrayScale = 0.8
+  ..systemBar = (JVHarmonySystemBarConfig()
+    ..statusBarColor = '#00000000'
+    ..statusBarContentColor = '#FF000000'
+    ..isStatusBarLightIcon = false)
+  ..numberMargin = JVHarmonyMargin(left: 12, top: 24)
+  ..numberWidth = 140
+  ..numberHeight = 36
+  ..loginBtnBorderColor = 0xFF112233
+  ..loginBtnBorderWidth = 1.5
+  ..checkBoxSize = const JVHarmonySize(18, 20)
+  ..checkBoxLocation = 0
+  ..checkBoxShape = JVHarmonyCheckBoxShape.circle
+  ..clauseTextAlign = JVHarmonyTextAlign.center
+  ..privacyMarginRight = 20
+  ..privacyOffsetYB = 36
+  ..fitsSystemWindows = true
+  ..loginBtnDisabledTextColor = 0xFFFFFFFF
+  ..loginBtnDisabledColor = 0xFF9BA8B5
+  ..clauses = <JVHarmonyCMClause>[
+    JVHarmonyCMClause(text: '登录即同意'),
+    JVHarmonyCMClause(
+      text: '《用户协议》',
+      url: 'https://example.com/privacy',
+      isProtocol: true,
+    ),
+  ]
+  ..loginPage = JVHarmonyCMLoginPageConfig(
+    widgets: <JVHarmonyCMLoginPageWidget>[
+      JVHarmonyCMLoginPageWidget(
+        id: 'cm_help',
+        type: JVCustomWidgetType.button,
+        image: JVHarmonyImageConfig(name: 'app_icon'),
+        width: 44,
+        height: 44,
+        backgroundColor: Colors.transparent.value,
+        action: JVHarmonyCustomWidgetAction.callback,
+        toastText: '已点击自定义帮助按钮',
+      ),
+    ],
+  )
+  ..loginConfirmDialog = JVHarmonyCMLoginConfirmDialogConfig()
+  ..windowMode = JVHarmonyWindowConfig(
+    widthPercent: '80%',
+    heightPercent: '50%',
+    alignment: JVHarmonyDialogAlignment.bottom,
+);
+```
+
+`JVHarmonyCMLoginPageConfig` 对应 SDK 的 `setLoginPageComponent`，默认是透明叠加层：只配置 `widgets` 时仍保留移动 SDK 原生号码、登录按钮和协议区。只有显式设置非透明 `backgroundColor` 或 `backgroundImage/backgroundImageSource` 时才覆盖原生背景。`JVHarmonyCMLoginPageWidget.toastText` 可在点击并回调 widget ID 后显示原生 Toast；图片 Button 可将 `backgroundColor` 设为透明，只保留图片点击区，ArkUI 适配层会显式映射为 `Color.Transparent`，避免数值 `0` 被 Button 当作不透明黑色。`useDefaultLoginButtonImage` 需要宿主同时提供名为 `jverify_login_back` 的合适业务素材；普通示例建议直接配置启用/禁用态颜色，避免误用 SDK 源码 Demo 的测试图。
+
+其余移动专用字段包括 `numberWidth/numberHeight`、`clauseMargin`、`privacyOffsetY`、`activityIn/activityOut`、`windowWidth/windowHeight/windowX/windowY/windowBottom`、`themeId`。其中 `numberWidth/numberHeight` 用于收紧移动号码 Text 节点的实际尺寸；需要视觉居中时，应与 `numberAlignRule` 的容器中心规则一起设置。复合类型包括 `JVHarmonyImageConfig`、`JVHarmonyImageFit`、`JVHarmonySize`、`JVHarmonyCMClause`、`JVHarmonyCMLoginPageConfig`、`JVHarmonyCMLoginPageWidget`、`JVHarmonyCMLoginConfirmDialogConfig`、`JVHarmonySystemBarConfig`、`JVHarmonyMargin`、对齐规则和 `JVHarmonyWindowConfig`。配置 `clauseAlignRule` 后，移动端不会再叠加通用 `privacyOffset*` 回退；需要额外偏移时请显式设置 `clauseMargin`。checkbox 与协议文字需要对齐时，推荐让 checkbox 锚定容器底部，再让协议的 `center` 规则锚定 `clause_checkBox`；插件会在 `setClauses` 重建协议节点后恢复显式 `clauseMargin`，避免自定义协议覆盖位置配置。
+
+`JVCustomWidget` 在 HarmonyOS 会转换成受控 ArkUI `Text`/`Button`/`Image`，不会执行 Flutter Widget 代码。授权页通过 `setCustomAuthorizationView(..., widgets:)` 添加；隐私二次弹窗通过 `JVPrivacyCheckDialogConfig.widgets` 添加。图片可以使用 `harmonyImage.name` 指定 `resources/base/media` 中不含扩展名的资源名，也可以使用优先级更高的 `harmonyImage.source` 传 ArkUI 支持的 URI/base64；`fit` 支持 `fill`、`contain`、`cover`。旧字段 `btnNormalImageName` 可作为 HarmonyOS 图片按钮的 media 资源名回退。可设置 `harmonyBorderRadius` 与 `harmonyAction`（`callback`、`dismissLoginAuth`、`closeCheckDialog`、`none`），Image 与图片 Button 均按 widget ID 回调；设置非空 `harmonyToastText` 时，回调后还会由当前 HarmonyOS `UIContext` 显示原生 Toast，适合给纯 callback 控件提供可见反馈。`btnPressedImageName` 仍只保留 iOS/Android 按压态语义，HarmonyOS 暂不切换按压图片并会输出 warning。横屏配置等无对应能力的字段会输出聚合 warning。
+
+```dart
+final imageWidget = JVCustomWidget('help_image', JVCustomWidgetType.image)
+  ..width = 44
+  ..height = 44
+  ..harmonyImage = JVHarmonyImageConfig(
+    name: 'jverify_return',
+    fit: JVHarmonyImageFit.contain,
+  )
+  ..harmonyAction = JVHarmonyCustomWidgetAction.callback
+  ..harmonyToastText = '图片已点击';
+```
 ```dart
 /// 自定义授权的 UI 界面
 uiConfig.privacyNavReturnBtnImage = "return_bg";//图片必须存在;
@@ -486,7 +586,18 @@ widgetList.add(buttonWidget);
 
 ```
 
+持续监听不再需要时应主动移除，避免页面重建后继续持有旧回调：
+
+```dart
+jverify.removeClikWidgetEventListener(text_widgetId); // 移除指定 widget
+jverify.removeCustomViewsClickCallback();             // 清空全部 widget 回调
+jverify.removeAuthPageEventListener(authListener);    // 移除指定授权页回调
+jverify.offAuthPageEvent();                           // 清空全部授权页持续回调
+```
+
 #### setGetCodeInternal
+
+HarmonyOS 原生 SDK 不提供短信验证码能力；此方法只输出 warning 并正常返回。
 
 设置前后两次获取验证码的时间间隔，默认 30000ms，有效范围(0,300000)
 
@@ -496,6 +607,8 @@ jverify.setGetCodeInternal(30000);
 ```
 
 #### getSMSCode
+
+HarmonyOS 返回 `{code: -2, message: "getSMSCode is not supported on HarmonyOS"}`。
 
 获取短信验证码，使用此功能需要在Portal控制台中极光短信模块添加短信签名和验证码短信模版，或者使用默认的签名或模版
 
@@ -509,7 +622,7 @@ String phone = "180xxxxxxx";
 String signId =""; //短信签名id，如果为null，则为默认短信签名id
 String tempId =""; //短信模板id，如果为null，则为默认短信模板id
 
-jverify.getSMSCode(phone,{signId:signId,tempId:tempId}).then((map){
+jverify.getSMSCode(phoneNum: phone, signId: signId, tempId: tempId).then((map){
           int _code = map["code"]; // 返回码，3000代表获取成功，其他为失败，详见错误码描述
           String _uuid = map["result"]; // 成功时为uuid，
           String _message = map["message"]; // 失败时为失败信息
@@ -518,6 +631,8 @@ jverify.getSMSCode(phone,{signId:signId,tempId:tempId}).then((map){
 ```
 
 #### smsAuth
+
+HarmonyOS 通过既有 `smsCallback` 回调一次 `code=-2`，不展示短信页面。
 
 短信登录接口，主动拉起短信验证码登录页面
 
@@ -590,6 +705,12 @@ jverify.smsAuth(autoDismiss: true, smsCallback: (event) {
 ios项目存放在 Assets.xcassets。
 
 #### 错误码
+
+| code | Flutter 插件含义 |
+| --- | --- |
+| `-1` | 同一方法正在请求中 |
+| `-2` | 当前平台原生 SDK 不支持该能力（HarmonyOS compatibility result） |
+| `-3` | HarmonyOS 宿主上下文、AppKey 或 `NavPathStack` 等前置条件缺失 |
 
 |code	|message	|备注|
 |:-----:|:----:|:-----:|

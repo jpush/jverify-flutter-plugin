@@ -1,3 +1,17 @@
+## 3.2.0
++ 新增：支持 HarmonyOS Flutter-OH 插件平台，集成 `@jg/verify` 1.2.2。
++ 新增：初始化、网络检查、取 token、预取号、缓存管理、一键登录、授权页关闭和事件回调的 ArkTS 实现。
++ 新增：宿主 `Navigation/NavPathStack` 接入及生命周期日志，满足 1.2.2 移动登录页要求。
++ 新增：现有授权页 UI 字段的 HarmonyOS 映射，以及安全区、返回按钮尺寸、登录按钮颜色/圆角等 HarmonyOS-only 字段。
++ 新增：中国移动专用 `JVHarmonyCMUIConfig`，覆盖系统栏、灰度、对齐规则、disabled 登录按钮、checkbox、协议片段、Web、窗口模式、自定义登录页和登录确认弹窗。
++ 新增：HarmonyOS 通用授权页/隐私二次弹窗的受控 ArkUI 文字、按钮、图片控件，以及中国移动自定义页图片按钮；支持 media/URI/base64 图片、widget ID 点击回调与监听注销接口。
++ 新增：HarmonyOS `JVCustomWidget.harmonyToastText`，可在回调自定义控件点击时显示当前原生页面可见的 Toast。
++ 新增：中国移动号码节点 `numberWidth/numberHeight`、自定义登录页控件 `toastText` 和透明图片 Button 支持。
++ 兼容：HarmonyOS 不支持的短信与合规采集接口保持公共入口，返回 `code=-2` 或 warning，不伪造成功。
++ 修复：插件自动读取 HarmonyOS 系统安全区；补齐授权页返回键回调、移动协议 span、移动 UI 属性、旧登录回调清理和不支持参数 warning。
++ 示例：新增完整 `example/ohos` 宿主、资源、权限和构建说明；修正授权页纵向布局、号码/协议对齐、登录按钮位置、透明状态栏和隐私二次弹窗关闭图位置。
++ 测试：补充 HarmonyOS UI DTO/可点击图片控件、监听注销、公共 channel 契约、重复请求、SMS 不支持回调和回调路由测试。
+
 ## 3.1.9
 + 新增：适配 Flutter 的依赖管理更新，支持 iOS Swift Package Manager（SwiftPM）集成。
 + 变更：自 3.1.9 起，iOS（SwiftPM 和 CocoaPods）仅支持 iOS 15.0 及以上版本。

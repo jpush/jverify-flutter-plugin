@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "JVerification Flutter HarmonyOS example"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "JVerification example"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "jverify_example"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "entry",
+  "version": "1.0.0",
+  "description": "JVerification Flutter HarmonyOS example entry.",
+  "main": "",
+  "author": "JIGUANG",
+  "license": "MIT",
+  "dependencies": {
+    "jverify": "file:../har/jverify.har"
+  }
+}

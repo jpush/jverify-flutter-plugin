@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "module_desc",
+      "value": "极光认证 Flutter 鸿蒙示例"
+    },
+    {
+      "name": "EntryAbility_desc",
+      "value": "极光认证示例"
+    },
+    {
+      "name": "EntryAbility_label",
+      "value": "jverify_example"
+    }
+  ]
+}

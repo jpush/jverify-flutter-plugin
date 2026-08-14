@@ -1,0 +1,64 @@
+# Gradle files
+example/android/.gradle/
+example/android/build/
+example/android/app/build/
+
+# iOS build files
+example/ios/Pods/
+example/ios/.symlinks/
+example/ios/Flutter/Flutter.framework/
+example/ios/Flutter/Flutter.podspec
+example/ios/Flutter/Generated.xcconfig
+example/ios/Flutter/flutter_export_environment.sh
+example/ios/Flutter/App.framework/
+example/ios/Flutter/Flutter.podspec
+example/ios/Flutter/Generated.xcconfig
+example/ios/Flutter/flutter_export_environment.sh
+example/ios/Flutter/App.framework/
+example/ios/Flutter/Flutter.podspec
+example/ios/Flutter/Generated.xcconfig
+example/ios/Flutter/flutter_export_environment.sh
+example/ios/Flutter/App.framework/
+
+# macOS build files
+example/macos/Flutter/FlutterMacOS.framework/
+example/macos/Flutter/FlutterMacOS.podspec
+example/macos/Flutter/GeneratedPluginRegistrant.swift
+example/macos/Flutter/ephemeral/
+
+# Linux build files
+example/linux/flutter/ephemeral/
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.DS_Store
+
+# HarmonyOS generated and local files
+**/oh_modules/
+**/.hvigor/
+**/build/
+**/oh-package-lock.json5
+**/BuildProfile.ets
+**/local.properties
+**/har/*.har
+*.hap
+*.app
+*.p12
+*.p7b
+*.cer
+*.pem
+*.jks
+*.keystore
+flutter_*.log
+
+# Local requirement/debug artifacts
+testflutterharmony/
+需求/
+android_api.md
+
+# Large local example media not required by the package archive
+example/ios/Runner/videoBg.mp4

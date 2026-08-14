@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -48,15 +47,12 @@ typedef JVSMSListener = void Function(JVSMSEvent event);
  * */
 typedef JVSDKSetupCallBackListener = void Function(JVSDKSetupEvent event);
 
-class s{
+class s {
   s._interna();
 }
+
 class JVEventHandlers {
-  static final JVEventHandlers _instance = new JVEventHandlers._internal();
-
-  JVEventHandlers._internal();
-
-  factory JVEventHandlers() => _instance;
+  JVEventHandlers();
 
   Map<String, JVClickWidgetEventListener> clickEventsMap =
       Map<String, JVClickWidgetEventListener>();
@@ -71,7 +67,6 @@ class JVEventHandlers {
   Map<int, JVLoginAuthCallBackListener> loginAuthCallBackEventsMap = {};
   Map<int, JVSMSListener> smsCallBackEventsMap = {};
   Map<int, JVAuthPageEventListener> smsAuthPageEventsMap = {};
-
 }
 
 class Jverify {
@@ -103,9 +98,29 @@ class Jverify {
     _eventHanders.clickEventsMap[eventId] = callback;
   }
 
+  /// 移除指定自定义控件的点击事件监听。
+  bool removeClikWidgetEventListener(String eventId) {
+    return _eventHanders.clickEventsMap.remove(eventId) != null;
+  }
+
+  /// 移除全部自定义控件点击事件监听。
+  void removeCustomViewsClickCallback() {
+    _eventHanders.clickEventsMap.clear();
+  }
+
   /// 授权页的点击事件， @since v2.4.0
   addAuthPageEventListener(JVAuthPageEventListener callback) {
     _eventHanders.authPageEvents.add(callback);
+  }
+
+  /// 移除指定授权页持续事件监听。
+  bool removeAuthPageEventListener(JVAuthPageEventListener callback) {
+    return _eventHanders.authPageEvents.remove(callback);
+  }
+
+  /// 移除全部授权页持续事件监听，与 HarmonyOS `offAuthPageEvent` 语义一致。
+  void offAuthPageEvent() {
+    _eventHanders.authPageEvents.clear();
   }
 
   /// loginAuth 接口回调的监听 （旧，用于配合旧版loginAuthSyncApi使用）
@@ -136,13 +151,14 @@ class Jverify {
         {
           Map json = call.arguments.cast<dynamic, dynamic>();
           JVAuthPageEvent ev = JVAuthPageEvent.fromJson(json);
-          int index = json["loginAuthIndex"];
+          final dynamic index = json["loginAuthIndex"];
 
           for (JVAuthPageEventListener cb in _eventHanders.authPageEvents) {
             cb(ev);
           }
 
-          if (_eventHanders.authPageEventsMap.containsKey(index)) {
+          if (index is int &&
+              _eventHanders.authPageEventsMap.containsKey(index)) {
             _eventHanders.authPageEventsMap[index]!(ev);
           }
         }
@@ -164,13 +180,16 @@ class Jverify {
               _eventHanders.loginAuthCallBackEventsMap[index]!(event);
               _eventHanders.loginAuthCallBackEventsMap.remove(index);
             }
+            _eventHanders.authPageEventsMap.remove(index);
           }
 
-          //老版本callback
-          for (JVLoginAuthCallBackListener cb
-              in _eventHanders.loginAuthCallBackEvents) {
+          // 老版 callback：先取快照再清理，避免迭代期修改 List 导致异常。
+          final List<JVLoginAuthCallBackListener> callbacks =
+              List<JVLoginAuthCallBackListener>.of(
+                  _eventHanders.loginAuthCallBackEvents);
+          _eventHanders.loginAuthCallBackEvents.clear();
+          for (JVLoginAuthCallBackListener cb in callbacks) {
             cb(event);
-            _eventHanders.loginAuthCallBackEvents.remove(cb);
           }
         }
         break;
@@ -196,6 +215,7 @@ class Jverify {
               _eventHanders.smsCallBackEventsMap[index]!(event);
               _eventHanders.smsCallBackEventsMap.remove(index);
             }
+            _eventHanders.smsAuthPageEventsMap.remove(index);
           }
         }
         break;
@@ -231,7 +251,7 @@ class Jverify {
 
   /// 初始化, timeout单位毫秒，合法范围是(0,30000]，推荐设置为5000-10000,默认值为10000
   void setup(
-      {@required String? appKey,
+      {String? appKey,
       String? channel,
       bool? useIDFA,
       int timeout = 10000,
@@ -255,13 +275,14 @@ class Jverify {
     _channel.invokeMethod("setDebugMode", {"debug": debug});
   }
 
-  /// 合规采集开关
+  /// 合规采集开关。HarmonyOS 原生 SDK 暂无对应接口，调用时仅输出警告日志。
   void setCollectionAuth(bool auth) {
     print("$flutter_log" + "setCollectionAuth");
     _channel.invokeMethod("setCollectionAuth", {"auth": auth});
   }
 
-  ///设置前后两次获取验证码的时间间隔，默认 30000ms，有效范围(0,300000)
+  /// 设置前后两次获取验证码的时间间隔，默认 30000ms，有效范围(0,300000)。
+  /// HarmonyOS 原生 SDK 暂无短信验证码能力，调用时仅输出警告日志。
   void setGetCodeInternal(int intervalTime) {
     print("$flutter_log" + "setGetCodeInternal");
     _channel.invokeMethod("setGetCodeInternal", {"timeInterval": intervalTime});
@@ -274,9 +295,10 @@ class Jverify {
    *        key = "code", vlaue = 状态码，3000代表获取成功
    *        key = "message", 提示信息
    *        key = "result",uuid
+   * HarmonyOS 原生 SDK 暂无短信验证码能力，返回 code=-2 和警告信息。
    * */
   Future<Map<dynamic, dynamic>> getSMSCode(
-      {@required String? phoneNum, String? signId, String? tempId}) async {
+      {String? phoneNum, String? signId, String? tempId}) async {
     print("$flutter_log" + "getSMSCode");
 
     var args = <String, String>{};
@@ -361,12 +383,14 @@ class Jverify {
 
   /*
    * SDK 一键登录预取号,timeOut 有效取值范围[3000,10000]
+   * HarmonyOS 支持预取号，但不支持 enableSms，传 true 时会输出警告并忽略。
    *
    * return Map
    *        key = "code", vlaue = 状态码，7000代表获取成功
    *        key = "message", value = 结果信息描述
    * */
-  Future<Map<dynamic, dynamic>> preLogin({int timeOut = 10000, bool enableSms = false}) async {
+  Future<Map<dynamic, dynamic>> preLogin(
+      {int timeOut = 10000, bool enableSms = false}) async {
     var para = new Map();
     if (timeOut >= 3000 && timeOut <= 10000) {
       para["timeOut"] = timeOut;
@@ -449,8 +473,7 @@ class Jverify {
   * 授权页面点击事件监听：通过添加 JVAuthPageEventListener 监听，来监听授权页点击事件
   *
   * */
-  void loginAuthSyncApi(
-      {@required bool autoDismiss = false, int timeout = 10000}) {
+  void loginAuthSyncApi({bool autoDismiss = false, int timeout = 10000}) {
     print("$flutter_log" + "loginAuthSyncApi");
 
     String method = "loginAuthSyncApi";
@@ -469,7 +492,7 @@ class Jverify {
   *
   * @param autoDismiss  设置登录完成后是否自动关闭授权页
   * @param timeout      设置超时时间，单位毫秒。 合法范围（0，30000],范围以外默认设置为10000
-  * @param enableSms     是否开启短信登录切换服务，开启时在授权登录失败时拉起短信登录页面，默认为false
+  * @param enableSms     是否开启短信登录切换服务；HarmonyOS 暂不支持，传 true 时输出警告并忽略
   *
   * 接口回调返回数据监听：通过添加 JVLoginAuthCallBackListener 监听，来监听接口的返回结果
   *
@@ -510,7 +533,7 @@ class Jverify {
   }
 
   /*
-  * 短信登录
+  * 短信登录。HarmonyOS 原生 SDK 暂无对应能力，回调 code=-2 并输出警告日志。
   *
   * @param autoDismiss  设置登录完成后是否自动关闭授权页
   * @param timeout      设置超时时间，单位毫秒。 合法范围（0，10000],若小于等于 0 则取默认值 5000. 大于 10000 则取 10000
@@ -569,7 +592,7 @@ class Jverify {
   void setCustomAuthorizationView(bool isAutorotate, JVUIConfig portraitConfig,
       {JVUIConfig? landscapeConfig, List<JVCustomWidget>? widgets}) {
     if (isAutorotate == true) {
-      if (portraitConfig == null || landscapeConfig == null) {
+      if (landscapeConfig == null) {
         print("missing Android landscape ui config");
         return;
       }
@@ -644,45 +667,65 @@ class Jverify {
 * Y 轴
 *     iOS       以导航栏底部为 0 作为起点
 *     Android   以导航栏底部为 0 作为起点
+*     HarmonyOS 由原生 JVerifyUIConfigBuilder 按 vp 解释，具体起点随控件类型而定
 * X 轴
 *     iOS       以屏幕中心为 0 作为起点，往屏幕左侧则减，往右侧则加，如果不传或者传 null，则默认屏幕居中
 *     Android   以屏幕左侧为 0 作为起点，往右侧则加，如果不传或者传 null，则默认屏幕居中
+*     HarmonyOS 传 -1 表示水平居中，其余值按原生 SDK 的 vp 偏移解释
 * */
 class JVUIConfig {
   ///语言
   ///0.中文简体（默认） 1.中文繁体 2.英文
-  String? appLanguageType;
+  String? appLanguageType; // HarmonyOS 仅中国移动生效
 
   /// 授权页背景图片
-  String? authBackgroundImage;
-  String? authBGGifPath; // 授权界面gif图片
-  String? authBGVideoPath; // 授权界面video
-  String? authBGVideoImgPath; // 授权界面video的第一频图片
+  String? authBackgroundImage; // HarmonyOS 仅联通/电信生效
+  String? authBGGifPath; // 授权界面gif图片，HarmonyOS 仅联通/电信生效
+  String? authBGVideoPath; // 授权界面video，HarmonyOS 仅联通/电信生效
+  String? authBGVideoImgPath; // 授权界面video的第一帧图片，HarmonyOS 仅联通/电信生效
   JVAuthBGVideoScaleType? authBGVideoScaleType; // Android 授权界面video缩放模式
 
+  /// HarmonyOS 联通/电信，授权页字体是否跟随系统字体大小，默认 true
+  bool? harmonyAuthPageFontFollowSystem;
+
+  /// HarmonyOS 联通/电信，授权页顶部安全区高度，单位 vp
+  int? harmonyTopSafeAreaHeight;
+
+  /// HarmonyOS 联通/电信，授权页底部安全区高度，单位 vp
+  int? harmonyBottomSafeAreaHeight;
+
+  /// HarmonyOS 联通/电信，是否使用 Stack 布局定位号码、slogan、登录按钮和隐私区域
+  bool? harmonyStackLayout;
+
   /// 导航栏
-  int? navColor;
-  String? navText;
-  int? navTextColor;
+  int? navColor; // HarmonyOS 仅中国移动 Builder 生效
+  String? navText; // iOS/Android only，HarmonyOS 1.2.2 无对应导航栏标题字段
+  int? navTextColor; // HarmonyOS 仅中国移动 Builder 生效
   String? navReturnImgPath;
   int? navReturnBtnOffsetX;
   int? navReturnBtnOffsetY;
 
-  bool navHidden = false;
-  bool navReturnBtnHidden = false;
-  bool navTransparent = false;
-  bool? navTextBold;
-  bool? navBarDarkMode;//Android only
+  /// HarmonyOS 联通/电信，返回按钮宽度，单位 vp
+  int? harmonyReturnBtnWidth;
+
+  /// HarmonyOS 联通/电信，返回按钮高度，单位 vp
+  int? harmonyReturnBtnHeight;
+
+  bool navHidden = false; // HarmonyOS 仅联通/电信生效
+  bool navReturnBtnHidden = false; // HarmonyOS 仅联通/电信生效
+  bool navTransparent = false; // iOS/Android only
+  bool? navTextBold; // iOS/Android only
+  bool? navBarDarkMode; //Android only
 
   /// logo
-  int? logoWidth;
-  int? logoHeight;
-  int? logoOffsetX;
-  int? logoOffsetY;
-  int? logoOffsetBottomY;
-  JVIOSLayoutItem? logoVerticalLayoutItem;
-  bool? logoHidden;
-  String? logoImgPath;
+  int? logoWidth; // HarmonyOS 仅联通/电信生效
+  int? logoHeight; // HarmonyOS 仅联通/电信生效
+  int? logoOffsetX; // HarmonyOS 仅联通/电信生效
+  int? logoOffsetY; // HarmonyOS 仅联通/电信生效
+  int? logoOffsetBottomY; // iOS only，HarmonyOS 不生效
+  JVIOSLayoutItem? logoVerticalLayoutItem; // iOS only，HarmonyOS 不生效
+  bool? logoHidden; // HarmonyOS 仅联通/电信生效
+  String? logoImgPath; // HarmonyOS 仅联通/电信生效
 
   /// 号码
   int? numberColor;
@@ -692,56 +735,74 @@ class JVUIConfig {
   int? numFieldOffsetY;
   int? numberFieldWidth;
   int? numberFieldHeight;
-  JVIOSLayoutItem? numberVerticalLayoutItem;
-  int? numberFieldOffsetBottomY;
+  JVIOSLayoutItem? numberVerticalLayoutItem; // iOS only，HarmonyOS 不生效
+  int? numberFieldOffsetBottomY; // iOS/Android only，HarmonyOS 不生效
 
   /// slogan
-  int? sloganOffsetX;
-  int? sloganOffsetY;
-  int? sloganBottomOffsetY;
-  JVIOSLayoutItem? sloganVerticalLayoutItem;
-  int? sloganTextColor;
-  int? sloganTextSize;
-  int? sloganWidth;
-  int? sloganHeight;
-  bool? sloganTextBold;
-  bool sloganHidden = false;
+  int? sloganOffsetX; // HarmonyOS 仅联通/电信生效
+  int? sloganOffsetY; // HarmonyOS 仅联通/电信生效
+  int? sloganBottomOffsetY; // iOS/Android only，HarmonyOS 不生效
+  JVIOSLayoutItem? sloganVerticalLayoutItem; // iOS only，HarmonyOS 不生效
+  int? sloganTextColor; // HarmonyOS 仅联通/电信生效
+  int? sloganTextSize; // HarmonyOS 仅联通/电信生效
+  int? sloganWidth; // iOS only，HarmonyOS 不生效
+  int? sloganHeight; // iOS only，HarmonyOS 不生效
+  bool? sloganTextBold; // HarmonyOS 仅联通/电信生效
+  bool sloganHidden = false; // HarmonyOS 不生效
 
   /// 登录按钮
   int? logBtnOffsetX;
   int? logBtnOffsetY;
-  int? logBtnBottomOffsetY;
+  int? logBtnBottomOffsetY; // iOS/Android only，HarmonyOS 不生效
   int? logBtnWidth;
   int? logBtnHeight;
-  JVIOSLayoutItem? logBtnVerticalLayoutItem;
+  JVIOSLayoutItem? logBtnVerticalLayoutItem; // iOS only，HarmonyOS 不生效
   String? logBtnText;
   int? logBtnTextSize;
   int? logBtnTextColor;
-  bool? logBtnTextBold;
+  bool? logBtnTextBold; // HarmonyOS 仅联通/电信生效
   String? logBtnBackgroundPath;
-  String? loginBtnNormalImage; // ios only
-  String? loginBtnPressedImage; // ios only
-  String? loginBtnUnableImage; // ios only
+  String? loginBtnNormalImage; // iOS/Android only，HarmonyOS 不生效
+  String? loginBtnPressedImage; // iOS/Android only，HarmonyOS 不生效
+  String? loginBtnUnableImage; // iOS/Android only，HarmonyOS 不生效
+
+  /// HarmonyOS，登录按钮背景颜色（ARGB int）
+  int? harmonyLogBtnBackgroundColor;
+
+  /// HarmonyOS，登录按钮圆角，单位 vp
+  int? harmonyLogBtnBorderRadius;
 
   /// 隐私协议栏
   String? uncheckedImgPath;
   String? checkedImgPath;
-  int? privacyCheckboxOffsetX; // 隐私同意框 左偏移
-  int? privacyCheckboxOffsetY; // 隐私同意框 上偏移
+  int? privacyCheckboxOffsetX; // HarmonyOS 仅中国移动生效
+  int? privacyCheckboxOffsetY; // HarmonyOS 仅中国移动生效
   int? privacyCheckboxSize; //隐私同意框尺寸
-  bool privacyHintToast = true; //设置隐私条款不选中时点击登录按钮默认弹出toast。
+  bool privacyHintToast =
+      true; // HarmonyOS 自定义文案请使用 harmonyPrivacyHintToastText
   bool privacyState = false; //设置隐私条款默认选中状态，默认不选中
-  bool privacyCheckboxHidden = false; //设置隐私条款checkbox是否隐藏
-  bool privacyCheckboxInCenter = false; //设置隐私条款checkbox是否相对协议文字纵向居中
-  bool openPrivacyInBrowser = false; /*隐私协议点击 是否用浏览器打开*/
+  bool privacyCheckboxHidden = false; // iOS/Android only，HarmonyOS 不生效
+  bool privacyCheckboxInCenter =
+      false; //设置隐私条款checkbox是否相对协议文字纵向居中；HarmonyOS 仅联通/电信生效
+  bool openPrivacyInBrowser = false; // iOS/Android only，HarmonyOS 不生效
+
+  /// HarmonyOS，未勾选隐私协议时的 Toast 文案
+  String? harmonyPrivacyHintToastText;
+
+  /// HarmonyOS，隐私条款开头文本；未设置时复用 privacyText[0]
+  String? harmonyPrivacyClauseStart;
+
+  /// HarmonyOS，隐私条款结尾文本；未设置时复用 privacyText[1]
+  String? harmonyPrivacyClauseEnd;
 
   int? privacyOffsetY; // 隐私条款相对于授权页面底部下边缘 y 偏移
   int? privacyOffsetX; // 隐私条款相对于屏幕左边 x 轴偏移
 
-  int? privacyMarginR; // 设置协议相对于授权页右边的间距 android only
-  int? privacyMarginT; // 设置协议相对于授权页顶部的间距 android only
+  int? privacyMarginR; // Android/HarmonyOS 协议右边距
+  int? privacyMarginT; // Android only；HarmonyOS 请使用 privacyTopOffsetY
 
-  JVIOSLayoutItem privacyVerticalLayoutItem = JVIOSLayoutItem.ItemSuper;
+  JVIOSLayoutItem privacyVerticalLayoutItem =
+      JVIOSLayoutItem.ItemSuper; // iOS only，HarmonyOS 不生效
   String? clauseName; // 协议1 名字
   String? clauseUrl; // 协议1 URL
   String? clauseNameTwo; // 协议2 名字
@@ -753,20 +814,20 @@ class JVUIConfig {
   List<JVPrivacy>? privacyItem;
   bool privacyWithBookTitleMark = true; //设置隐私条款运营商协议名是否加书名号
   bool privacyTextCenterGravity = false; //隐私条款文字是否居中对齐（默认左对齐）
-  int? textVerAlignment = 1; //设置条款文字是否垂直居中对齐(默认居中对齐) 0是top 1是m 2是b  ios only
+  int? textVerAlignment = 1; // iOS only，HarmonyOS 不生效
   int? privacyTopOffsetY;
   bool? privacyTextBold;
-  bool? privacyUnderlineText; //设置隐私条款文字字体是否加下划线
-  bool? isAlertPrivacyVc; //是否在未勾选隐私协议的情况下 弹窗提示窗口
+  bool? privacyUnderlineText; //设置隐私条款文字字体是否加下划线；HarmonyOS 仅联通/电信生效
+  bool? isAlertPrivacyVc; //未勾选隐私协议时弹窗提示；HarmonyOS 仅联通/电信生效
 
   /// 隐私协议 web 页 UI 配置
-  int? privacyNavColor; // 导航栏颜色
-  int? privacyNavTitleTextColor; // 标题颜色
-  int? privacyNavTitleTextSize; // 标题大小
-  bool? privacyNavTitleTextBold; // 标题字体加粗
-  String? privacyNavTitleTitle; //协议0 web页面导航栏标题 ios only
-  String? privacyNavTitleTitle1; // 协议1 web页面导航栏标题
-  String? privacyNavTitleTitle2; // 协议2 web页面导航栏标题
+  int? privacyNavColor; // 导航栏颜色；HarmonyOS 仅联通/电信生效
+  int? privacyNavTitleTextColor; // 标题颜色；HarmonyOS 仅联通/电信生效
+  int? privacyNavTitleTextSize; // 标题大小；HarmonyOS 仅联通/电信生效
+  bool? privacyNavTitleTextBold; // 标题字体加粗；HarmonyOS 仅联通/电信生效
+  String? privacyNavTitleTitle; // iOS only，HarmonyOS 不生效
+  String? privacyNavTitleTitle1; // Android/iOS；HarmonyOS 使用协议 name
+  String? privacyNavTitleTitle2; // Android/iOS；HarmonyOS 使用协议 name
   String? privacyNavReturnBtnImage;
   JVIOSBarStyle? privacyStatusBarStyle; //隐私协议web页 状态栏样式设置 ios only
 
@@ -787,20 +848,19 @@ class JVUIConfig {
   int? virtualButtonColor; //设置授权页底部虚拟导航栏背景 android only
   bool? virtualButtonHidden; //设置授权页底部虚拟导航栏是否隐藏 android only
 
-
   JVIOSBarStyle authStatusBarStyle =
       JVIOSBarStyle.StatusBarStyleDefault; //授权页状态栏样式设置 ios only
 
   ///是否需要动画
-  bool needStartAnim = false; //设置拉起授权页时是否需要显示默认动画
-  bool needCloseAnim = false; //设置关闭授权页时是否需要显示默认动画
-  String? enterAnim; // 拉起授权页时进入动画 android only
-  String? exitAnim; // 退出授权页时动画 android only
+  bool needStartAnim = false; // iOS/Android only，HarmonyOS 不生效
+  bool needCloseAnim = false; // iOS/Android only，HarmonyOS 不生效
+  String? enterAnim; // Android 与 HarmonyOS 中国移动生效
+  String? exitAnim; // Android 与 HarmonyOS 中国移动生效
 
   /// 授权页弹窗模式 配置，选填
   JVPopViewConfig? popViewConfig;
 
-  /// Android协议二次弹窗配置，选填
+  /// Android/HarmonyOS 协议二次弹窗配置，HarmonyOS 仅映射原生 Builder 支持字段
   JVPrivacyCheckDialogConfig? privacyCheckDialogConfig;
 
   JVIOSUIModalTransitionStyle modelTransitionStyle = //弹出方式 ios only
@@ -826,15 +886,18 @@ class JVUIConfig {
   List<JVCustomWidget>? agreementAlertViewWidgets; //协议二次弹窗自定义视图
   Map<String, List<int>>?
       agreementAlertViewUIFrames; // 协议二次弹窗各控件的frame设置 { "superViewFrame": [left, top, width, height],"alertViewFrame": [left, top, width, height],"titleFrame": [left, top, width, height],"contentFrame": [left, top, width, height],"buttonFrame": [left, top, width, height]};
-  bool setIsPrivacyViewDarkMode = true; //协议页面是否支持暗黑模式
+  bool setIsPrivacyViewDarkMode = true; // Android only，HarmonyOS 不生效
   /// 是否在 window 中间显示协议弹窗
   bool agreementAlertViewShowWindow = true;
 
-  /// Android 授权页系统返回键监听
+  /// Android 授权页系统返回键监听；HarmonyOS 仅中国移动生效
   JVAuthPageBackPressedListener? authPageBackPressedListener;
 
-  /// sms UI  
+  /// SMS UI；HarmonyOS 原生 SDK 无短信页面，设置后不生效并输出 warning
   JVSMSUIConfig? smsUIConfig;
+
+  /// HarmonyOS 中国移动专用 UI 配置；联通/电信忽略这些字段
+  JVHarmonyCMUIConfig? harmonyCmUIConfig;
 
   Map toJsonMap() {
     var agreementAlertViewWidgetsList = [];
@@ -856,6 +919,10 @@ class JVUIConfig {
       "authBGVideoImgPath": authBGVideoImgPath ??= null,
       "authBGVideoScaleType":
           getValueFromAuthBGVideoScaleType(authBGVideoScaleType),
+      "harmonyAuthPageFontFollowSystem": harmonyAuthPageFontFollowSystem,
+      "harmonyTopSafeAreaHeight": harmonyTopSafeAreaHeight,
+      "harmonyBottomSafeAreaHeight": harmonyBottomSafeAreaHeight,
+      "harmonyStackLayout": harmonyStackLayout,
       "authPageBackPressedListener":
           authPageBackPressedListener != null ? true : null,
       "navColor": navColor ??= null,
@@ -866,6 +933,8 @@ class JVUIConfig {
       "navReturnImgPath": navReturnImgPath ??= null,
       "navReturnBtnOffsetX": navReturnBtnOffsetX ??= null,
       "navReturnBtnOffsetY": navReturnBtnOffsetY ??= null,
+      "harmonyReturnBtnWidth": harmonyReturnBtnWidth,
+      "harmonyReturnBtnHeight": harmonyReturnBtnHeight,
       "navHidden": navHidden,
       "navReturnBtnHidden": navReturnBtnHidden,
       "navTransparent": navTransparent,
@@ -900,6 +969,8 @@ class JVUIConfig {
       "loginBtnNormalImage": loginBtnNormalImage ??= null,
       "loginBtnPressedImage": loginBtnPressedImage ??= null,
       "loginBtnUnableImage": loginBtnUnableImage ??= null,
+      "harmonyLogBtnBackgroundColor": harmonyLogBtnBackgroundColor,
+      "harmonyLogBtnBorderRadius": harmonyLogBtnBorderRadius,
       "uncheckedImgPath": uncheckedImgPath ??= null,
       "checkedImgPath": checkedImgPath ??= null,
       "privacyCheckboxOffsetX": privacyCheckboxOffsetX ??= null,
@@ -918,6 +989,10 @@ class JVUIConfig {
       "privacyUnderlineText": privacyUnderlineText ??= null,
       "isAlertPrivacyVc": isAlertPrivacyVc ??= null,
       "openPrivacyInBrowser": openPrivacyInBrowser,
+      "harmonyPrivacyHintToastText": harmonyPrivacyHintToastText,
+      "harmonyPrivacyClauseStart": harmonyPrivacyClauseStart,
+      "harmonyPrivacyClauseEnd": harmonyPrivacyClauseEnd,
+      "harmonyCmUIConfig": harmonyCmUIConfig?.toJsonMap(),
       "clauseName": clauseName ??= null,
       "clauseUrl": clauseUrl ??= null,
       "clauseBaseColor": clauseBaseColor ??= null,
@@ -979,7 +1054,7 @@ class JVUIConfig {
       "agreementAlertViewTitleText": agreementAlertViewTitleText ??= null,
       "agreementAlertViewTitleTexSize": agreementAlertViewTitleTexSize,
       "agreementAlertViewTitleTextColor": agreementAlertViewTitleTextColor ??=
-          Colors.black.value,
+          0xFF000000,
       "agreementAlertViewContentTextAlignment":
           getStringFromEnum(agreementAlertViewContentTextAlignment),
       "agreementAlertViewContentTextFontSize":
@@ -994,7 +1069,7 @@ class JVUIConfig {
       "agreementAlertViewLoginBtnUnableImagePath":
           agreementAlertViewLoginBtnUnableImagePath ??= null,
       "agreementAlertViewLogBtnTextColor": agreementAlertViewLogBtnTextColor ??=
-          Colors.black.value,
+          0xFF000000,
       "agreementAlertViewWidgets": agreementAlertViewWidgetsList,
       "agreementAlertViewUIFrames": agreementAlertViewUIFrames ??= null,
       "privacyCheckDialogConfig": privacyCheckDialogConfig != null
@@ -1005,6 +1080,464 @@ class JVUIConfig {
       "agreementAlertViewShowWindow": agreementAlertViewShowWindow,
     }..removeWhere((key, value) => value == null);
   }
+}
+
+/// HarmonyOS 中国移动授权页的专用 UI 配置。
+///
+/// 这些字段直接对应 `GenAuthThemeConfigBuilder`，Android、iOS、联通和电信会忽略。
+class JVHarmonyCMUIConfig {
+  JVHarmonySystemBarConfig? systemBar;
+  double? authPageGrayScale;
+  int? navTextSize;
+  JVHarmonyMargin? numberMargin;
+  JVHarmonyAlignRule? numberAlignRule;
+  double? numberWidth;
+  double? numberHeight;
+  double? clauseLineSpacing;
+  JVHarmonyMargin? loginBtnMargin;
+  JVHarmonyAlignRule? loginBtnAlignRule;
+  int? loginBtnMarginRight;
+  int? loginBtnBorderColor;
+  double? loginBtnBorderWidth;
+  int? loginBtnDisabledTextColor;
+  int? loginBtnDisabledColor;
+  String? loginBtnDisabledImgPath;
+  int? loginBtnDisabledBorderColor;
+  double? loginBtnDisabledBorderWidth;
+  JVHarmonyMargin? checkBoxMargin;
+  JVHarmonyAlignRule? checkBoxAlignRule;
+  JVHarmonySize? checkBoxSize;
+  int? checkBoxLocation;
+  int? checkedColor;
+  JVHarmonyCheckBoxShape? checkBoxShape;
+  JVHarmonyTextAlign? clauseTextAlign;
+  JVHarmonyMargin? clauseMargin;
+  JVHarmonyAlignRule? clauseAlignRule;
+  int? clauseNavMarginTop;
+  double? privacyMarginRight;
+  double? privacyOffsetY;
+  double? privacyOffsetYB;
+  String? activityIn;
+  String? activityOut;
+  double? windowWidth;
+  double? windowHeight;
+  double? windowX;
+  double? windowY;
+  double? windowBottom;
+  int? themeId;
+  bool? fitsSystemWindows;
+  bool? useDefaultLoginButtonImage;
+  String? defaultLoginButtonImagePath;
+  List<JVHarmonyCMClause>? clauses;
+  JVHarmonyCMLoginPageConfig? loginPage;
+  JVHarmonyCMLoginConfirmDialogConfig? loginConfirmDialog;
+  bool? webDomStorageEnabled;
+  int? webCloseImgWidth;
+  int? webCloseImgHeight;
+  JVHarmonyMargin? webCloseImgMargin;
+  JVHarmonyAlignRule? webCloseImgAlignRule;
+  JVHarmonyWindowConfig? windowMode;
+
+  Map<String, dynamic> toJsonMap() {
+    return <String, dynamic>{
+      'systemBar': systemBar?.toJsonMap(),
+      'authPageGrayScale': authPageGrayScale,
+      'navTextSize': navTextSize,
+      'numberMargin': numberMargin?.toJsonMap(),
+      'numberAlignRule': numberAlignRule?.toJsonMap(),
+      'numberWidth': numberWidth,
+      'numberHeight': numberHeight,
+      'clauseLineSpacing': clauseLineSpacing,
+      'loginBtnMargin': loginBtnMargin?.toJsonMap(),
+      'loginBtnAlignRule': loginBtnAlignRule?.toJsonMap(),
+      'loginBtnMarginRight': loginBtnMarginRight,
+      'loginBtnBorderColor': loginBtnBorderColor,
+      'loginBtnBorderWidth': loginBtnBorderWidth,
+      'loginBtnDisabledTextColor': loginBtnDisabledTextColor,
+      'loginBtnDisabledColor': loginBtnDisabledColor,
+      'loginBtnDisabledImgPath': loginBtnDisabledImgPath,
+      'loginBtnDisabledBorderColor': loginBtnDisabledBorderColor,
+      'loginBtnDisabledBorderWidth': loginBtnDisabledBorderWidth,
+      'checkBoxMargin': checkBoxMargin?.toJsonMap(),
+      'checkBoxAlignRule': checkBoxAlignRule?.toJsonMap(),
+      'checkBoxSize': checkBoxSize?.toJsonMap(),
+      'checkBoxLocation': checkBoxLocation,
+      'checkedColor': checkedColor,
+      'checkBoxShape': checkBoxShape?.name,
+      'clauseTextAlign': clauseTextAlign?.name,
+      'clauseMargin': clauseMargin?.toJsonMap(),
+      'clauseAlignRule': clauseAlignRule?.toJsonMap(),
+      'clauseNavMarginTop': clauseNavMarginTop,
+      'privacyMarginRight': privacyMarginRight,
+      'privacyOffsetY': privacyOffsetY,
+      'privacyOffsetYB': privacyOffsetYB,
+      'activityIn': activityIn,
+      'activityOut': activityOut,
+      'windowWidth': windowWidth,
+      'windowHeight': windowHeight,
+      'windowX': windowX,
+      'windowY': windowY,
+      'windowBottom': windowBottom,
+      'themeId': themeId,
+      'fitsSystemWindows': fitsSystemWindows,
+      'useDefaultLoginButtonImage': useDefaultLoginButtonImage,
+      'defaultLoginButtonImagePath': defaultLoginButtonImagePath,
+      'clauses': clauses?.map((item) => item.toJsonMap()).toList(),
+      'loginPage': loginPage?.toJsonMap(),
+      'loginConfirmDialog': loginConfirmDialog?.toJsonMap(),
+      'webDomStorageEnabled': webDomStorageEnabled,
+      'webCloseImgWidth': webCloseImgWidth,
+      'webCloseImgHeight': webCloseImgHeight,
+      'webCloseImgMargin': webCloseImgMargin?.toJsonMap(),
+      'webCloseImgAlignRule': webCloseImgAlignRule?.toJsonMap(),
+      'windowMode': windowMode?.toJsonMap(),
+    }..removeWhere((key, value) => value == null);
+  }
+}
+
+/// HarmonyOS ArkUI 宽高，数值单位为 vp。
+class JVHarmonySize {
+  final double width;
+  final double height;
+
+  const JVHarmonySize(this.width, this.height);
+
+  Map<String, dynamic> toJsonMap() => <String, dynamic>{
+        'width': width,
+        'height': height,
+      };
+}
+
+/// HarmonyOS 受控 ArkUI 自定义控件的图片配置。
+///
+/// [name] 是 `resources/base/media` 中不含扩展名的资源名；[source] 可直接
+/// 传 ArkUI `Image` 支持的 URI/base64，并且优先于 [name]。
+class JVHarmonyImageConfig {
+  String? name;
+  String? source;
+  JVHarmonyImageFit fit;
+
+  JVHarmonyImageConfig({
+    this.name,
+    this.source,
+    this.fit = JVHarmonyImageFit.contain,
+  });
+
+  Map<String, dynamic> toJsonMap() => <String, dynamic>{
+        'name': name,
+        'source': source,
+        'fit': fit.name,
+      }..removeWhere((key, value) => value == null);
+}
+
+/// HarmonyOS 中国移动隐私协议片段。
+class JVHarmonyCMClause {
+  final String text;
+  String? url;
+  double fontSize;
+  int fontColor;
+  bool bold;
+  bool isProtocol;
+
+  JVHarmonyCMClause({
+    required this.text,
+    this.url,
+    this.fontSize = 14,
+    this.fontColor = 0xFF64748B,
+    this.bold = false,
+    this.isProtocol = false,
+  });
+
+  Map<String, dynamic> toJsonMap() => <String, dynamic>{
+        'text': text,
+        'url': url,
+        'fontSize': fontSize,
+        'fontColor': fontColor,
+        'bold': bold,
+        'isProtocol': isProtocol,
+      }..removeWhere((key, value) => value == null);
+}
+
+/// HarmonyOS 中国移动授权页的叠加组件配置。
+///
+/// `setLoginPageComponent` 会把这里的内容叠加到 SDK 原生授权页之上；
+/// 默认背景透明，仅在显式配置背景色或背景图时覆盖原生背景。
+class JVHarmonyCMLoginPageConfig {
+  bool showTitle;
+  String title;
+  double titleSize;
+  int titleColor;
+  int backgroundColor;
+
+  /// `resources/base/media` 中的资源名，不含扩展名。
+  String? backgroundImage;
+
+  /// 可直接显示的图片 URI/base64；设置后优先于 [backgroundImage]。
+  String? backgroundImageSource;
+  List<JVHarmonyCMLoginPageWidget> widgets;
+
+  JVHarmonyCMLoginPageConfig({
+    this.showTitle = false,
+    this.title = '极光认证',
+    this.titleSize = 24,
+    this.titleColor = 0xFF17233D,
+    this.backgroundColor = 0x00000000,
+    this.backgroundImage,
+    this.backgroundImageSource,
+    List<JVHarmonyCMLoginPageWidget>? widgets,
+  }) : widgets = widgets ?? <JVHarmonyCMLoginPageWidget>[];
+
+  Map<String, dynamic> toJsonMap() => <String, dynamic>{
+        'showTitle': showTitle,
+        'title': title,
+        'titleSize': titleSize,
+        'titleColor': titleColor,
+        'backgroundColor': backgroundColor,
+        'backgroundImage': backgroundImage,
+        'backgroundImageSource': backgroundImageSource,
+        'widgets': widgets.map((item) => item.toJsonMap()).toList(),
+      }..removeWhere((key, value) => value == null);
+}
+
+/// HarmonyOS 中国移动自定义登录页上的文字、按钮或图片。
+class JVHarmonyCMLoginPageWidget {
+  final String id;
+  String anchor;
+  JVCustomWidgetType type;
+  String text;
+  double textSize;
+  int textColor;
+  int backgroundColor;
+  double width;
+  double height;
+  double borderRadius;
+  JVHarmonyImageConfig? image;
+  JVHarmonyMargin margin;
+  JVHarmonyCustomWidgetAction action;
+  String? toastText;
+
+  JVHarmonyCMLoginPageWidget({
+    required this.id,
+    this.anchor = 'loginBtn',
+    this.type = JVCustomWidgetType.button,
+    this.text = '',
+    this.textSize = 16,
+    this.textColor = 0xFFFFFFFF,
+    this.backgroundColor = 0xFF359AF3,
+    this.width = 180,
+    this.height = 44,
+    this.borderRadius = 22,
+    this.image,
+    JVHarmonyMargin? margin,
+    this.action = JVHarmonyCustomWidgetAction.callback,
+    this.toastText,
+  }) : margin = margin ?? JVHarmonyMargin();
+
+  Map<String, dynamic> toJsonMap() => <String, dynamic>{
+        'id': id,
+        'anchor': anchor,
+        'type': getStringFromEnum(type),
+        'text': text,
+        'textSize': textSize,
+        'textColor': textColor,
+        'backgroundColor': backgroundColor,
+        'width': width,
+        'height': height,
+        'borderRadius': borderRadius,
+        'image': image?.toJsonMap(),
+        'margin': margin.toJsonMap(),
+        'action': action.name,
+        'toastText': toastText,
+      }..removeWhere((key, value) => value == null);
+}
+
+/// HarmonyOS 中国移动点击登录按钮后的确认弹窗。
+class JVHarmonyCMLoginConfirmDialogConfig {
+  String message;
+  String confirmText;
+  String cancelText;
+  String confirmColor;
+  String cancelColor;
+
+  JVHarmonyCMLoginConfirmDialogConfig({
+    this.message = '是否登录授权',
+    this.confirmText = '确定',
+    this.cancelText = '取消',
+    this.confirmColor = '#000000',
+    this.cancelColor = '#000000',
+  });
+
+  Map<String, dynamic> toJsonMap() => <String, dynamic>{
+        'message': message,
+        'confirmText': confirmText,
+        'cancelText': cancelText,
+        'confirmColor': confirmColor,
+        'cancelColor': cancelColor,
+      };
+}
+
+/// HarmonyOS 系统状态栏和导航栏配置，颜色使用 `#AARRGGBB`/`#RRGGBB` 字符串。
+class JVHarmonySystemBarConfig {
+  String? statusBarColor;
+  bool? isStatusBarLightIcon;
+  String? statusBarContentColor;
+  String? navigationBarColor;
+  bool? isNavigationBarLightIcon;
+  String? navigationBarContentColor;
+  bool? enableStatusBarAnimation;
+  bool? enableNavigationBarAnimation;
+
+  Map<String, dynamic> toJsonMap() {
+    return <String, dynamic>{
+      'statusBarColor': statusBarColor,
+      'isStatusBarLightIcon': isStatusBarLightIcon,
+      'statusBarContentColor': statusBarContentColor,
+      'navigationBarColor': navigationBarColor,
+      'isNavigationBarLightIcon': isNavigationBarLightIcon,
+      'navigationBarContentColor': navigationBarContentColor,
+      'enableStatusBarAnimation': enableStatusBarAnimation,
+      'enableNavigationBarAnimation': enableNavigationBarAnimation,
+    }..removeWhere((key, value) => value == null);
+  }
+}
+
+/// HarmonyOS ArkUI Margin，数值单位为 vp。
+class JVHarmonyMargin {
+  double? left;
+  double? right;
+  double? top;
+  double? bottom;
+
+  JVHarmonyMargin({this.left, this.right, this.top, this.bottom});
+
+  Map<String, dynamic> toJsonMap() {
+    return <String, dynamic>{
+      'left': left,
+      'right': right,
+      'top': top,
+      'bottom': bottom,
+    }..removeWhere((key, value) => value == null);
+  }
+}
+
+/// HarmonyOS RelativeContainer 对齐规则。
+class JVHarmonyAlignRule {
+  JVHarmonyHorizontalRule? left;
+  JVHarmonyHorizontalRule? right;
+  JVHarmonyHorizontalRule? middle;
+  JVHarmonyVerticalRule? top;
+  JVHarmonyVerticalRule? bottom;
+  JVHarmonyVerticalRule? center;
+
+  Map<String, dynamic> toJsonMap() {
+    return <String, dynamic>{
+      'left': left?.toJsonMap(),
+      'right': right?.toJsonMap(),
+      'middle': middle?.toJsonMap(),
+      'top': top?.toJsonMap(),
+      'bottom': bottom?.toJsonMap(),
+      'center': center?.toJsonMap(),
+    }..removeWhere((key, value) => value == null);
+  }
+}
+
+class JVHarmonyHorizontalRule {
+  final String anchor;
+  final JVHarmonyHorizontalAlign align;
+
+  JVHarmonyHorizontalRule(this.anchor, this.align);
+
+  Map<String, dynamic> toJsonMap() => <String, dynamic>{
+        'anchor': anchor,
+        'align': align.name,
+      };
+}
+
+class JVHarmonyVerticalRule {
+  final String anchor;
+  final JVHarmonyVerticalAlign align;
+
+  JVHarmonyVerticalRule(this.anchor, this.align);
+
+  Map<String, dynamic> toJsonMap() => <String, dynamic>{
+        'anchor': anchor,
+        'align': align.name,
+      };
+}
+
+/// HarmonyOS 中国移动授权页窗口模式。
+///
+/// [width]/[height] 使用 vp；也可改用 `widthPercent: '80%'`、
+/// `heightPercent: '50%'` 表达百分比宽高。
+class JVHarmonyWindowConfig {
+  final double? width;
+  final double? height;
+  final String? widthPercent;
+  final String? heightPercent;
+  JVHarmonyDialogAlignment alignment;
+  double offsetX;
+  double offsetY;
+  bool showInSubWindow;
+  bool isModal;
+  bool autoCancel;
+  int maskColor;
+
+  JVHarmonyWindowConfig({
+    this.width,
+    this.height,
+    this.widthPercent,
+    this.heightPercent,
+    this.alignment = JVHarmonyDialogAlignment.center,
+    this.offsetX = 0,
+    this.offsetY = 0,
+    this.showInSubWindow = false,
+    this.isModal = true,
+    this.autoCancel = true,
+    this.maskColor = 0x33000000,
+  });
+
+  Map<String, dynamic> toJsonMap() => <String, dynamic>{
+        'width': widthPercent ?? width,
+        'height': heightPercent ?? height,
+        'alignment': alignment.name,
+        'offsetX': offsetX,
+        'offsetY': offsetY,
+        'showInSubWindow': showInSubWindow,
+        'isModal': isModal,
+        'autoCancel': autoCancel,
+        'maskColor': maskColor,
+      };
+}
+
+enum JVHarmonyHorizontalAlign { start, center, end }
+
+enum JVHarmonyVerticalAlign { top, center, bottom }
+
+enum JVHarmonyTextAlign { start, center, end }
+
+/// HarmonyOS ArkUI `Image` 的缩放模式。
+enum JVHarmonyImageFit { fill, contain, cover }
+
+enum JVHarmonyCheckBoxShape { circle, roundedSquare }
+
+enum JVHarmonyDialogAlignment {
+  top,
+  center,
+  bottom,
+  topStart,
+  topEnd,
+  centerStart,
+  centerEnd,
+  bottomStart,
+  bottomEnd,
+}
+
+/// HarmonyOS 自定义控件点击后的原生动作。
+enum JVHarmonyCustomWidgetAction {
+  none,
+  callback,
+  dismissLoginAuth,
+  closeCheckDialog,
 }
 
 /*
@@ -1380,7 +1913,7 @@ class JVCustomWidget {
   JVCustomWidget(this.widgetId, this.type) {
     this.widgetId = widgetId;
     this.type = type;
-    if (type == JVCustomWidgetType.button) {
+    if (type == JVCustomWidgetType.button || type == JVCustomWidgetType.image) {
       this.isClickEnable = true;
     } else {
       this.isClickEnable = false;
@@ -1394,11 +1927,28 @@ class JVCustomWidget {
 
   String title = "";
   double titleFont = 13.0;
-  int titleColor = Colors.black.value;
+  int titleColor = 0xFF000000;
   int? backgroundColor;
+
+  /// 按钮常态图片。HarmonyOS 将它作为 media 资源名使用；
+  /// [harmonyImage] 已配置时以后者为准。
   String? btnNormalImageName;
+
+  /// iOS/Android 按压态图片；HarmonyOS 受控 ArkUI 图片按钮暂不切换按压态资源。
   String? btnPressedImageName;
   JVTextAlignmentType? textAlignment;
+
+  /// HarmonyOS 受控 ArkUI Builder 的圆角，单位 vp。
+  double? harmonyBorderRadius;
+
+  /// HarmonyOS 点击后的原生动作；默认仅回调 [widgetId]。
+  JVHarmonyCustomWidgetAction? harmonyAction;
+
+  /// HarmonyOS 点击后显示的原生 Toast；为空时只执行回调和 [harmonyAction]。
+  String? harmonyToastText;
+
+  /// HarmonyOS 自定义 Image 或图片 Button；也可用于隐私二次弹窗。
+  JVHarmonyImageConfig? harmonyImage;
 
   int lines = 1;
 
@@ -1431,6 +1981,10 @@ class JVCustomWidget {
       "isClickEnable": isClickEnable,
       "btnNormalImageName": btnNormalImageName,
       "btnPressedImageName": btnPressedImageName,
+      "harmonyBorderRadius": harmonyBorderRadius,
+      "harmonyAction": harmonyAction?.name,
+      "harmonyToastText": harmonyToastText,
+      "harmonyImage": harmonyImage?.toJsonMap(),
       "lines": lines,
       "isSingleLine": isSingleLine,
       "belowTheDialogContent": belowTheDialogContent,
@@ -1442,8 +1996,8 @@ class JVCustomWidget {
   }
 }
 
-/// 添加自定义控件类型，目前只支持 textView
-enum JVCustomWidgetType { textView, button }
+/// 添加自定义控件类型。HarmonyOS 支持受控 textView、button 和 image。
+enum JVCustomWidgetType { textView, button, image }
 
 /// Android 授权页背景视频缩放模式
 enum JVAuthBGVideoScaleType {
@@ -1491,7 +2045,6 @@ class JVListenerEvent {
 
 /// 授权页事件
 class JVAuthPageEvent extends JVListenerEvent {
-  @override
   JVAuthPageEvent.fromJson(Map<dynamic, dynamic> json) : super.fromJson(json);
 
   @override
@@ -1505,7 +2058,6 @@ class JVAuthPageEvent extends JVListenerEvent {
 
 /// SDK 初始化回调事件
 class JVSDKSetupEvent extends JVAuthPageEvent {
-  @override
   JVSDKSetupEvent.fromJson(Map<dynamic, dynamic> json) : super.fromJson(json);
 }
 
@@ -1597,7 +2149,7 @@ class JVPrivacy {
   String? url;
   String? beforeName;
   String? afterName;
-  String? separator; //ios分隔符专属
+  String? separator; // iOS/HarmonyOS 自定义协议分隔符
 
   JVPrivacy(this.name, this.url,
       {this.beforeName, this.afterName, this.separator});

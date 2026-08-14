@@ -1,6 +1,6 @@
 name: jverify
 description: JIGUANG Official Jverifycation SDK flutter plugin project.
-version: 3.1.9
+version: 3.2.0
 homepage: https://www.jiguang.cn
 #flutter pub publish --server=https://pub.dartlang.org
 #flutter pub publish --server=https://pub.dartlang.org
@@ -37,6 +37,9 @@ flutter:
         package: com.jiguang.jverify
         pluginClass: JverifyPlugin
       ios:
+        pluginClass: JverifyPlugin
+      ohos:
+        package: com.jiguang.jverify
         pluginClass: JverifyPlugin
 
   # To add assets to your plugin package, add an assets section, like this:

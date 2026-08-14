@@ -64,14 +64,6 @@ android {
         }
     }
 
-    signingConfigs {
-        debug {
-            storeFile file("./debug.keystore")
-        }
-        uidyn {
-            storeFile file("./debug.keystore")
-        }
-    }
 }
 
 flutter {

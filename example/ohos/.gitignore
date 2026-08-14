@@ -1,0 +1,24 @@
+/node_modules
+/oh_modules
+/local.properties
+/.idea
+/.hvigor
+**/build
+**/oh_modules
+**/.test
+*.hap
+*.har
+**/BuildProfile.ets
+**/oh-package-lock.json5
+**/src/main/resources/rawfile/flutter_assets/
+**/libs/arm64-v8a/libapp.so
+**/libs/arm64-v8a/libflutter.so
+**/libs/arm64-v8a/libvmservice_snapshot.so
+
+# Local signing material and developer-only signing profiles.
+sign/
+signing/
+*.p12
+*.p7b
+*.cer
+*.csr
